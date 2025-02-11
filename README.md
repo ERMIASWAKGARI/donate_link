@@ -1,75 +1,90 @@
 # 🌍 Online Donation Platform through NGOs
 
-### 📌 Project Overview
+## 📌 Project Overview
+**Tech Stack:** MongoDB, Express.js, React.js, Node.js (MERN)
 
-- **Tech Stack:** MongoDB, Express.js, React.js, Node.js (MERN)
-- **Goal:** Provide a platform for users to donate to NGOs securely.
-- **Team Members:**
-  - [Murtessa] (Project Manager)
-  - [Kuma] (Backend)
-  - [Ermias] (Backend)
-  - [Temsgen] (Frontend)
-  - [Biniam] (Frontend)
+**Goal:** Provide a platform for users to donate to NGOs securely.
 
-  ## For Backends
+### 👥 Team Members:
+- **Murtessa** (Project Manager)
+- **Kuma** (Backend)
+- **Ermias** (Backend)
+- **Temsgen** (Frontend)
+- **Biniam** (Frontend)
 
-  .env
-  MONGO_URI=mongodb+srv://murtessajabesa65:murtee1122@cluster0.t8hgd.mongodb.net/donations?retryWrites=true&w=majority&appName=Cluster0
-  PORT=5000
+---
+## ⚙️ Backend Setup
+### **Environment Variables (.env)**
+Create a `.env` file in the root directory and add the following:
 
-# Repository URL
+```sh
+MONGO_URI=mongodb+srv://murtessajabesa65:murtee1122@cluster0.t8hgd.mongodb.net/donations?retryWrites=true&w=majority&appName=Cluster0
+PORT=5000
+```
 
+### **Clone and Set Up Backend Repository**
+```sh
 git clone https://github.com/murtessa/Online-Donation-Platform-through-NGOs
 cd backend
+```
 
-## For Frontend
-
-# Repository URL
-
+---
+## 🎨 Frontend Setup
+### **Clone and Set Up Frontend Repository**
+```sh
 git clone https://github.com/murtessa/Online-Donation-Platform-through-NGOs
 cd frontend
+```
 
-# General Rules
+---
+## 🔥 General Git Rules
 
-1. Pull from Main Before Starting Work
-
-Before starting any new task, ensure you pull the latest changes from the main branch to stay up-to-date:
+### **1️⃣ Pull from Main Before Starting Work**
+Before starting any new task, ensure you pull the latest changes from the main branch:
+```sh
 git checkout main
-git pull origin main 
+git pull origin main
+```
 
-2. Create a New Branch Before Making Any Change/Commit on Your Task
-
-Create your own branch before:
+### **2️⃣ Create a New Branch Before Making Changes**
+Create your own branch before making any modifications:
+```sh
 git checkout -b your-branch-name
-Name your branches descriptively, ideally including the task or feature name, e.g., feature/user-authentication. 
+```
+Name your branches descriptively, ideally including the task or feature name, e.g., `feature/user-authentication`.
 
-3. Commit Regularly and Push to Your Branch Only
-
-Make frequent, meaningful commits to your branch.
-Push your changes to your branch only:
+### **3️⃣ Commit Regularly and Push to Your Branch Only**
+Make frequent, meaningful commits to your branch. Push your changes only to your branch:
+```sh
 git push origin your-branch-name
-Never Push Directly to Main
+```
 
-4. Do not push changes directly to the main branch. This helps prevent breaking the main branch inadvertently.
-   Periodic Merging by Designated Person
+### **🚫 Never Push Directly to Main**
+Do **NOT** push changes directly to the `main` branch. This prevents breaking the main branch inadvertently.
 
-A designated person will be responsible for merging branches into the main branch periodically.
-They will review the pull requests, resolve conflicts, and ensure the main branch remains stable. 5. Handling Conflicts
+### **🔄 Periodic Merging by a Designated Person**
+A designated team member will be responsible for merging branches into `main`, reviewing pull requests, resolving conflicts, and maintaining stability.
 
-If you encounter conflicts, attempt to resolve them by reverting to your last stable code and incorporating your changes again:
+### **⚔️ Handling Conflicts**
+If you encounter conflicts, resolve them carefully by following these steps:
+```sh
 git stash
 git pull origin main
 git stash pop
-If conflicts affect your code, do not leave them unresolved. Seek help from your teammates. 6. Avoid Force Pushing
+```
+If conflicts persist, do not leave them unresolved. Seek help from your teammates.
 
-Never use git push --force as it can overwrite commits and cause loss of work.
+### **❌ Avoid Force Pushing**
+Never use `git push --force` as it can overwrite commits and cause loss of work.
 
-## Summary
+---
+## 📌 Summary
+✅ Always pull from `main` before starting work.  
+✅ Create your own branch for each new task.  
+✅ Commit and push to your branch only.  
+✅ Never push directly to `main`.  
+✅ A designated person handles merging into `main`.  
+✅ Resolve conflicts carefully and never use force push.  
 
-1.Always pull from main before starting work.
-2.Create your own branch for any new task.
-3.Commit and push to your branch only.
-4.Never push directly to main.
-5.A designated person will handle merging into the main branch.
-5.Resolve conflicts with help if needed and never use force push.
-By following these guidelines, we ensure a smooth workflow, minimize conflicts, and maintain a stable main branch.
+By following these guidelines, we ensure a **smooth workflow, minimize conflicts, and maintain a stable main branch.** 🚀
+
