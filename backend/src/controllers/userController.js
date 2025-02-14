@@ -1,6 +1,8 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const asyncWrapper = require("../middleware/asyncWrapper");
+const AppError = require("../utils/appError");
+const sendSuccessResponse = require("../utils/responseHelper");
 
 // Register User
 const registerUser = asyncWrapper(async (req, res) => {
@@ -9,7 +11,7 @@ const registerUser = asyncWrapper(async (req, res) => {
   // Check if the email is already registered
   const userExists = await User.findOne({ email });
   if (userExists) {
-    return res.status(400).json({ message: "User already exists" });
+    throw new AppError("User already exists", 400);
   }
 
   // Hash the password
@@ -22,9 +24,7 @@ const registerUser = asyncWrapper(async (req, res) => {
     case "individual_donor": {
       const { name } = req.body;
       if (!name) {
-        return res
-          .status(400)
-          .json({ message: "Name is required for individual donors." });
+        throw new AppError("Name is required for individual donors.", 400);
       }
 
       userData = { ...userData, name, donorType: "individual" };
@@ -40,9 +40,10 @@ const registerUser = asyncWrapper(async (req, res) => {
       } = req.body;
 
       if (!organizationName) {
-        return res.status(400).json({
-          message: "Organization name is required for organization donors.",
-        });
+        throw new AppError(
+          "Organization name is required for organization donors.",
+          400
+        );
       }
 
       userData = {
@@ -86,7 +87,7 @@ const registerUser = asyncWrapper(async (req, res) => {
       } = req.body;
 
       if (!ngoName) {
-        return res.status(400).json({ message: "NGO name is required." });
+        throw new AppError("NGO name is required.", 400);
       }
 
       userData = {
@@ -101,16 +102,19 @@ const registerUser = asyncWrapper(async (req, res) => {
     }
 
     default:
-      return res.status(400).json({ message: "Invalid user role provided." });
+      throw new AppError("Invalid user role provided.", 400);
   }
 
   // Create & Save User
   const newUser = new User(userData);
   await newUser.save();
 
-  res.status(201).json({
-    message: "Registration successful. Please verify your email.",
-  });
+  sendSuccessResponse(
+    res,
+    201,
+    "Registration successful. Please verify your email.",
+    newUser
+  );
 });
 
 module.exports = { registerUser };
