@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
 
-// Define allowed user roles
+// allowed user roles
 const USER_ROLES = [
   "individual_donor",
   "organization_donor",
@@ -65,25 +64,32 @@ const userSchema = new mongoose.Schema(
       },
     },
     skills: { type: [String], default: undefined },
-    availability: [
-      {
-        day: {
-          type: String,
-          enum: [
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-            "Sunday",
-          ],
-          required: true,
+    availability: {
+      type: [
+        {
+          day: {
+            type: String,
+            enum: [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+              "Sunday",
+            ],
+            required: true,
+          },
+          startTime: { type: String, required: true }, // e.g., "09:00 AM"
+          endTime: { type: String, required: true }, // e.g., "05:00 PM"
         },
-        startTime: { type: String, required: true }, // e.g., "09:00 AM"
-        endTime: { type: String, required: true }, // e.g., "05:00 PM"
+      ],
+      default: undefined, // 🚀 This ensures it's only stored when provided
+      required: function () {
+        return this.role === "volunteer"; // Only required for volunteers
       },
-    ],
+    },
+
     volunteerVerificationDocs: { type: [String], default: undefined },
 
     // ADDRESS & LOCATION (For Organization Donors, NGOs, Volunteers)
