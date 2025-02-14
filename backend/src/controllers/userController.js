@@ -69,6 +69,10 @@ const registerUser = asyncWrapper(async (req, res) => {
         availability,
       } = req.body;
 
+      if (!volunteerName) {
+        throw new AppError("Volunteer name is required.", 400);
+      }
+
       userData = {
         ...userData,
         volunteerName,

@@ -85,9 +85,6 @@ const userSchema = new mongoose.Schema(
         },
       ],
       default: undefined, // 🚀 This ensures it's only stored when provided
-      required: function () {
-        return this.role === "volunteer"; // Only required for volunteers
-      },
     },
 
     volunteerVerificationDocs: { type: [String], default: undefined },
