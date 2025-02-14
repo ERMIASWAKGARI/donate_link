@@ -1,8 +1,10 @@
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto"); // For generating the token
 const User = require("../models/User");
 const asyncWrapper = require("../middleware/asyncWrapper");
 const AppError = require("../utils/appError");
 const sendSuccessResponse = require("../utils/responseHelper");
+const { sendVerificationEmail } = require("../utils/emailService"); // Import email sender function
 
 // Register User
 const registerUser = asyncWrapper(async (req, res) => {
@@ -34,9 +36,9 @@ const registerUser = asyncWrapper(async (req, res) => {
     case "organization_donor": {
       const {
         organizationName,
-        address: organizationAddress = {},
-        location: organizationLocation = {},
-        organizationVerificationDocs = [],
+        address: organizationAddress,
+        location: organizationLocation,
+        organizationVerificationDocs,
       } = req.body;
 
       if (!organizationName) {
@@ -61,9 +63,9 @@ const registerUser = asyncWrapper(async (req, res) => {
     case "volunteer": {
       const {
         volunteerName,
-        skills = [],
-        address: volunteerAddress = {},
-        volunteerVerificationDocs = [],
+        skills,
+        address: volunteerAddress,
+        volunteerVerificationDocs,
         availability,
       } = req.body;
 
@@ -81,9 +83,9 @@ const registerUser = asyncWrapper(async (req, res) => {
     case "ngo": {
       const {
         ngoName,
-        address: ngoAddress = {},
-        location: ngoLocation = {},
-        ngoVerificationDocs = [],
+        address: ngoAddress,
+        location: ngoLocation,
+        ngoVerificationDocs,
       } = req.body;
 
       if (!ngoName) {
@@ -105,10 +107,29 @@ const registerUser = asyncWrapper(async (req, res) => {
       throw new AppError("Invalid user role provided.", 400);
   }
 
+  // Generate Email Verification Token
+  const emailVerificationToken = crypto.randomBytes(32).toString("hex");
+
+  // Store the token in the user's record
+  userData.isEmailVerified = false;
+  userData.emailVerificationToken = emailVerificationToken;
+
   // Create & Save User
   const newUser = new User(userData);
   await newUser.save();
 
+  // // Send Email Verification
+  // const verificationUrl = `${process.env.CLIENT_URL}/api/users/verify-email?token=${emailVerificationToken}`;
+  // const emailMessage = `
+  //   <h3>Hello,</h3>
+  //   <p>Thank you for registering. Please verify your email by clicking the link below:</p>
+  //   <a href="${verificationUrl}">Verify Email</a>
+  //   <p>If you didn't request this, please ignore this email.</p>
+  // `;
+
+  await sendVerificationEmail(email, emailVerificationToken);
+
+  // Send Success Response
   sendSuccessResponse(
     res,
     201,

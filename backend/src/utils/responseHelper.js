@@ -1,6 +1,4 @@
-// utils/responseHelper.js
-
-const sendSuccessResponse = (res, statusCode, message, data = null) => {
+const sendSuccessResponse = (res, statusCode, message, data = "") => {
   res.status(statusCode).json({
     status: "success",
     message,
