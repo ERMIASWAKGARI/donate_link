@@ -55,22 +55,24 @@ const sendVerificationEmail = async (email, verificationToken) => {
 
 // Function to send reset password email
 const sendResetPasswordEmail = async (email, token) => {
-  const resetUrl = `http://localhost:5000/api/users/reset-password/${token}`;
-  const subject = "Reset Your Password - Online Donation Platform";
+  const resetUrl = `http://localhost:5000/api/auth/reset-password?token=${token}`;
+  const subject = "Password Reset Request - Online Donation Platform";
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 8px; background-color: #f9f9f9;">
-      <div style="background-color: #FF5733; padding: 15px; text-align: center; color: white; font-size: 22px; font-weight: bold; border-top-left-radius: 8px; border-top-right-radius: 8px;">
+      <div style="background-color:  #4CAF50; padding: 15px; text-align: center; color: white; font-size: 22px; font-weight: bold; border-top-left-radius: 8px; border-top-right-radius: 8px;">
         Online Donation Platform
       </div>
       <div style="padding: 20px; text-align: center;">
-        <h2 style="color: #333;">Password Reset Request 🔑</h2>
+        <h2 style="color: #333;">Reset Your Password 🔑</h2>
         <p style="font-size: 16px; color: #555;">
-          We received a request to reset your password. Click the button below to set a new password:
+          We received a request to reset your password. Click the button below to proceed:
         </p>
-        <a href="${resetUrl}" style="background-color: #FF5733; color: white; text-decoration: none; padding: 12px 25px; border-radius: 5px; font-size: 16px; display: inline-block; margin: 20px 0;">Reset Password</a>
+        <a href="${resetUrl}" style="background-color:  #4CAF50; color: white; text-decoration: none; padding: 12px 25px; border-radius: 5px; font-size: 16px; display: inline-block; margin: 20px 0;">
+          Reset Password
+        </a>
         <p style="font-size: 14px; color: #777;">
-          If you didn’t request a password reset, please ignore this email. This link will expire in 30 minutes.
+          If you did not request this, you can safely ignore this email. This link will expire in 15 minutes.
         </p>
       </div>
       <div style="background-color: #eee; text-align: center; padding: 10px; font-size: 12px; color: #666; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
@@ -81,7 +83,7 @@ const sendResetPasswordEmail = async (email, token) => {
 
   await sendEmail(email, subject, html);
 
-  console.log("Password reset email sent successfully.");
+  console.log("Password reset email sent successfully to:", email);
 };
 
 module.exports = { sendVerificationEmail, sendResetPasswordEmail };

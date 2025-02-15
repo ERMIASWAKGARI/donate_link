@@ -122,15 +122,6 @@ const registerUser = asyncWrapper(async (req, res) => {
   const newUser = new User(userData);
   await newUser.save();
 
-  // // Send Email Verification
-  // const verificationUrl = `${process.env.CLIENT_URL}/api/users/verify-email?token=${emailVerificationToken}`;
-  // const emailMessage = `
-  //   <h3>Hello,</h3>
-  //   <p>Thank you for registering. Please verify your email by clicking the link below:</p>
-  //   <a href="${verificationUrl}">Verify Email</a>
-  //   <p>If you didn't request this, please ignore this email.</p>
-  // `;
-
   await sendVerificationEmail(email, emailVerificationToken);
 
   // Send Success Response

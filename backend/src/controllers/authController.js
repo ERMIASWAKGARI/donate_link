@@ -5,6 +5,7 @@ const User = require("../models/User");
 const asyncWrapper = require("../middleware/asyncWrapper");
 const sendSuccessResponse = require("../utils/responseHelper");
 const AppError = require("../utils/appError");
+const { sendResetPasswordEmail } = require("../utils/emailService");
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
@@ -113,4 +114,74 @@ const refreshToken = asyncWrapper(async (req, res) => {
   res.status(200).json({ accessToken: newAccessToken });
 });
 
-module.exports = { verifyEmail, login, refreshToken };
+const forgotPassword = asyncWrapper(async (req, res) => {
+  const { email } = req.body;
+
+  // Find user by email
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new AppError("User with this email does not exist.", 404);
+  }
+
+  await user.save();
+
+  // Generate JWT token for password reset (includes version)
+  const resetToken = jwt.sign(
+    { id: user._id, version: user.resetTokenVersion },
+    JWT_SECRET,
+    { expiresIn: "15m" } // 15-minute expiration
+  );
+
+  // Send password reset email
+  await sendResetPasswordEmail(user.email, resetToken);
+
+  // Send Success Response
+  sendSuccessResponse(res, 200, "Password reset link sent to your email.");
+});
+
+const resetPassword = asyncWrapper(async (req, res) => {
+  const { newPassword } = req.body;
+  const { token } = req.query; // ✅ Correct (extracts token string)
+
+  if (!token || !newPassword) {
+    throw new AppError("Token and new password are required.", 400);
+  }
+
+  try {
+    // Verify JWT token
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    // Find user and check token version
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      throw new AppError("User not found.", 404);
+    }
+
+    // Ensure token version matches the latest one in the database
+    if (decoded.version !== user.resetTokenVersion) {
+      throw new AppError("Invalid or expired token.", 400);
+    }
+
+    // Hash and update new password
+    user.password = await bcrypt.hash(newPassword, 10);
+
+    // Invalidate token by incrementing reset token version
+    user.resetTokenVersion += 1;
+    await user.save();
+    sendSuccessResponse(
+      res,
+      200,
+      "Password reset successful! You can now log in."
+    );
+  } catch (error) {
+    throw new AppError("Invalid or expired token.", 400);
+  }
+});
+
+module.exports = {
+  verifyEmail,
+  login,
+  refreshToken,
+  forgotPassword,
+  resetPassword,
+};
