@@ -133,4 +133,13 @@ const registerUser = asyncWrapper(async (req, res) => {
   );
 });
 
-module.exports = { registerUser };
+const getUserProfile = asyncWrapper(async (req, res) => {
+  const user = await User.findById(req.user._id).select("-password");
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  res.status(200).json({ success: true, user });
+});
+
+module.exports = { registerUser, getUserProfile };
