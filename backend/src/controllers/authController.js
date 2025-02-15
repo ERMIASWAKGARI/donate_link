@@ -13,7 +13,11 @@ const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 // Generate JWT Token
 const generateToken = (user) => {
   return jwt.sign(
-    { id: user._id, role: user.role },
+    {
+      id: user._id,
+      role: user.role,
+      tokenVersion: user.tokenVersion,
+    },
     JWT_SECRET,
     { expiresIn: "3h" } // Access token expires in 3 hour
   );
@@ -127,7 +131,7 @@ const forgotPassword = asyncWrapper(async (req, res) => {
 
   // Generate JWT token for password reset (includes version)
   const resetToken = jwt.sign(
-    { id: user._id, version: user.resetTokenVersion },
+    { id: user._id, version: user.tokenVersion },
     JWT_SECRET,
     { expiresIn: "15m" } // 15-minute expiration
   );
@@ -158,7 +162,7 @@ const resetPassword = asyncWrapper(async (req, res) => {
     }
 
     // Ensure token version matches the latest one in the database
-    if (decoded.version !== user.resetTokenVersion) {
+    if (decoded.version !== user.tokenVersion) {
       throw new AppError("Invalid or expired token.", 400);
     }
 
@@ -166,7 +170,7 @@ const resetPassword = asyncWrapper(async (req, res) => {
     user.password = await bcrypt.hash(newPassword, 10);
 
     // Invalidate token by incrementing reset token version
-    user.resetTokenVersion += 1;
+    user.tokenVersion += 1;
     await user.save();
     sendSuccessResponse(
       res,
@@ -178,10 +182,44 @@ const resetPassword = asyncWrapper(async (req, res) => {
   }
 });
 
+const changePassword = asyncWrapper(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    throw new AppError("Current and new password are required.", 400);
+  }
+
+  // Find the authenticated user
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    throw new AppError("User not found.", 404);
+  }
+
+  // Compare current password
+  const isMatch = await bcrypt.compare(currentPassword, user.password);
+  if (!isMatch) {
+    throw new AppError("Incorrect current password.", 401);
+  }
+
+  // Hash and update new password
+  user.password = await bcrypt.hash(newPassword, 10);
+
+  // Invalidate all previous tokens
+  user.tokenVersion += 1;
+  await user.save();
+
+  sendSuccessResponse(
+    res,
+    200,
+    "Password changed successfully. Please log in again."
+  );
+});
+
 module.exports = {
   verifyEmail,
   login,
   refreshToken,
   forgotPassword,
   resetPassword,
+  changePassword,
 };

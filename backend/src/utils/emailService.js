@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer");
 
-// Function to send a customized email
+// Function to send an email
 const sendEmail = async (email, subject, html) => {
   const transporter = nodemailer.createTransport({
     service: "Gmail",

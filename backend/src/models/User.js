@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema(
     isEmailVerified: { type: Boolean, default: false },
     emailVerificationToken: { type: String },
     lastLogin: { type: Date },
-    resetTokenVersion: { type: Number, default: 0 },
+    tokenVersion: { type: Number, default: 0 },
 
     // INDIVIDUAL DONOR FIELDS
     name: {
