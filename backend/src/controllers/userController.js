@@ -256,10 +256,35 @@ const reactivateAccount = asyncWrapper(async (req, res) => {
   }
 });
 
+const deleteUserAccount = asyncWrapper(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    throw new AppError("User not found.", 404);
+  }
+
+  // Optional: Check if the user is active (only active users can delete their accounts)
+  if (!user.isActive) {
+    throw new AppError(
+      "Your account is deactivated, you cannot delete it.",
+      400
+    );
+  }
+
+  // Delete associated data (if necessary, like posts, donations, etc. - optional cleanup)
+  // await Post.deleteMany({ userId: req.user._id }); // Example for cleaning up posts
+
+  // Delete user permanently
+  await User.findByIdAndDelete(req.user._id);
+
+  sendSuccessResponse(res, 200, "Your account has been permanently deleted.");
+});
+
 module.exports = {
   registerUser,
   getUserProfile,
   updateUserProfile,
   deactivateAccount,
   reactivateAccount,
+  deleteUserAccount,
 };

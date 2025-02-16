@@ -95,18 +95,12 @@ const login = asyncWrapper(async (req, res) => {
   user.lastLogin = new Date();
   await user.save();
 
-  res.status(200).json({
-    message: "Login successful!",
-    user: {
-      id: user._id,
-      email: user.email,
-      role: user.role,
-      name:
-        user.name ||
-        user.organizationName ||
-        user.ngoName ||
-        user.volunteerName,
-    },
+  return sendSuccessResponse(res, 200, "Login successful!", {
+    id: user._id,
+    email: user.email,
+    role: user.role,
+    name:
+      user.name || user.organizationName || user.ngoName || user.volunteerName,
     accessToken,
     refreshToken,
   });
