@@ -30,6 +30,7 @@ const userSchema = new mongoose.Schema(
       latitude: { type: Number, default: undefined },
       longitude: { type: Number, default: undefined },
     },
+    profilePicture: { type: String, default: null },
 
     // INDIVIDUAL DONOR FIELDS
     name: {

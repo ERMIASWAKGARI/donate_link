@@ -137,6 +137,75 @@ const registerUser = asyncWrapper(async (req, res) => {
   );
 });
 
+const uploadProfilePicture = asyncWrapper(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    throw new AppError("User not found.", 404);
+  }
+
+  if (!req.file) {
+    throw new AppError("No file uploaded.", 400);
+  }
+
+  // Store the profile picture filename in the user model
+  user.profilePicture = req.file.filename;
+  await user.save();
+
+  sendSuccessResponse(res, 200, "Profile picture updated successfully!", {
+    profilePicture: req.file.filename,
+  });
+});
+
+const uploadVerificationDocs = asyncWrapper(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    throw new AppError("User not found.", 404);
+  }
+
+  if (!req.files || req.files.length === 0) {
+    throw new AppError("No files uploaded.", 400);
+  }
+
+  // Extract uploaded file paths
+  const filePaths = req.files.map((file) => file.filename);
+
+  let updatedDocs = [];
+
+  // Append new files to the existing ones instead of replacing
+  if (user.role === "organization_donor") {
+    user.organizationVerificationDocs = [
+      ...(user.organizationVerificationDocs || []),
+      ...filePaths,
+    ];
+    updatedDocs = user.organizationVerificationDocs;
+  } else if (user.role === "ngo") {
+    user.ngoVerificationDocs = [
+      ...(user.ngoVerificationDocs || []),
+      ...filePaths,
+    ];
+    updatedDocs = user.ngoVerificationDocs;
+  } else if (user.role === "volunteer") {
+    user.volunteerVerificationDocs = [
+      ...(user.volunteerVerificationDocs || []),
+      ...filePaths,
+    ];
+    updatedDocs = user.volunteerVerificationDocs;
+  } else {
+    throw new AppError(
+      "This user role does not require verification documents.",
+      400
+    );
+  }
+
+  await user.save();
+
+  sendSuccessResponse(res, 200, "Documents uploaded successfully!", {
+    uploadedFiles: updatedDocs,
+  });
+});
+
 const getUserProfile = asyncWrapper(async (req, res) => {
   const user = await User.findById(req.user._id).select("-password");
   if (!user) {
@@ -287,4 +356,6 @@ module.exports = {
   deactivateAccount,
   reactivateAccount,
   deleteUserAccount,
+  uploadVerificationDocs,
+  uploadProfilePicture,
 };
