@@ -98,7 +98,6 @@ const userSchema = new mongoose.Schema(
       ],
       default: undefined,
     },
-
     volunteerVerificationDocs: { type: [String], default: undefined },
   },
   { timestamps: true, strict: "throw" }
