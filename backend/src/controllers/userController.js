@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const crypto = require("crypto"); // For generating the token
 const User = require("../models/User");
 const asyncWrapper = require("../middleware/asyncWrapper");
@@ -148,11 +149,11 @@ const getUserProfile = asyncWrapper(async (req, res) => {
 const updateUserProfile = asyncWrapper(async (req, res) => {
   const { email, ...updates } = req.body; // Extract email separately
 
-  const user = await User.findById(req.user._id);
+  const user = await User.findById(req.user._id).select("-password");
   if (!user) throw new AppError("User not found", 404);
 
   // ✅ Check if email is already taken
-  if (email && email !== user.email) {
+  if (email) {
     const existingUser = await User.findOne({ email });
     if (existingUser) throw new AppError("Email is already in use.", 400);
 
@@ -205,4 +206,60 @@ const updateUserProfile = asyncWrapper(async (req, res) => {
   sendSuccessResponse(res, 200, "Profile updated successfully.", user);
 });
 
-module.exports = { registerUser, getUserProfile, updateUserProfile };
+const deactivateAccount = asyncWrapper(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  if (!user) throw new AppError("User not found", 404);
+
+  // 🚨 Prevent already deactivated users from deactivating again
+  if (!user.isActive)
+    throw new AppError("Account is already deactivated.", 400);
+
+  // 🚀 Set isActive to false
+  user.isActive = false;
+  user.tokenVersion += 1; // Invalidate old tokens (forces logout)
+  await user.save();
+
+  sendSuccessResponse(res, 200, "Your account has been deactivated.");
+});
+
+const reactivateAccount = asyncWrapper(async (req, res) => {
+  const { reactivationToken } = req.body; // Get the temporary token
+
+  // Verify the token
+  try {
+    const decoded = jwt.verify(reactivationToken, process.env.JWT_SECRET);
+    if (decoded.type !== "reactivation") {
+      throw new AppError("Invalid reactivation token.", 400);
+    }
+
+    const user = await User.findById(decoded.userId);
+    if (!user) throw new AppError("User not found.", 404);
+
+    if (user.isActive) {
+      return sendSuccessResponse(res, 200, "Your account is already active.");
+    }
+
+    // Reactivate the account
+    user.isActive = true;
+    await user.save();
+
+    sendSuccessResponse(
+      res,
+      200,
+      "Your account has been reactivated. You can now log in."
+    );
+  } catch (error) {
+    throw new AppError(
+      `Invalid or expired reactivation token. ${error.message}`,
+      400
+    );
+  }
+});
+
+module.exports = {
+  registerUser,
+  getUserProfile,
+  updateUserProfile,
+  deactivateAccount,
+  reactivateAccount,
+};

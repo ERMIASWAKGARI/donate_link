@@ -74,6 +74,19 @@ const login = asyncWrapper(async (req, res) => {
     throw new AppError("Invalid email or password.", 401);
   }
 
+  if (!user.isActive) {
+    const reactivationToken = jwt.sign(
+      { userId: user._id, type: "reactivation" },
+      process.env.JWT_SECRET,
+      { expiresIn: "10m" } // Expires in 10 minutes
+    );
+
+    return sendSuccessResponse(res, 200, "Account is deactivated.", {
+      reactivationRequired: true,
+      reactivationToken,
+    });
+  }
+
   // Generate JWT and Refresh Token
   const accessToken = generateToken(user);
   const refreshToken = generateRefreshToken(user);

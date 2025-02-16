@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true, minlength: 6 },
     role: { type: String, enum: USER_ROLES, required: true },
     isEmailVerified: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true },
     emailVerificationToken: { type: String },
     lastLogin: { type: Date },
     tokenVersion: { type: Number, default: 0 },
