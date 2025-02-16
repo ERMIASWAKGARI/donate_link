@@ -4,7 +4,10 @@ const User = require("../models/User");
 const asyncWrapper = require("../middleware/asyncWrapper");
 const AppError = require("../utils/appError");
 const sendSuccessResponse = require("../utils/responseHelper");
-const { sendVerificationEmail } = require("../utils/emailService"); // Import email sender function
+const {
+  sendVerificationEmail,
+  sendEmailUpdateVerification,
+} = require("../utils/emailService"); // Import email sender function
 
 // Register User
 const registerUser = asyncWrapper(async (req, res) => {
@@ -139,7 +142,67 @@ const getUserProfile = asyncWrapper(async (req, res) => {
     throw new AppError("User not found", 404);
   }
 
-  res.status(200).json({ success: true, user });
+  sendSuccessResponse(res, 200, "User profile retrieved successfully.", user);
 });
 
-module.exports = { registerUser, getUserProfile };
+const updateUserProfile = asyncWrapper(async (req, res) => {
+  const { email, ...updates } = req.body; // Extract email separately
+
+  const user = await User.findById(req.user._id);
+  if (!user) throw new AppError("User not found", 404);
+
+  // ✅ Check if email is already taken
+  if (email && email !== user.email) {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) throw new AppError("Email is already in use.", 400);
+
+    user.email = email;
+    user.isEmailVerified = false; // Require re-verification after email change
+
+    // Generate and send new email verification token
+    const emailVerificationToken = crypto.randomBytes(32).toString("hex");
+    user.emailVerificationToken = emailVerificationToken;
+    await sendEmailUpdateVerification(user.email, emailVerificationToken);
+  }
+
+  // ✅ Allowed fields for each role
+  const allowedFields = {
+    individual_donor: ["name", "phone", "address", "location"],
+    organization_donor: [
+      "organizationName",
+      "organizationVerificationDocs",
+      "phone",
+      "address",
+      "location",
+    ],
+    ngo: ["ngoName", "ngoVerificationDocs", "phone", "address", "location"],
+    volunteer: [
+      "volunteerName",
+      "skills",
+      "availability",
+      "volunteerVerificationDocs",
+      "phone",
+      "address",
+      "location",
+    ],
+  };
+
+  let isUpdated = false; // Track if at least one field is updated
+
+  // ✅ Filter and update only allowed fields
+  Object.keys(updates).forEach((key) => {
+    if (allowedFields[user.role] && allowedFields[user.role].includes(key)) {
+      user[key] = updates[key];
+      isUpdated = true; // At least one field is updated
+    }
+  });
+
+  if (!isUpdated) {
+    throw new AppError("No valid fields to update or not allowed.", 400);
+  }
+
+  await user.save();
+  sendSuccessResponse(res, 200, "Profile updated successfully.", user);
+});
+
+module.exports = { registerUser, getUserProfile, updateUserProfile };

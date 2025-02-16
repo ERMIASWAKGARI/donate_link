@@ -20,6 +20,15 @@ const userSchema = new mongoose.Schema(
     emailVerificationToken: { type: String },
     lastLogin: { type: Date },
     tokenVersion: { type: Number, default: 0 },
+    address: {
+      country: { type: String, default: undefined },
+      region: { type: String, default: undefined },
+      city: { type: String, default: undefined },
+    },
+    location: {
+      latitude: { type: Number, default: undefined },
+      longitude: { type: Number, default: undefined },
+    },
 
     // INDIVIDUAL DONOR FIELDS
     name: {
@@ -33,7 +42,9 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["individual", "organization"],
       required: function () {
-        return this.role === "individual_donor";
+        return (
+          this.role === "individual_donor" || this.role === "organization_donor"
+        );
       },
     },
 
@@ -44,8 +55,8 @@ const userSchema = new mongoose.Schema(
         return this.role === "organization_donor";
       },
     },
-    organizationVerificationDocs: { type: [String], default: undefined }, // Avoids storing empty array
-    isVerified: { type: Boolean, default: undefined }, // Avoids storing unnecessary boolean
+    organizationVerificationDocs: { type: [String], default: undefined },
+    isVerified: { type: Boolean, default: false },
 
     // NGO FIELDS
     ngoName: {
@@ -81,27 +92,16 @@ const userSchema = new mongoose.Schema(
             ],
             required: true,
           },
-          startTime: { type: String, required: true }, // e.g., "09:00 AM"
-          endTime: { type: String, required: true }, // e.g., "05:00 PM"
+          startTime: { type: String, required: true },
+          endTime: { type: String, required: true },
         },
       ],
-      default: undefined, // 🚀 This ensures it's only stored when provided
+      default: undefined,
     },
 
     volunteerVerificationDocs: { type: [String], default: undefined },
-
-    // ADDRESS & LOCATION (For Organization Donors, NGOs, Volunteers)
-    address: {
-      country: { type: String, default: undefined },
-      region: { type: String, default: undefined },
-      city: { type: String, default: undefined },
-    },
-    location: {
-      latitude: { type: Number, default: undefined },
-      longitude: { type: Number, default: undefined },
-    },
   },
-  { timestamps: true, strict: "throw" } // 🚀 Prevents saving unknown fields!
+  { timestamps: true, strict: "throw" }
 );
 
 module.exports = mongoose.model("User", userSchema);

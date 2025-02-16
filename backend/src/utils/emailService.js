@@ -53,6 +53,31 @@ const sendVerificationEmail = async (email, verificationToken) => {
   await sendEmail(email, subject, html);
 };
 
+// Function to send verification email after email update
+const sendEmailUpdateVerification = async (email, verificationToken) => {
+  const verificationUrl = `http://localhost:5000/api/auth/verify-email?token=${verificationToken}`;
+  const subject = "Verify Your New Email - Online Donation Platform";
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 8px; background-color: #f9f9f9;">
+      <div style="background-color: #4CAF50; padding: 15px; text-align: center; color: white; font-size: 22px; font-weight: bold; border-top-left-radius: 8px; border-top-right-radius: 8px;">
+        Online Donation Platform
+      </div>
+      <div style="padding: 20px; text-align: center;">
+        <h2 style="color: #333;">Confirm Your New Email Address 📩</h2>
+        <p style="font-size: 16px; color: #555;">You recently updated your email address on <strong>Online Donation Platform</strong>. Please verify your new email by clicking the button below:</p>
+        <a href="${verificationUrl}" style="background-color: #4CAF50; color: white; text-decoration: none; padding: 12px 25px; border-radius: 5px; font-size: 16px; display: inline-block; margin: 20px 0;">Verify New Email</a>
+        <p style="font-size: 14px; color: #777;">If you didn't update your email, please contact our support team immediately.</p>
+      </div>
+      <div style="background-color: #eee; text-align: center; padding: 10px; font-size: 12px; color: #666; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
+        &copy; ${new Date().getFullYear()} Online Donation Platform. All rights reserved.
+      </div>
+    </div>
+  `;
+
+  await sendEmail(email, subject, html);
+};
+
 // Function to send reset password email
 const sendResetPasswordEmail = async (email, token) => {
   const resetUrl = `http://localhost:5000/api/auth/reset-password?token=${token}`;
@@ -86,4 +111,8 @@ const sendResetPasswordEmail = async (email, token) => {
   console.log("Password reset email sent successfully to:", email);
 };
 
-module.exports = { sendVerificationEmail, sendResetPasswordEmail };
+module.exports = {
+  sendVerificationEmail,
+  sendResetPasswordEmail,
+  sendEmailUpdateVerification,
+};
