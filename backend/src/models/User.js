@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 
-// allowed user roles
 const USER_ROLES = [
   "individual_donor",
   "organization_donor",
@@ -12,6 +11,11 @@ const USER_ROLES = [
 const userSchema = new mongoose.Schema(
   {
     // COMMON FIELDS (Shared by all users)
+    name: {
+      type: String,
+      trim: true,
+      required: true,
+    },
     email: { type: String, required: true, unique: true, lowercase: true },
     phone: { type: String, required: true },
     password: { type: String, required: true, minlength: 6 },
@@ -32,14 +36,6 @@ const userSchema = new mongoose.Schema(
     },
     profilePicture: { type: String, default: null },
 
-    // INDIVIDUAL DONOR FIELDS
-    name: {
-      type: String,
-      trim: true,
-      required: function () {
-        return this.role === "individual_donor";
-      },
-    },
     donorType: {
       type: String,
       enum: ["individual", "organization"],
@@ -51,32 +47,13 @@ const userSchema = new mongoose.Schema(
     },
 
     // ORGANIZATION DONOR FIELDS
-    organizationName: {
-      type: String,
-      required: function () {
-        return this.role === "organization_donor";
-      },
-    },
     organizationVerificationDocs: { type: [String], default: undefined },
-    isVerified: { type: Boolean, default: false },
+    isVerified: { type: Boolean, default: undefined },
 
     // NGO FIELDS
-    ngoName: {
-      type: String,
-      required: function () {
-        return this.role === "ngo";
-      },
-    },
     ngoVerificationDocs: { type: [String], default: undefined },
 
     // VOLUNTEER FIELDS
-    volunteerName: {
-      type: String,
-      trim: true,
-      required: function () {
-        return this.role === "volunteer";
-      },
-    },
     skills: { type: [String], default: undefined },
     availability: {
       type: [

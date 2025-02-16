@@ -8,11 +8,11 @@ const sendSuccessResponse = require("../utils/responseHelper");
 const {
   sendVerificationEmail,
   sendEmailUpdateVerification,
-} = require("../utils/emailService"); // Import email sender function
+} = require("../utils/emailService");
 
 // Register User
 const registerUser = asyncWrapper(async (req, res) => {
-  const { role, email, phone, password } = req.body;
+  const { role, name, email, phone, password } = req.body;
 
   // Check if the email is already registered
   const userExists = await User.findOne({ email });
@@ -23,38 +23,23 @@ const registerUser = asyncWrapper(async (req, res) => {
   // Hash the password
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // Use `let` instead of `const` since we will modify `userData`
-  let userData = { role, email, phone, password: hashedPassword };
+  let userData = { role, name, email, phone, password: hashedPassword };
 
   switch (role) {
     case "individual_donor": {
-      const { name } = req.body;
-      if (!name) {
-        throw new AppError("Name is required for individual donors.", 400);
-      }
-
-      userData = { ...userData, name, donorType: "individual" };
+      userData = { ...userData, donorType: "individual" };
       break;
     }
 
     case "organization_donor": {
       const {
-        organizationName,
         address: organizationAddress,
         location: organizationLocation,
         organizationVerificationDocs,
       } = req.body;
 
-      if (!organizationName) {
-        throw new AppError(
-          "Organization name is required for organization donors.",
-          400
-        );
-      }
-
       userData = {
         ...userData,
-        organizationName,
         address: organizationAddress,
         location: organizationLocation,
         donorType: "organization",
@@ -66,43 +51,32 @@ const registerUser = asyncWrapper(async (req, res) => {
 
     case "volunteer": {
       const {
-        volunteerName,
         skills,
         address: volunteerAddress,
         volunteerVerificationDocs,
         availability,
       } = req.body;
 
-      if (!volunteerName) {
-        throw new AppError("Volunteer name is required.", 400);
-      }
-
       userData = {
         ...userData,
-        volunteerName,
         skills,
         address: volunteerAddress,
         availability,
         volunteerVerificationDocs,
+        isVerified: false,
       };
       break;
     }
 
     case "ngo": {
       const {
-        ngoName,
         address: ngoAddress,
         location: ngoLocation,
         ngoVerificationDocs,
       } = req.body;
 
-      if (!ngoName) {
-        throw new AppError("NGO name is required.", 400);
-      }
-
       userData = {
         ...userData,
-        ngoName,
         address: ngoAddress,
         location: ngoLocation,
         ngoVerificationDocs,
@@ -128,12 +102,16 @@ const registerUser = asyncWrapper(async (req, res) => {
 
   await sendVerificationEmail(email, emailVerificationToken);
 
-  // Send Success Response
   sendSuccessResponse(
     res,
     201,
     "Registration successful. Please verify your email.",
-    newUser
+    {
+      id: newUser._id,
+      email: newUser.email,
+      role: newUser.role,
+      name: newUser.name,
+    }
   );
 });
 
@@ -173,7 +151,7 @@ const uploadVerificationDocs = asyncWrapper(async (req, res) => {
 
   let updatedDocs = [];
 
-  // Append new files to the existing ones instead of replacing
+  // Append new files to the existing ones
   if (user.role === "organization_donor") {
     user.organizationVerificationDocs = [
       ...(user.organizationVerificationDocs || []),
@@ -207,7 +185,9 @@ const uploadVerificationDocs = asyncWrapper(async (req, res) => {
 });
 
 const getUserProfile = asyncWrapper(async (req, res) => {
-  const user = await User.findById(req.user._id).select("-password");
+  const user = await User.findById(req.user._id).select(
+    "-password -emailVerificationToken -tokenVersion -isActive -isEmailVerified -lastLogin -__v"
+  );
   if (!user) {
     throw new AppError("User not found", 404);
   }
@@ -216,12 +196,14 @@ const getUserProfile = asyncWrapper(async (req, res) => {
 });
 
 const updateUserProfile = asyncWrapper(async (req, res) => {
-  const { email, ...updates } = req.body; // Extract email separately
+  const { email, ...updates } = req.body;
 
-  const user = await User.findById(req.user._id).select("-password");
+  const user = await User.findById(req.user._id).select(
+    "-password -emailVerificationToken -tokenVersion -isActive -isEmailVerified -lastLogin -__v"
+  );
   if (!user) throw new AppError("User not found", 404);
 
-  // ✅ Check if email is already taken
+  // Check if email is already taken
   if (email) {
     const existingUser = await User.findOne({ email });
     if (existingUser) throw new AppError("Email is already in use.", 400);
@@ -235,19 +217,19 @@ const updateUserProfile = asyncWrapper(async (req, res) => {
     await sendEmailUpdateVerification(user.email, emailVerificationToken);
   }
 
-  // ✅ Allowed fields for each role
+  // Allowed fields for each role
   const allowedFields = {
     individual_donor: ["name", "phone", "address", "location"],
     organization_donor: [
-      "organizationName",
+      "name",
       "organizationVerificationDocs",
       "phone",
       "address",
       "location",
     ],
-    ngo: ["ngoName", "ngoVerificationDocs", "phone", "address", "location"],
+    ngo: ["name", "ngoVerificationDocs", "phone", "address", "location"],
     volunteer: [
-      "volunteerName",
+      "name",
       "skills",
       "availability",
       "volunteerVerificationDocs",
@@ -259,11 +241,11 @@ const updateUserProfile = asyncWrapper(async (req, res) => {
 
   let isUpdated = false; // Track if at least one field is updated
 
-  // ✅ Filter and update only allowed fields
+  // Filter and update only allowed fields
   Object.keys(updates).forEach((key) => {
     if (allowedFields[user.role] && allowedFields[user.role].includes(key)) {
       user[key] = updates[key];
-      isUpdated = true; // At least one field is updated
+      isUpdated = true;
     }
   });
 
@@ -279,13 +261,13 @@ const deactivateAccount = asyncWrapper(async (req, res) => {
   const user = await User.findById(req.user._id);
   if (!user) throw new AppError("User not found", 404);
 
-  // 🚨 Prevent already deactivated users from deactivating again
+  // Prevent already deactivated users from deactivating again
   if (!user.isActive)
     throw new AppError("Account is already deactivated.", 400);
 
-  // 🚀 Set isActive to false
+  // Set isActive to false
   user.isActive = false;
-  user.tokenVersion += 1; // Invalidate old tokens (forces logout)
+  user.tokenVersion += 1; // Invalidate old tokens (ti force logout)
   await user.save();
 
   sendSuccessResponse(res, 200, "Your account has been deactivated.");
@@ -332,16 +314,13 @@ const deleteUserAccount = asyncWrapper(async (req, res) => {
     throw new AppError("User not found.", 404);
   }
 
-  // Optional: Check if the user is active (only active users can delete their accounts)
+  // Check if the user is active (only active users can delete their accounts)
   if (!user.isActive) {
     throw new AppError(
       "Your account is deactivated, you cannot delete it.",
       400
     );
   }
-
-  // Delete associated data (if necessary, like posts, donations, etc. - optional cleanup)
-  // await Post.deleteMany({ userId: req.user._id }); // Example for cleaning up posts
 
   // Delete user permanently
   await User.findByIdAndDelete(req.user._id);

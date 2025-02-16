@@ -35,7 +35,7 @@ const storage = multer.diskStorage({
 
 // Dynamic file filter based on route
 const fileFilter = (req, file, cb) => {
-  // Allowed file types for general uploads (PDF, JPEG, PNG)
+  // Allowed file types for user verifications uploads (PDF, JPEG, PNG)
   const allowedDocs = ["image/jpeg", "image/png", "application/pdf"];
 
   // Allowed file types for profile pictures (Only JPEG, PNG)
@@ -55,7 +55,7 @@ const fileFilter = (req, file, cb) => {
       );
     }
   } else {
-    // General file uploads (e.g., verification documents)
+    // General file uploads (verification documents)
     if (allowedDocs.includes(file.mimetype)) {
       cb(null, true);
     } else {

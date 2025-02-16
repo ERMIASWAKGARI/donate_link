@@ -13,13 +13,13 @@ const app = express();
 connectDB();
 
 // Middleware
-app.use(express.json()); // Parse incoming JSON requests
+app.use(express.json());
 
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 
-// Error Handler Middleware
+//Global error Handler Middleware
 app.use(errorHandler);
 
 module.exports = app;

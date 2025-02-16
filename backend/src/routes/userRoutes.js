@@ -31,7 +31,7 @@ router.delete("/me/delete", protect, deleteUserAccount);
 router.post(
   "/upload",
   protect,
-  upload.array("documents", 5),
+  upload.array("documents"),
   uploadVerificationDocs
 );
 

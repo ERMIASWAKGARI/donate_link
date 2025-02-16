@@ -99,8 +99,7 @@ const login = asyncWrapper(async (req, res) => {
     id: user._id,
     email: user.email,
     role: user.role,
-    name:
-      user.name || user.organizationName || user.ngoName || user.volunteerName,
+    name: user.name,
     accessToken,
     refreshToken,
   });
@@ -136,11 +135,11 @@ const forgotPassword = asyncWrapper(async (req, res) => {
 
   await user.save();
 
-  // Generate JWT token for password reset (includes version)
+  // Generate JWT token for password reset link
   const resetToken = jwt.sign(
     { id: user._id, version: user.tokenVersion },
     JWT_SECRET,
-    { expiresIn: "15m" } // 15-minute expiration
+    { expiresIn: "15m" }
   );
 
   // Send password reset email
@@ -152,7 +151,7 @@ const forgotPassword = asyncWrapper(async (req, res) => {
 
 const resetPassword = asyncWrapper(async (req, res) => {
   const { newPassword } = req.body;
-  const { token } = req.query; // ✅ Correct (extracts token string)
+  const { token } = req.query;
 
   if (!token || !newPassword) {
     throw new AppError("Token and new password are required.", 400);
