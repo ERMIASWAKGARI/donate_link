@@ -1,10 +1,11 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto"); // For generating the token
+const crypto = require("crypto");
 const User = require("../models/User");
 const asyncWrapper = require("../middleware/asyncWrapper");
 const AppError = require("../utils/appError");
 const sendSuccessResponse = require("../utils/responseHelper");
+
 const {
   sendVerificationEmail,
   sendEmailUpdateVerification,

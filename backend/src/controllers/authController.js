@@ -1,12 +1,13 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 
 const User = require("../models/User");
 const asyncWrapper = require("../middleware/asyncWrapper");
 const sendSuccessResponse = require("../utils/responseHelper");
 const AppError = require("../utils/appError");
 const { sendResetPasswordEmail } = require("../utils/emailService");
-
+const { sendVerificationEmail } = require("../utils/emailService");
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
@@ -52,6 +53,33 @@ const verifyEmail = asyncWrapper(async (req, res) => {
   await user.save();
 
   sendSuccessResponse(res, 200, "Email verified successfully.");
+});
+
+const resendVerificationEmail = asyncWrapper(async (req, res) => {
+  const { email } = req.body;
+
+  // Check if the user exists
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw new AppError("User not found. Register first.", 404);
+  }
+
+  // Check if the user is already verified
+  if (user.isEmailVerified) {
+    throw new AppError("Email is already verified", 400);
+  }
+
+  // Generate a new verification token
+  const newVerificationToken = crypto.randomBytes(32).toString("hex");
+  // Update the user's verification token
+  user.emailVerificationToken = newVerificationToken;
+  await user.save();
+
+  // Resend verification email
+  await sendVerificationEmail(email, newVerificationToken);
+
+  sendSuccessResponse(res, 200, "Verification email resent successfully.");
 });
 
 const login = asyncWrapper(async (req, res) => {
@@ -228,4 +256,5 @@ module.exports = {
   forgotPassword,
   resetPassword,
   changePassword,
+  resendVerificationEmail,
 };
