@@ -5,6 +5,12 @@ const User = require("../models/User");
 const asyncWrapper = require("../middleware/asyncWrapper");
 const AppError = require("../utils/appError");
 const sendSuccessResponse = require("../utils/responseHelper");
+const twilio = require("twilio");
+
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const verifySid = process.env.TWILIO_VERIFY_SERVICE_SID;
+const client = twilio(accountSid, authToken);
 
 const {
   sendVerificationEmail,
@@ -15,10 +21,23 @@ const {
 const registerUser = asyncWrapper(async (req, res) => {
   const { role, name, email, phone, password } = req.body;
 
-  // Check if the email is already registered
-  const userExists = await User.findOne({ email });
-  if (userExists) {
-    throw new AppError("User already exists", 400);
+  if (!email && !phone) {
+    throw new AppError("Either email or phone number is required", 400);
+  }
+
+  // Check if the email or phone is already registered
+  if (email) {
+    const emailExists = await User.findOne({ email });
+    if (emailExists) {
+      throw new AppError("User with this email already exists", 400);
+    }
+  }
+
+  if (phone) {
+    const phoneExists = await User.findOne({ phone });
+    if (phoneExists) {
+      throw new AppError("User with this phone number already exists", 400);
+    }
   }
 
   // Hash the password
@@ -26,13 +45,13 @@ const registerUser = asyncWrapper(async (req, res) => {
 
   let userData = { role, name, email, phone, password: hashedPassword };
 
+  // Assign role-specific fields
   switch (role) {
-    case "individual_donor": {
+    case "individual_donor":
       userData = { ...userData, donorType: "individual" };
       break;
-    }
 
-    case "organization_donor": {
+    case "organization_donor":
       const {
         address: organizationAddress,
         location: organizationLocation,
@@ -48,9 +67,8 @@ const registerUser = asyncWrapper(async (req, res) => {
         isVerified: false,
       };
       break;
-    }
 
-    case "volunteer": {
+    case "volunteer":
       const {
         skills,
         address: volunteerAddress,
@@ -67,9 +85,8 @@ const registerUser = asyncWrapper(async (req, res) => {
         isVerified: false,
       };
       break;
-    }
 
-    case "ngo": {
+    case "ngo":
       const {
         address: ngoAddress,
         location: ngoLocation,
@@ -84,32 +101,46 @@ const registerUser = asyncWrapper(async (req, res) => {
         isVerified: false,
       };
       break;
-    }
 
     default:
       throw new AppError("Invalid user role provided.", 400);
   }
 
-  // Generate Email Verification Token
-  const emailVerificationToken = crypto.randomBytes(32).toString("hex");
+  // Handle Email Verification (if email is provided)
+  if (email) {
+    const emailVerificationToken = crypto.randomBytes(32).toString("hex");
+    userData.isEmailVerified = false;
+    userData.emailVerificationToken = emailVerificationToken;
+  }
 
-  // Store the token in the user's record
-  userData.isEmailVerified = false;
-  userData.emailVerificationToken = emailVerificationToken;
+  // Handle Phone Verification
+  if (phone && !email) {
+    userData.isPhoneVerified = false;
+
+    await client.verify.v2
+      .services(verifySid)
+      .verifications.create({ to: phone, channel: "sms" });
+  }
 
   // Create & Save User
   const newUser = new User(userData);
   await newUser.save();
 
-  await sendVerificationEmail(email, emailVerificationToken);
+  // Send email verification if email exists
+  if (email) {
+    await sendVerificationEmail(email, userData.emailVerificationToken);
+  }
 
   sendSuccessResponse(
     res,
     201,
-    "Registration successful. Please verify your email.",
+    `Registration successful. Please verify your ${
+      email ? "email" : "phone number"
+    }.`,
     {
       id: newUser._id,
       email: newUser.email,
+      phone: newUser.phone,
       role: newUser.role,
       name: newUser.name,
     }
