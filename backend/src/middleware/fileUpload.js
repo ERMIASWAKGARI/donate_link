@@ -64,11 +64,25 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Multer upload configuration
-const upload = multer({
+const uploadVerificationDocsMiddleware = multer({
   storage,
   fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-});
+}).fields([
+  // NGO DOCUMENTS
+  { name: "registrationCertificate", maxCount: 1 },
+  { name: "authorizationLetter", maxCount: 1 },
+  { name: "additionalDocs", maxCount: 5 },
 
-module.exports = upload;
+  // ORGANIZATION DONOR DOCUMENTS
+  { name: "licenseCertificate", maxCount: 1 },
+  { name: "taxCertificate", maxCount: 1 },
+  { name: "additionalDocs", maxCount: 5 },
+
+  // VOLUNTEER DOCUMENTS
+  { name: "idCard", maxCount: 1 },
+  { name: "trainingCertificate", maxCount: 1 },
+  { name: "additionalDocs", maxCount: 5 },
+]);
+
+module.exports = uploadVerificationDocsMiddleware;
