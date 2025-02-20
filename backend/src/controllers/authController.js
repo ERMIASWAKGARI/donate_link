@@ -83,7 +83,7 @@ const resendVerificationEmail = asyncWrapper(async (req, res) => {
 });
 
 const login = asyncWrapper(async (req, res) => {
-  const { email, password } = req.body;
+  const { email , password } = req.body;
 
   // Check if the user exists
   const user = await User.findOne({ email });
