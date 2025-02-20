@@ -46,12 +46,46 @@ const userSchema = new mongoose.Schema(
       },
     },
 
-    // ORGANIZATION DONOR FIELDS
-    organizationVerificationDocs: { type: [String], default: undefined },
-    isVerified: { type: Boolean, default: undefined },
+    // NGO DOCUMENTS (Only created if the user is an NGO)
+    ngoVerificationDocs: {
+      type: new mongoose.Schema(
+        {
+          registrationCertificate: { type: String, default: null },
+          authorizationLetter: { type: String, default: null },
+          additionalDocs: { type: [String], default: [] },
+        },
+        { _id: false }
+      ),
+      select: false,
+    },
 
-    // NGO FIELDS
-    ngoVerificationDocs: { type: [String], default: undefined },
+    // ORGANIZATION DONOR DOCUMENTS (Only created if the user is an Organization Donor)
+    organizationVerificationDocs: {
+      type: new mongoose.Schema(
+        {
+          licenseCertificate: { type: String, default: null },
+          taxCertificate: { type: String, default: null },
+          additionalDocs: { type: [String], default: [] },
+        },
+        { _id: false }
+      ),
+      select: false,
+    },
+
+    // VOLUNTEER DOCUMENTS (Only created if the user is a Volunteer)
+    volunteerVerificationDocs: {
+      type: new mongoose.Schema(
+        {
+          idCard: { type: String, default: null },
+          trainingCertificate: { type: String, default: null },
+          additionalDocs: { type: [String], default: [] },
+        },
+        { _id: false }
+      ),
+      select: false,
+    },
+
+    isVerified: { type: Boolean, default: false },
 
     // VOLUNTEER FIELDS
     skills: { type: [String], default: undefined },
@@ -77,7 +111,6 @@ const userSchema = new mongoose.Schema(
       ],
       default: undefined,
     },
-    volunteerVerificationDocs: { type: [String], default: undefined },
   },
   { timestamps: true, strict: "throw" }
 );
