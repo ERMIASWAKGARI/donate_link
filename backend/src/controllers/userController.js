@@ -368,37 +368,30 @@ const deactivateAccount = asyncWrapper(async (req, res) => {
 });
 
 const reactivateAccount = asyncWrapper(async (req, res) => {
-  const { reactivationToken } = req.body; // Get the temporary token
+  const { reactivationToken } = req.body;
 
   // Verify the token
-  try {
-    const decoded = jwt.verify(reactivationToken, process.env.JWT_SECRET);
-    if (decoded.type !== "reactivation") {
-      throw new AppError("Invalid reactivation token.", 400);
-    }
-
-    const user = await User.findById(decoded.userId);
-    if (!user) throw new AppError("User not found.", 404);
-
-    if (user.isActive) {
-      return sendSuccessResponse(res, 200, "Your account is already active.");
-    }
-
-    // Reactivate the account
-    user.isActive = true;
-    await user.save();
-
-    sendSuccessResponse(
-      res,
-      200,
-      "Your account has been reactivated. You can now log in."
-    );
-  } catch (error) {
-    throw new AppError(
-      `Invalid or expired reactivation token. ${error.message}`,
-      400
-    );
+  const decoded = jwt.verify(reactivationToken, process.env.JWT_SECRET);
+  if (decoded.type !== "reactivation") {
+    throw new AppError("Invalid reactivation token.", 400);
   }
+
+  const user = await User.findById(decoded.userId);
+  if (!user) throw new AppError("User not found.", 404);
+
+  if (user.isActive) {
+    return sendSuccessResponse(res, 200, "Your account is already active.");
+  }
+
+  // Reactivate the account
+  user.isActive = true;
+  await user.save();
+
+  sendSuccessResponse(
+    res,
+    200,
+    "Your account has been reactivated. You can now log in."
+  );
 });
 
 const deleteUserAccount = asyncWrapper(async (req, res) => {

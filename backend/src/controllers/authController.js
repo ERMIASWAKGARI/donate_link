@@ -219,67 +219,91 @@ const refreshToken = asyncWrapper(async (req, res) => {
 });
 
 const forgotPassword = asyncWrapper(async (req, res) => {
-  const { email } = req.body;
+  const { email, phone } = req.body;
 
-  // Find user by email
-  const user = await User.findOne({ email });
-  if (!user) {
-    throw new AppError("User with this email does not exist.", 404);
+  if (!email && !phone) {
+    throw new AppError("Please provide either an email or phone number.", 400);
   }
 
-  await user.save();
+  let user;
+  if (email) {
+    user = await User.findOne({ email });
+  } else if (phone) {
+    user = await User.findOne({ phone });
+  }
 
-  // Generate JWT token for password reset link
-  const resetToken = jwt.sign(
-    { id: user._id, version: user.tokenVersion },
-    JWT_SECRET,
-    { expiresIn: "15m" }
-  );
+  if (!user) {
+    throw new AppError("User not found.", 404);
+  }
 
-  // Send password reset email
-  await sendResetPasswordEmail(user.email, resetToken);
+  if (email) {
+    // Generate JWT token for email-based password reset
+    const resetToken = jwt.sign(
+      { id: user._id, version: user.tokenVersion, method: "email" },
+      JWT_SECRET,
+      { expiresIn: "15m" }
+    );
 
-  // Send Success Response
-  sendSuccessResponse(res, 200, "Password reset link sent to your email.");
+    // Send reset link via email
+    await sendResetPasswordEmail(user.email, resetToken);
+    sendSuccessResponse(res, 200, "Password reset link sent to your email.");
+  } else if (phone) {
+    // Generate OTP for phone-based password reset
+    await sendOTP(user.phone);
+    sendSuccessResponse(res, 200, "Password reset OTP sent to your phone.");
+  }
 });
 
 const resetPassword = asyncWrapper(async (req, res) => {
-  const { newPassword } = req.body;
+  const { newPassword, phone, otp } = req.body;
   const { token } = req.query;
 
-  if (!token || !newPassword) {
-    throw new AppError("Token and new password are required.", 400);
+  if (!newPassword) {
+    throw new AppError("New password is required.", 400);
   }
 
-  try {
-    // Verify JWT token
+  let user;
+  if (token) {
+    // Handle Email-based password reset
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    // Find user and check token version
-    const user = await User.findById(decoded.id);
-    if (!user) {
-      throw new AppError("User not found.", 404);
-    }
+    user = await User.findById(decoded.id);
+    if (!user) throw new AppError("User not found.", 404);
 
-    // Ensure token version matches the latest one in the database
     if (decoded.version !== user.tokenVersion) {
       throw new AppError("Invalid or expired token.", 400);
     }
+  } else if (phone && otp) {
+    // Handle Phone-based password reset using OTP
+    user = await User.findOne({ phone });
+    if (!user) throw new AppError("User not found.", 404);
 
-    // Hash and update new password
-    user.password = await bcrypt.hash(newPassword, 10);
+    const verification_check = await client.verify.v2
+      .services(verifySid)
+      .verificationChecks.create({ to: phone, code: otp });
 
-    // Invalidate token by incrementing reset token version
-    user.tokenVersion += 1;
-    await user.save();
-    sendSuccessResponse(
-      res,
-      200,
-      "Password reset successful! You can now log in."
+    if (verification_check.status !== "approved") {
+      throw new AppError("Invalid OTP. Please try again.", 400);
+    }
+  } else {
+    throw new AppError(
+      "Invalid request. Provide either a token or phone + OTP.",
+      400
     );
-  } catch (error) {
-    throw new AppError("Invalid or expired token.", 400);
   }
+
+  // Hash and update new password
+  user.password = await bcrypt.hash(newPassword, 10);
+
+  // Invalidate old tokens by incrementing version
+  user.tokenVersion += 1;
+  await user.save();
+
+  sendSuccessResponse(
+    res,
+    200,
+    "Password reset successful! You can now log in."
+  );
 });
 
 const changePassword = asyncWrapper(async (req, res) => {
