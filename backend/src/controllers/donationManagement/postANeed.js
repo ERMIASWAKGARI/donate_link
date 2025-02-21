@@ -20,7 +20,7 @@ exports.postANeed = asyncWrapper(async (req, res, next) => {
   } = req.body;
 
   // Ensure only NGOs can post needs
-  if (req.user.role !== "NGO") {
+  if (req.user.role !== "ngo") {
     return next(new AppError("Only NGOs can post needs", 403));
   }
 
@@ -37,7 +37,9 @@ exports.postANeed = asyncWrapper(async (req, res, next) => {
   });
 
   // Find all donors
-  const donors = await User.find({ role: "donor" });
+  const donors = await User.find({
+    role: "individual_donor" || "organization_donor",
+  });
 
   if (!donors.length) {
     return next(new AppError("No donors found", 404));
@@ -54,7 +56,7 @@ exports.postANeed = asyncWrapper(async (req, res, next) => {
       io.to(onlineUsers.get(donor._id.toString())).emit("newNotification", {
         message: notificationMessage,
         type: "need",
-        expiryDate: newNeed.expiryDate,
+        // expiryDate: newNeed.expiryDate,
       });
     } else {
       // Save notification to the database for offline donors
@@ -62,7 +64,7 @@ exports.postANeed = asyncWrapper(async (req, res, next) => {
         recipient: donor._id,
         message: notificationMessage,
         type: "need",
-        expiryDate: newNeed.expiryDate,
+        // expiryDate: newNeed.expiryDate,
       });
     }
   });
