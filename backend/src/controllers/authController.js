@@ -1,21 +1,17 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const twilio = require("twilio");
 
 const User = require("../models/User");
 const asyncWrapper = require("../middleware/asyncWrapper");
 const sendSuccessResponse = require("../utils/responseHelper");
 const AppError = require("../utils/appError");
+const sendOTP = require("../utils/sendOTP");
 const { sendResetPasswordEmail } = require("../utils/emailService");
 const { sendVerificationEmail } = require("../utils/emailService");
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
-
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const verifySid = process.env.TWILIO_VERIFY_SERVICE_SID;
-const client = twilio(accountSid, authToken);
+const { client, verifySid } = require("../config/twilio");
 
 // Generate JWT Token
 const generateToken = (user) => {
@@ -113,6 +109,30 @@ const resendVerificationEmail = asyncWrapper(async (req, res) => {
   await sendVerificationEmail(email, newVerificationToken);
 
   sendSuccessResponse(res, 200, "Verification email resent successfully.");
+});
+
+const resendOTP = asyncWrapper(async (req, res) => {
+  const { phone } = req.body;
+
+  if (!phone) {
+    throw new AppError("Phone number is required.", 400);
+  }
+
+  // Check if the user exists
+  const user = await User.findOne({ phone });
+
+  if (!user) {
+    throw new AppError("User not found. Register first.", 404);
+  }
+
+  // Check if the phone is already verified
+  if (user.isPhoneVerified) {
+    throw new AppError("Phone number is already verified", 400);
+  }
+
+  await sendOTP(phone); // ✅ Reuse sendOTP function
+
+  sendSuccessResponse(res, 200, "OTP resent successfully.");
 });
 
 const login = asyncWrapper(async (req, res) => {
@@ -304,4 +324,5 @@ module.exports = {
   resetPassword,
   changePassword,
   resendVerificationEmail,
+  resendOTP,
 };
