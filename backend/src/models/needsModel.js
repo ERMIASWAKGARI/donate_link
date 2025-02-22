@@ -78,7 +78,7 @@ const needsSchema = new mongoose.Schema(
       required: true,
     },
     expiryDate: { type: Date, required: true },
-
+//add end date 
     createdAt: {
       type: Date,
       default: Date.now,
@@ -96,3 +96,5 @@ needsSchema.pre("save", function (next) {
 });
 
 module.exports = mongoose.model("Needs", needsSchema);
+//allow the updation to description
+//

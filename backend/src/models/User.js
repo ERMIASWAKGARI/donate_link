@@ -89,7 +89,6 @@ const userSchema = new mongoose.Schema(
 
     // VOLUNTEER FIELDS
     skills: { type: [String], default: undefined },
-    bankAccount:{type:String ,default:undefined},
     availability: {
       type: [
         {

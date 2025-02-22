@@ -16,23 +16,7 @@ const initializeSocket = (server) => {
       onlineUsers.set(userId, socket.id);
     });
 
-    socket.on("join room", ({ roomId, userId }) => {
-      socket.join(roomId);
-      console.log(`${userId} joined room ${roomId}`);
-    });
-    socket.on("send message", async (data) => {
-      try {
-        const { senderId, receiverId, message, roomId } = data;
-        if (result) {
-          io.to(roomId).emit("receive message", data);
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    });
-    socket.on("new comment", (data) => {
-      console.log(data);
-    });
+
     socket.on("disconnect", () => {
       console.log("user disconnected");
       onlineUsers.forEach((value, key) => {

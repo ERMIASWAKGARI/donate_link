@@ -5,8 +5,9 @@ const  {postANeed}  = require('../controllers/donationManagement/postANeed')
 const {getAllNeeds}=require('../controllers/donationManagement/getAllNeeds')
 const {getNeedById}=require('../controllers/donationManagement/getNeedById')
 const {getNeedsByNGO}=require('../controllers/donationManagement/getNeedsByNGO')
-router.post('/postANeed',protect,postANeed)
-router.get('/getAllNeeds',getAllNeeds)
-router.get('/getNeedById/:id',getNeedById)
-router.get('/getNeedsByNGO',getNeedsByNGO)
+const {
+  initiatePayment,verifyPayment
+} = require("../controllers/donationManagement/paymentController");
+
+
 module.exports=router
