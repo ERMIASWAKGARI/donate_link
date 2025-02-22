@@ -25,7 +25,7 @@ router.post("/register", registerUser);
 router.get("/me", protect, getUserProfile);
 router.patch("/me/update", protect, updateUserProfile);
 router.delete("/me/deactivate", protect, deactivateAccount);
-router.post("/me/reactivate", reactivateAccount);
+router.patch("/me/reactivate", reactivateAccount);
 router.delete("/me/delete", protect, deleteUserAccount);
 
 router.post(

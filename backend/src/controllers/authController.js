@@ -6,10 +6,12 @@ const User = require("../models/User");
 const asyncWrapper = require("../middleware/asyncWrapper");
 const sendSuccessResponse = require("../utils/responseHelper");
 const AppError = require("../utils/appError");
+const sendOTP = require("../utils/sendOTP");
 const { sendResetPasswordEmail } = require("../utils/emailService");
 const { sendVerificationEmail } = require("../utils/emailService");
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+const { client, verifySid } = require("../config/twilio");
 
 // Generate JWT Token
 const generateToken = (user) => {
@@ -55,6 +57,33 @@ const verifyEmail = asyncWrapper(async (req, res) => {
   sendSuccessResponse(res, 200, "Email verified successfully.");
 });
 
+const verifyOtp = asyncWrapper(async (req, res) => {
+  const { phone, otp } = req.body;
+
+  const user = await User.findOne({ phone });
+
+  if (!user) {
+    throw new AppError("User not found!", 400);
+  }
+
+  if (user.isPhoneVerified) {
+    throw new AppError("Phone is already verified", 400);
+  }
+
+  const verification_check = await client.verify.v2
+    .services(verifySid)
+    .verificationChecks.create({ to: phone, code: otp });
+
+  if (verification_check.status !== "approved") {
+    throw new AppError("Invalid OTP!", 400);
+  }
+
+  user.isPhoneVerified = true;
+  await user.save();
+
+  sendSuccessResponse(res, 200, "Phone number verified successfully!");
+});
+
 const resendVerificationEmail = asyncWrapper(async (req, res) => {
   const { email } = req.body;
 
@@ -82,24 +111,61 @@ const resendVerificationEmail = asyncWrapper(async (req, res) => {
   sendSuccessResponse(res, 200, "Verification email resent successfully.");
 });
 
-const login = asyncWrapper(async (req, res) => {
-  const { email , password } = req.body;
+const resendOTP = asyncWrapper(async (req, res) => {
+  const { phone } = req.body;
+
+  if (!phone) {
+    throw new AppError("Phone number is required.", 400);
+  }
 
   // Check if the user exists
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ phone });
+
   if (!user) {
-    throw new AppError("Invalid email or password.", 401);
+    throw new AppError("User not found. Register first.", 404);
+  }
+
+  // Check if the phone is already verified
+  if (user.isPhoneVerified) {
+    throw new AppError("Phone number is already verified", 400);
+  }
+
+  await sendOTP(phone); // ✅ Reuse sendOTP function
+
+  sendSuccessResponse(res, 200, "OTP resent successfully.");
+});
+
+const login = asyncWrapper(async (req, res) => {
+  const { email, phone, password } = req.body;
+  let user = {};
+
+  if (email) {
+    user = await User.findOne({ email });
+    if (!user) {
+      throw new AppError("User with this email not found.", 401);
+    }
+  }
+
+  if (phone) {
+    user = await User.findOne({ phone });
+    if (!user) {
+      throw new AppError("User with this phone not found", 401);
+    }
   }
 
   // Check if the email is verified
-  if (!user.isEmailVerified) {
+  if (email && !user.isEmailVerified) {
     throw new AppError("Please verify your email before logging in.", 403);
+  }
+
+  if (phone && !user.isPhoneVerified) {
+    throw new AppError("Please verify your phone before logging in.", 403);
   }
 
   // Compare the hashed password
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
-    throw new AppError("Invalid email or password.", 401);
+    throw new AppError("Invalid password.", 401);
   }
 
   if (!user.isActive) {
@@ -153,67 +219,91 @@ const refreshToken = asyncWrapper(async (req, res) => {
 });
 
 const forgotPassword = asyncWrapper(async (req, res) => {
-  const { email } = req.body;
+  const { email, phone } = req.body;
 
-  // Find user by email
-  const user = await User.findOne({ email });
-  if (!user) {
-    throw new AppError("User with this email does not exist.", 404);
+  if (!email && !phone) {
+    throw new AppError("Please provide either an email or phone number.", 400);
   }
 
-  await user.save();
+  let user;
+  if (email) {
+    user = await User.findOne({ email });
+  } else if (phone) {
+    user = await User.findOne({ phone });
+  }
 
-  // Generate JWT token for password reset link
-  const resetToken = jwt.sign(
-    { id: user._id, version: user.tokenVersion },
-    JWT_SECRET,
-    { expiresIn: "15m" }
-  );
+  if (!user) {
+    throw new AppError("User not found.", 404);
+  }
 
-  // Send password reset email
-  await sendResetPasswordEmail(user.email, resetToken);
+  if (email) {
+    // Generate JWT token for email-based password reset
+    const resetToken = jwt.sign(
+      { id: user._id, version: user.tokenVersion, method: "email" },
+      JWT_SECRET,
+      { expiresIn: "15m" }
+    );
 
-  // Send Success Response
-  sendSuccessResponse(res, 200, "Password reset link sent to your email.");
+    // Send reset link via email
+    await sendResetPasswordEmail(user.email, resetToken);
+    sendSuccessResponse(res, 200, "Password reset link sent to your email.");
+  } else if (phone) {
+    // Generate OTP for phone-based password reset
+    await sendOTP(user.phone);
+    sendSuccessResponse(res, 200, "Password reset OTP sent to your phone.");
+  }
 });
 
 const resetPassword = asyncWrapper(async (req, res) => {
-  const { newPassword } = req.body;
+  const { newPassword, phone, otp } = req.body;
   const { token } = req.query;
 
-  if (!token || !newPassword) {
-    throw new AppError("Token and new password are required.", 400);
+  if (!newPassword) {
+    throw new AppError("New password is required.", 400);
   }
 
-  try {
-    // Verify JWT token
+  let user;
+  if (token) {
+    // Handle Email-based password reset
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    // Find user and check token version
-    const user = await User.findById(decoded.id);
-    if (!user) {
-      throw new AppError("User not found.", 404);
-    }
+    user = await User.findById(decoded.id);
+    if (!user) throw new AppError("User not found.", 404);
 
-    // Ensure token version matches the latest one in the database
     if (decoded.version !== user.tokenVersion) {
       throw new AppError("Invalid or expired token.", 400);
     }
+  } else if (phone && otp) {
+    // Handle Phone-based password reset using OTP
+    user = await User.findOne({ phone });
+    if (!user) throw new AppError("User not found.", 404);
 
-    // Hash and update new password
-    user.password = await bcrypt.hash(newPassword, 10);
+    const verification_check = await client.verify.v2
+      .services(verifySid)
+      .verificationChecks.create({ to: phone, code: otp });
 
-    // Invalidate token by incrementing reset token version
-    user.tokenVersion += 1;
-    await user.save();
-    sendSuccessResponse(
-      res,
-      200,
-      "Password reset successful! You can now log in."
+    if (verification_check.status !== "approved") {
+      throw new AppError("Invalid OTP. Please try again.", 400);
+    }
+  } else {
+    throw new AppError(
+      "Invalid request. Provide either a token or phone + OTP.",
+      400
     );
-  } catch (error) {
-    throw new AppError("Invalid or expired token.", 400);
   }
+
+  // Hash and update new password
+  user.password = await bcrypt.hash(newPassword, 10);
+
+  // Invalidate old tokens by incrementing version
+  user.tokenVersion += 1;
+  await user.save();
+
+  sendSuccessResponse(
+    res,
+    200,
+    "Password reset successful! You can now log in."
+  );
 });
 
 const changePassword = asyncWrapper(async (req, res) => {
@@ -251,10 +341,12 @@ const changePassword = asyncWrapper(async (req, res) => {
 
 module.exports = {
   verifyEmail,
+  verifyOtp,
   login,
   refreshToken,
   forgotPassword,
   resetPassword,
   changePassword,
   resendVerificationEmail,
+  resendOTP,
 };

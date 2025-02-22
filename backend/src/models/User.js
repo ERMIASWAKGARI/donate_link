@@ -16,13 +16,14 @@ const userSchema = new mongoose.Schema(
       trim: true,
       required: true,
     },
-    email: { type: String, required: true, unique: true, lowercase: true },
-    phone: { type: String, required: true },
+    email: { type: String, unique: true, lowercase: true },
+    phone: { type: String, unique: true },
     password: { type: String, required: true, minlength: 6 },
     role: { type: String, enum: USER_ROLES, required: true },
     isEmailVerified: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
     emailVerificationToken: { type: String },
+    isPhoneVerified: { type: Boolean, default: false },
     lastLogin: { type: Date },
     tokenVersion: { type: Number, default: 0 },
     address: {
@@ -85,7 +86,7 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
 
-    isVerified: { type: Boolean, default: false },
+    isVerified: { type: Boolean },
 
     // VOLUNTEER FIELDS
     skills: { type: [String], default: undefined },

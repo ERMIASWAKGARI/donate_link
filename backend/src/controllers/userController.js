@@ -5,6 +5,7 @@ const User = require("../models/User");
 const asyncWrapper = require("../middleware/asyncWrapper");
 const AppError = require("../utils/appError");
 const sendSuccessResponse = require("../utils/responseHelper");
+const sendOTP = require("../utils/sendOTP");
 
 const {
   sendVerificationEmail,
@@ -15,10 +16,23 @@ const {
 const registerUser = asyncWrapper(async (req, res) => {
   const { role, name, email, phone, password } = req.body;
 
-  // Check if the email is already registered
-  const userExists = await User.findOne({ email });
-  if (userExists) {
-    throw new AppError("User already exists", 400);
+  if (!email && !phone) {
+    throw new AppError("Either email or phone number is required", 400);
+  }
+
+  // Check if the email or phone is already registered
+  if (email) {
+    const emailExists = await User.findOne({ email });
+    if (emailExists) {
+      throw new AppError("User with this email already exists", 400);
+    }
+  }
+
+  if (phone) {
+    const phoneExists = await User.findOne({ phone });
+    if (phoneExists) {
+      throw new AppError("User with this phone number already exists", 400);
+    }
   }
 
   // Hash the password
@@ -26,13 +40,13 @@ const registerUser = asyncWrapper(async (req, res) => {
 
   let userData = { role, name, email, phone, password: hashedPassword };
 
+  // Assign role-specific fields
   switch (role) {
-    case "individual_donor": {
+    case "individual_donor":
       userData = { ...userData, donorType: "individual" };
       break;
-    }
 
-    case "organization_donor": {
+    case "organization_donor":
       const {
         address: organizationAddress,
         location: organizationLocation,
@@ -48,9 +62,8 @@ const registerUser = asyncWrapper(async (req, res) => {
         isVerified: false,
       };
       break;
-    }
 
-    case "volunteer": {
+    case "volunteer":
       const {
         skills,
         address: volunteerAddress,
@@ -67,9 +80,8 @@ const registerUser = asyncWrapper(async (req, res) => {
         isVerified: false,
       };
       break;
-    }
 
-    case "ngo": {
+    case "ngo":
       const {
         address: ngoAddress,
         location: ngoLocation,
@@ -84,32 +96,44 @@ const registerUser = asyncWrapper(async (req, res) => {
         isVerified: false,
       };
       break;
-    }
 
     default:
       throw new AppError("Invalid user role provided.", 400);
   }
 
-  // Generate Email Verification Token
-  const emailVerificationToken = crypto.randomBytes(32).toString("hex");
+  // Handle Email Verification (if email is provided)
+  if (email) {
+    const emailVerificationToken = crypto.randomBytes(32).toString("hex");
+    userData.isEmailVerified = false;
+    userData.emailVerificationToken = emailVerificationToken;
+  }
 
-  // Store the token in the user's record
-  userData.isEmailVerified = false;
-  userData.emailVerificationToken = emailVerificationToken;
+  // Handle Phone Verification
+  if (phone && !email) {
+    userData.isPhoneVerified = false;
+
+    sendOTP(phone); // ✅ Reuse sendOTP function
+  }
 
   // Create & Save User
   const newUser = new User(userData);
   await newUser.save();
 
-  await sendVerificationEmail(email, emailVerificationToken);
+  // Send email verification if email exists
+  if (email) {
+    await sendVerificationEmail(email, userData.emailVerificationToken);
+  }
 
   sendSuccessResponse(
     res,
     201,
-    "Registration successful. Please verify your email.",
+    `Registration successful. Please verify your ${
+      email ? "email" : "phone number"
+    }.`,
     {
       id: newUser._id,
       email: newUser.email,
+      phone: newUser.phone,
       role: newUser.role,
       name: newUser.name,
     }
@@ -344,37 +368,30 @@ const deactivateAccount = asyncWrapper(async (req, res) => {
 });
 
 const reactivateAccount = asyncWrapper(async (req, res) => {
-  const { reactivationToken } = req.body; // Get the temporary token
+  const { reactivationToken } = req.body;
 
   // Verify the token
-  try {
-    const decoded = jwt.verify(reactivationToken, process.env.JWT_SECRET);
-    if (decoded.type !== "reactivation") {
-      throw new AppError("Invalid reactivation token.", 400);
-    }
-
-    const user = await User.findById(decoded.userId);
-    if (!user) throw new AppError("User not found.", 404);
-
-    if (user.isActive) {
-      return sendSuccessResponse(res, 200, "Your account is already active.");
-    }
-
-    // Reactivate the account
-    user.isActive = true;
-    await user.save();
-
-    sendSuccessResponse(
-      res,
-      200,
-      "Your account has been reactivated. You can now log in."
-    );
-  } catch (error) {
-    throw new AppError(
-      `Invalid or expired reactivation token. ${error.message}`,
-      400
-    );
+  const decoded = jwt.verify(reactivationToken, process.env.JWT_SECRET);
+  if (decoded.type !== "reactivation") {
+    throw new AppError("Invalid reactivation token.", 400);
   }
+
+  const user = await User.findById(decoded.userId);
+  if (!user) throw new AppError("User not found.", 404);
+
+  if (user.isActive) {
+    return sendSuccessResponse(res, 200, "Your account is already active.");
+  }
+
+  // Reactivate the account
+  user.isActive = true;
+  await user.save();
+
+  sendSuccessResponse(
+    res,
+    200,
+    "Your account has been reactivated. You can now log in."
+  );
 });
 
 const deleteUserAccount = asyncWrapper(async (req, res) => {
