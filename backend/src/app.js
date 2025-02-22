@@ -1,9 +1,9 @@
-// backend/src/app.js
 const express = require("express");
 const dotenv = require("dotenv");
-const connectDB = require("./config/db"); // Import database connection
-const userRoutes = require("./routes/userRoutes"); // Example route (replace with your own)
-// const donationRoutes = require("./routes/donationRoutes"); // Example route
+const connectDB = require("./config/db");
+const userRoutes = require("./routes/userRoutes");
+const authRoutes = require("./routes/authRoutes");
+const errorHandler = require("./middleware/errorHandler");
 
 dotenv.config();
 
@@ -13,10 +13,13 @@ const app = express();
 connectDB();
 
 // Middleware
-app.use(express.json()); // Parse incoming JSON requests
+app.use(express.json());
 
 // Routes
 app.use("/api/users", userRoutes);
-// app.use("/api/donations", donationRoutes);
+app.use("/api/auth", authRoutes);
+
+//Global error Handler Middleware
+app.use(errorHandler);
 
 module.exports = app;

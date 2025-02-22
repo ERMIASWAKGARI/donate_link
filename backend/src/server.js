@@ -1,5 +1,4 @@
-// backend/src/server.js
-const app = require("./app"); // Import the app from app.js
+const app = require("./app");
 const dotenv = require("dotenv");
 
 dotenv.config();
