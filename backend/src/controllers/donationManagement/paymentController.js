@@ -94,13 +94,15 @@ exports.initiatePayment = asyncWrapper(async (req, res, next) => {
 
 exports.verifyPayment = asyncWrapper(async (req, res, next) => {
   const { transactionId } = req.body;
-console.log('i am verifying')
+
   if (!transactionId) {
     return next(new AppError("Transaction ID is required.", 400));
   }
 
   // ✅ Fetch Payment Record
-  const payment = await Payment.findOne({ transactionID: transactionId });
+  const payment = await Payment.findOne({
+    transactionID: transactionId,
+  }).populate("NGO");
   if (!payment) {
     return next(new AppError("Payment not found", 404));
   }
@@ -145,7 +147,21 @@ console.log('i am verifying')
   payment.receiptURL = chapaResponse.data.data.receipt_url || null;
   payment.updatedAt = Date.now();
   await payment.save();
-console.log(payment)
+
+  // ✅ Transfer Funds to NGO
+  const transferResult = await exports.transferFundsToNGO(payment);
+
+  if (transferResult.status === "Completed") {
+    payment.status = "Transferred";
+    payment.transferReference = transferResult.transferReference;
+    payment.transferReceiptURL = transferResult.transferReceiptURL;
+  } else {
+    payment.status = "Transfer Failed";
+    payment.errorMessage = transferResult.error;
+  }
+
+  await payment.save();
+
   // ✅ Update Need Donations
   const need = await Need.findById(payment.need);
   if (need) {
@@ -162,14 +178,14 @@ console.log(payment)
   const io = getIO();
   const notificationMessage = `You have received a donation of ${payment.amount} ETB.`;
 
-  if (onlineUsers.has(payment.NGO.toString())) {
-    io.to(onlineUsers.get(payment.NGO.toString())).emit("newNotification", {
+  if (onlineUsers.has(payment.NGO._id.toString())) {
+    io.to(onlineUsers.get(payment.NGO._id.toString())).emit("newNotification", {
       message: notificationMessage,
       type: "payment",
     });
   } else {
     await Notification.create({
-      recipient: payment.NGO,
+      recipient: payment.NGO._id,
       message: notificationMessage,
       type: "payment",
     });
@@ -177,8 +193,54 @@ console.log(payment)
 
   res.status(200).json({
     success: true,
-    message: "Payment verified successfully. Notification sent to NGO.",
+    message:
+      "Payment verified and transferred successfully. Notification sent to NGO.",
     data: payment,
   });
 });
 
+
+exports.transferFundsToNGO = asyncWrapper(async (payment) => {
+  console.log('i am transferring')
+  if (!payment || !payment.bankAccount) {
+    throw new Error("Invalid payment details or missing bank account.");
+  }
+
+  const transferReference = `CHAPA_TRANSFER_${Date.now()}_${Math.random()
+    .toString(36)
+    .substring(2, 8)}`;
+
+  const transferData = {
+    account_name: payment.NGO.organizationName, // NGO Name
+    account_number: payment.bankAccount,
+    amount: payment.amount,
+    currency: "ETB",
+    reference: transferReference,
+    narration: `Donation payout for ${payment.description}`,
+    beneficiary_name: payment.NGO.organizationName,
+  };
+
+  try {
+    const response = await axios.post(
+      "https://api.chapa.co/v1/transfers", // Chapa Transfer API
+      transferData,
+      { headers: { Authorization: `Bearer ${process.env.CHAPA_SECRET_KEY}` } }
+    );
+
+    if (response.data.status !== "success") {
+      throw new Error("Chapa Transfer API failed");
+    }
+
+    return {
+      status: "Completed",
+      transferReference,
+      transferReceiptURL: response.data.data.receipt_url || null,
+    };
+  } catch (error) {
+    console.error(
+      "Chapa Transfer Error:",
+      error.response?.data || error.message
+    );
+    return { status: "Failed", error: error.message };
+  }
+});

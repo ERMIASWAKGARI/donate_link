@@ -8,6 +8,11 @@ const {getNeedsByNGO}=require('../controllers/donationManagement/getNeedsByNGO')
 const {
   initiatePayment,verifyPayment
 } = require("../controllers/donationManagement/paymentController");
-
+router.post('/postANeed',protect,postANeed)
+router.post("/initiatePayment",protect,initiatePayment);
+router.get('/verifyPayment',verifyPayment)
+router.get('/getAllNeeds',getAllNeeds)
+router.get('/getNeedsByNGO',getNeedsByNGO)
+router.get('/getNeedsById',getNeedById)
 
 module.exports=router
