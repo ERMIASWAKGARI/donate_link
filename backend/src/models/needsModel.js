@@ -26,7 +26,7 @@ const needsSchema = new mongoose.Schema(
       trim: true,
     }, // Description of the need
    // Number of volunteers needed (for service needs)
-    totalDonated: { type: Number, default: 0 },
+   
     status: {
       type: String,
       enum: ["Open", "Fulfilled", "Expired", ],
@@ -45,12 +45,9 @@ location:{latitude:{type:Number,required:true},longitude:{type:Number,required:t
       },
     ],
    
+    //add end date 
     endDate: { type: Date, required: true },
-//add end date 
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
+    
   },
   { toJSON: { virtuals: true }, toObject: { virtuals: true } },
   {timestamps:true}
@@ -58,4 +55,69 @@ location:{latitude:{type:Number,required:true},longitude:{type:Number,required:t
 
 module.exports = mongoose.model("Needs", needsSchema);
 //allow the updation to description
-//
+const matterialNeedSchema=new mongoose.Schema(
+  {
+    need:{
+      type:mongoose.Schema.Types.ObjectId,
+      required:true,
+      ref:'Needs'
+    },
+    category:{type:String,required:true},
+    subCategory:[{
+    name:{
+      type:String,
+      required:true,
+    },
+    amount:{
+      type:Number,
+      required:true,
+      min:1
+    }
+    }],
+    amountDonated:[
+      {
+        name:{type:String,required:true},
+        amount:{type:Number,required:true,min:1}
+      }
+    ]
+  },
+  {
+    timestamps:true
+  }
+)
+module.exports=mongoose.model('MatterialNeed',matterialNeedSchema)
+const serviceNeed = new mongoose.Schema({
+  need: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: "Needs",
+  },
+  category: { type: String, required: true },
+  subCategory: [
+    {
+      name: {
+        type: String,
+        required: true,
+      },
+      vacancy: {
+        type: Number,
+        required: true,
+        min: 1,
+      },
+      application:[{
+applicants:{type:mongoose.Schema.Types.ObjectId,ref:"Application"}
+      }],
+      acceptedApplication:[
+        {
+          volunter:{type:mongoose.Schema.Types.ObjectId,ref:"Application"
+        }}
+      ]
+    },
+  ],
+});
+module.exports=mongoose.model('Service',serviceNeed)
+const moneyNeed=mongoose.Schema(
+  {
+    
+  }
+)
