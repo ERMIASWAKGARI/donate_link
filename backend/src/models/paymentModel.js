@@ -2,18 +2,6 @@ const mongoose = require("mongoose");
 
 const paymentSchema = new mongoose.Schema(
   {
-    donor: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    }, // The donor making the payment
-
-    NGO: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    }, // The NGO receiving the donation
-
     need: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Needs",
@@ -37,16 +25,9 @@ const paymentSchema = new mongoose.Schema(
 
     paymentMethod: {
       type: String,
-      enum: ["Telebirr", "Bank Transfer", "Chappa", "PayPal", "CreditCard"],
+     enum: [ "Bank Transfer", "wallet", "international payment", "CreditCard"],
       required: true,
     }, // Payment method used
-
-    bankAccount: {
-      type: String,
-      required: function () {
-        return this.paymentMethod === "Bank Transfer";
-      },
-    }, // Bank account where funds are transferred (for bank transfers)
 
     transactionID: {
       type: String,
@@ -68,17 +49,10 @@ const paymentSchema = new mongoose.Schema(
       default: "Pending",
     }, // Payment status
 
-    paymentDate: {
-      type: Date,
-      default: Date.now,
-    }, // Timestamp of payment
-
-    updatedAt: {
-      type: Date,
-      default: Date.now,
-    }, // Timestamp when status changes
+  
   },
   { timestamps: true } // Automatically adds createdAt & updatedAt fields
 );
 
 module.exports = mongoose.model("Payment", paymentSchema);
+ 
