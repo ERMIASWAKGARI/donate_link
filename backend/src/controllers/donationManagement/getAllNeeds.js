@@ -12,26 +12,32 @@ exports.getAllNeeds = asyncWrapper(async (req, res, next) => {
     needType,
     status,
     urgencyLevel,
-    sortBy,
-    sortOrder,
+    categoryName,
+    startDate,
+    endDate,
+    sortBy = "createdAt",
+    sortOrder = "desc",
   } = req.query;
+
   const skip = (page - 1) * limit;
 
-  // Filtering conditions
+  // ✅ Filtering conditions
   let filter = {};
   if (needType) filter.needType = needType;
   if (status) filter.status = status;
   if (urgencyLevel) filter.urgencyLevel = urgencyLevel;
-
-  // Sorting logic
-  const sortOptions = {};
-  if (sortBy) {
-    sortOptions[sortBy] = sortOrder === "desc" ? -1 : 1;
-  } else {
-    sortOptions.createdAt = -1; // Default: Newest first
+  if (categoryName) filter["category.categoryName"] = categoryName;
+  if (startDate && endDate) {
+    filter.createdAt = {
+      $gte: new Date(startDate),
+      $lte: new Date(endDate),
+    };
   }
 
-  // Aggregation Pipeline
+  // ✅ Sorting logic
+  const sortOptions = { [sortBy]: sortOrder === "desc" ? -1 : 1 };
+
+  // ✅ Aggregation Pipeline
   const needs = await Need.aggregate([
     { $match: filter },
     {
@@ -46,15 +52,16 @@ exports.getAllNeeds = asyncWrapper(async (req, res, next) => {
     {
       $project: {
         _id: 1,
+        title: 1,
         description: 1,
         needType: 1,
         urgencyLevel: 1,
         status: 1,
-        amount: 1,
-        quantity: 1,
-        vacancy: 1,
-        displayTime: 1,
-        expiryDate: 1,
+        targetMoney: 1,
+        "beneficiaryInfo.numberOfBeneficiaries": 1,
+        "beneficiaryInfo.location": 1,
+        category: 1,
+        endDate: 1,
         createdAt: 1,
         "ngoDetails._id": 1,
         "ngoDetails.name": 1,
@@ -66,7 +73,7 @@ exports.getAllNeeds = asyncWrapper(async (req, res, next) => {
     { $limit: parseInt(limit) },
   ]);
 
-  // Count total documents for pagination metadata
+  // ✅ Count total documents for pagination metadata
   const totalDocuments = await Need.countDocuments(filter);
 
   res.status(200).json({
