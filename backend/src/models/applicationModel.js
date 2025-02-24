@@ -1,16 +1,39 @@
-const { default: mongoose } = require("mongoose");
+const applicationSchema = new mongoose.Schema(
+  {
+    applicant: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    }, // The applicant (volunteer or NGO)
 
-const applicationSchema = new mongoose.Schema({
-  applicant: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  }, // Volunteer applying
-  service:{type:mongoose.Schema.Types.ObjectId,required:true},
-  skills:[{type:String,ref:'Service',required:true} ],
-  yearsOfExperience:{type:Number,required:true},
+    category: {
+      type: String,
+      required: true,
+    },
 
- // Timestamp
-},{timestamps:true});
+    subCategory: {
+      type: String,
+      required: true,
+    },
 
-module.exports = mongoose.model("Application", applicationSchema);
+    need: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Needs",
+      required: true,
+    }, // The need being applied for
+    skills: {
+      type: [String],
+    },
+    yearsOfExperience: {
+      type: Number,
+    },
+    status: {
+      type: String,
+      enum: ["accepted", "rejected"],
+    },
+    importantDocuments: {
+      type: [String],
+    },
+  },
+  { timestamps: true }
+);
