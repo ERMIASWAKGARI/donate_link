@@ -1,14 +1,44 @@
-const donationItemsSchema = new mongoose.Schema({
-  donor: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // Donor who posted the donation
-  donationType: { type: String, enum: ["Money", "Material"], required: true }, // Type of donation
-  itemDetails: { type: String }, // Details about material donations
-  amount: { type: Number }, // Amount for monetary donations
-  status: {
-    type: String,
-    enum: ["Available", "Claimed", "Completed"],
-    default: "Available",
-  }, // Status of the donation
-  createdAt: { type: Date, default: Date.now }, // Timestamp
-});
 
-module.exports = mongoose.model("DonationItems", donationItemsSchema);
+const donationsSchema = new mongoose.Schema(
+  {
+    donor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    }, // The donor (individual or organization)
+    need: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Needs",
+    }, // The need being fulfilled (optional, if donation is not tied to a specific need)
+    NGO: {
+      type: mongoose.Schema.Types.ObjectId,
+    },
+
+    donationType: {
+      type: String,
+      enum: ["money", "material", "service"],
+      required: true,
+    },
+
+    matterialDonated: [
+      {
+        category: {
+          type: String,
+          required: true,
+        },
+        subCategory: {
+          type: String,
+          required: true,
+        },
+        quantity: {
+          type: Number,
+          required: function () {
+            this.parent().donationType === "matterial";
+          },
+        },
+      },
+    ],
+  },
+  { timestamps: true }
+);
+module.exports = mongoose.model("Donations", needsSchema);
