@@ -16,7 +16,7 @@ const getAllUsers = asyncWrapper(async (req, res) => {
     .paginate();
   // console.log(features);
 
-  const users = await features.executeQuery(); // Execute the query
+  const users = await features.executeQuery();
   // console.log(users);
   const totalUsers = users.length;
   if (!totalUsers) {
@@ -40,7 +40,6 @@ const getUserById = asyncWrapper(async (req, res) => {
 
   const user = await features.executeQuery();
 
-  // const user = await User.findById(req.params.id).select("-password");
   if (!user) {
     throw new AppError("User not found", 404);
   }

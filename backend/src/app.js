@@ -20,7 +20,7 @@ app.use(express.json());
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
-app.use("/api/admin", adminRoutes); // <-- Use admin routes
+app.use("/api/admin", adminRoutes);
 
 //Global error Handler Middleware
 app.use(errorHandler);
