@@ -6,11 +6,11 @@ const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes"); // <-- Import admin routes
 
 const errorHandler = require("./middleware/errorHandler");
-
+const AppError=require('./utils/appError')
+const donationRoutes=require('./routes/donationRoutes')
 dotenv.config();
 
 const app = express();
-
 // Connect to Database
 connectDB();
 
@@ -20,6 +20,10 @@ app.use(express.json());
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
+app.use('/api/donation',donationRoutes)
+app.all("*", (req, res, next) => {
+  next(new AppError(`Cannot find ${req.originalUrl} on this server!`, 404));
+});
 app.use("/api/admin", adminRoutes);
 
 //Global error Handler Middleware

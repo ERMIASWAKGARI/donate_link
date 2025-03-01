@@ -38,7 +38,11 @@ const userSchema = new mongoose.Schema(
       longitude: { type: Number, default: undefined },
     },
     profilePicture: { type: String, default: null },
-
+    bankAccount: {
+      account_number: { type: String },
+      accountName: { type: String },
+      bankName: { type: String },
+    },
     donorType: {
       type: String,
       enum: ["individual", "organization"],
