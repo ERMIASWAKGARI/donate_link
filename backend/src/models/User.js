@@ -5,6 +5,7 @@ const USER_ROLES = [
   "organization_donor",
   "volunteer",
   "ngo",
+  "admin",
 ];
 
 // Define User Schema
@@ -24,6 +25,7 @@ const userSchema = new mongoose.Schema(
     isActive: { type: Boolean, default: true },
     emailVerificationToken: { type: String },
     isPhoneVerified: { type: Boolean, default: false },
+    isBanned: { type: Boolean, default: false },
     lastLogin: { type: Date },
     tokenVersion: { type: Number, default: 0 },
     address: {

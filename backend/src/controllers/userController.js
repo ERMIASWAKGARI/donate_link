@@ -6,6 +6,7 @@ const asyncWrapper = require("../middleware/asyncWrapper");
 const AppError = require("../utils/appError");
 const sendSuccessResponse = require("../utils/responseHelper");
 const sendOTP = require("../utils/sendOTP");
+const APIFeatures = require("../utils/apiFeatures");
 
 const {
   sendVerificationEmail,
@@ -279,9 +280,15 @@ const uploadVerificationDocs = asyncWrapper(async (req, res) => {
 });
 
 const getUserProfile = asyncWrapper(async (req, res) => {
-  const user = await User.findById(req.user._id).select(
-    "-password -emailVerificationToken -tokenVersion -isActive -isEmailVerified -lastLogin -__v"
-  );
+  const features = new APIFeatures(User.findById(req.user._id), req.query)
+    .filter()
+    .search()
+    .sort()
+    .limit()
+    .paginate();
+
+  const user = await features.executeQuery();
+
   if (!user) {
     throw new AppError("User not found", 404);
   }

@@ -35,4 +35,17 @@ const protect = asyncWrapper(async (req, res, next) => {
   }
 });
 
-module.exports = { protect };
+// ✅ Middleware to check if user is an admin
+const adminProtect = asyncWrapper(async (req, res, next) => {
+  if (!req.user) {
+    throw new AppError("Not authorized, please log in", 401);
+  }
+
+  if (req.user.role !== "admin") {
+    throw new AppError("Access denied. Admins only.", 403);
+  }
+
+  next();
+});
+
+module.exports = { protect, adminProtect };
