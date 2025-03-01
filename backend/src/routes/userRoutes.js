@@ -10,18 +10,19 @@ const {
   uploadProfilePicture,
 } = require("../controllers/userController");
 const uploadVerificationDocsMiddleware = require("../middleware/fileUpload");
+const uploadProfilePictureMiddleware = require("../middleware/uploadProfilePicture");
 const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
 router.post("/register", registerUser);
 
-// router.post(
-//   "/upload-profile-picture",
-//   protect,
-//   upload.single("profilePicture"),
-//   uploadProfilePicture
-// );
+router.post(
+  "/upload-profile-picture",
+  protect,
+  uploadProfilePictureMiddleware,
+  uploadProfilePicture
+);
 router.get("/me", protect, getUserProfile);
 router.patch("/me/update", protect, updateUserProfile);
 router.delete("/me/deactivate", protect, deactivateAccount);
