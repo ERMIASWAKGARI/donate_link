@@ -9,7 +9,14 @@ const notificationSchema = new mongoose.Schema({
   message: { type: String, required: true }, // Notification message
   type: {
     type: String,
-    enum: ["donation", "application", "need", "payment", "general"],
+    enum: [
+      "donation",
+      "application",
+      "need",
+      "payment",
+      "verification_docs",
+      "general",
+    ],
     required: true,
   }, // Type of notification
   seen: { type: Boolean, default: false }, // Whether the notification has been seen

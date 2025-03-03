@@ -7,6 +7,7 @@ const AppError = require("../utils/appError");
 const sendSuccessResponse = require("../utils/responseHelper");
 const sendOTP = require("../utils/sendOTP");
 const APIFeatures = require("../utils/apiFeatures");
+const { sendNotification } = require("../utils/notificationService");
 
 const {
   sendVerificationEmail,
@@ -273,6 +274,18 @@ const uploadVerificationDocs = asyncWrapper(async (req, res) => {
   });
 
   await user.save();
+
+  // Get Admin Users
+  const admins = await User.find({ role: "admin" });
+
+  // Notify All Admins
+  admins.forEach((admin) => {
+    sendNotification(
+      admin._id,
+      `New verification documents uploaded by ${user.name}`,
+      "verification_docs"
+    );
+  });
 
   sendSuccessResponse(res, 200, "Documents uploaded successfully!", {
     uploadedFiles: roleSpecificDocs,

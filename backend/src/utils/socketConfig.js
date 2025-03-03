@@ -1,6 +1,6 @@
-const {Server} =require("socket.io");
+const { Server } = require("socket.io");
 const onlineUsers = new Map();
-let io
+let io;
 const initializeSocket = (server) => {
   io = new Server(server, {
     pingTimeout: 60000,
@@ -16,7 +16,6 @@ const initializeSocket = (server) => {
       onlineUsers.set(userId, socket.id);
     });
 
-
     socket.on("disconnect", () => {
       console.log("user disconnected");
       onlineUsers.forEach((value, key) => {
@@ -30,4 +29,4 @@ const initializeSocket = (server) => {
 
 const getIO = () => io;
 
-module.exports= { initializeSocket, getIO, onlineUsers };
+module.exports = { initializeSocket, getIO, onlineUsers };
