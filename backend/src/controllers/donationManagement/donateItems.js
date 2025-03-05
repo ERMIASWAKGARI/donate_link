@@ -1,22 +1,21 @@
-const Donations = require("../../models/donationItemsModel"); 
-const Needs = require("../../models/needsModel"); 
+const Donations = require("../../models/donationItemsModel");
+const Needs = require("../../models/needsModel");
 
 const donateItems = async (req, res) => {
   try {
     const { needId, NGOId, matterialDonated } = req.body;
-
-    // Ensure the authenticated user is a donor
+console.log(req.user)
+    // Ensure the authenticated user is a donor (either individual or organization)
     if (
       !req.user ||
-      req.user.role !== "individualDonor" ||
-      req.user.role !== "organization"
+      !["individual_donor", "organization_donor"].includes(req.user.role)
     ) {
       return res
         .status(403)
         .json({ message: "Access denied. Only donors can donate." });
     }
 
-    // Validate at least one of needId or NGOId is provided
+    // Validate that at least one of needId or NGOId is provided
     if (!needId && !NGOId) {
       return res
         .status(400)
@@ -24,8 +23,9 @@ const donateItems = async (req, res) => {
     }
 
     // If needId is provided, check if it exists
+    let needExists = null;
     if (needId) {
-      const needExists = await Needs.findById(needId);
+      needExists = await Needs.findById(needId);
       if (!needExists) {
         return res.status(404).json({ message: "Specified need not found." });
       }
@@ -38,12 +38,11 @@ const donateItems = async (req, res) => {
         .json({ message: "At least one material must be donated." });
     }
 
-    // Create new donation entry
+    // Create a new donation entry
     const newDonation = new Donations({
-      donor: req.user.userId,
-      need: needId || undefined,
+      donor: req.user._id,
+      need: needExists ? needId : undefined,
       NGO: NGOId || undefined,
-      donationType: "material",
       matterialDonated,
     });
 
@@ -57,5 +56,5 @@ const donateItems = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 module.exports = donateItems;
-// Register the endpoint
