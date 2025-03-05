@@ -4,7 +4,6 @@ const connectDB = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes"); // <-- Import admin routes
-
 const errorHandler = require("./middleware/errorHandler");
 const AppError=require('./utils/appError')
 const donationRoutes=require('./routes/donationRoutes')
@@ -21,10 +20,10 @@ app.use(express.json());
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use('/api/donation',donationRoutes)
+app.use("/api/admin", adminRoutes);
 app.all("*", (req, res, next) => {
   next(new AppError(`Cannot find ${req.originalUrl} on this server!`, 404));
 });
-app.use("/api/admin", adminRoutes);
 
 //Global error Handler Middleware
 app.use(errorHandler);

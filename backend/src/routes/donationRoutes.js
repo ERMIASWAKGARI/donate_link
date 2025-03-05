@@ -1,18 +1,15 @@
 const express=require('express')
 const router=express.Router()
-const {protect}=require('../middleware/authMiddleware')
-const  {postANeed}  = require('../controllers/donationManagement/postANeed')
-const {getAllNeeds}=require('../controllers/donationManagement/getAllNeeds')
-const {getNeedById}=require('../controllers/donationManagement/getNeedById')
-const {getNeedsByNGO}=require('../controllers/donationManagement/getNeedsByNGO')
-const {
-  initiatePayment,verifyPayment
-} = require("../controllers/donationManagement/paymentController");
-router.post('/postANeed',protect,postANeed)
-router.post("/initiatePayment",protect,initiatePayment);
-router.get('/verifyPayment',verifyPayment)
-router.get('/getAllNeeds',getAllNeeds)
-router.get('/getNeedsByNGO',getNeedsByNGO)
-router.get('/getNeedsById',getNeedById)
-
+const routeProtect=require('../middleware/authMiddleware')
+const needController=require('../controllers/donationManagement/needController')
+const paymentController=require('../controllers/donationManagement/paymentController')
+const donateItems=require('../controllers/donationManagement/donateItems')
+console.log(typeof routeProtect.protect)
+router.post("/initiatePayment",routeProtect.protect,paymentController.initiatePayment);
+router.get('/verifyPayment',paymentController.verifyPayment)
+router.post('/postANeed',routeProtect.protect,needController.postANeed)
+router.get('/getAllNeeds',needController.getAllNeeds)
+router.get('/getNeedsByNGO',needController.getNeedsByNGO)
+router.get('/getNeedsById',needController.getNeedById)
+router.post('/donateItems',routeProtect.protect,donateItems)
 module.exports=router

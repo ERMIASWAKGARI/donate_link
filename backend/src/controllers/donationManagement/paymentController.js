@@ -4,7 +4,7 @@ const AppError = require("../../utils/appError");
 const Payment = require("../../models/paymentModel");
 const axios = require("axios");
 
-exports.initiatePayment = asyncWrapper(async (req, res, next) => {
+const initiatePayment = asyncWrapper(async (req, res, next) => {
   const { amount, needId, paymentMethod } = req.body;
   const { user } = req;
 
@@ -92,7 +92,7 @@ exports.initiatePayment = asyncWrapper(async (req, res, next) => {
 
 
 
-exports.verifyPayment = asyncWrapper(async (req, res, next) => {
+const verifyPayment = asyncWrapper(async (req, res, next) => {
   const { transactionId } = req.body;
 
   if (!transactionId) {
@@ -200,7 +200,7 @@ exports.verifyPayment = asyncWrapper(async (req, res, next) => {
 });
 
 
-exports.transferFundsToNGO = asyncWrapper(async (payment) => {
+const transferFundsToNGO = asyncWrapper(async (payment) => {
   console.log('i am transferring')
   if (!payment || !payment.bankAccount) {
     throw new Error("Invalid payment details or missing bank account.");
@@ -244,3 +244,4 @@ exports.transferFundsToNGO = asyncWrapper(async (payment) => {
     return { status: "Failed", error: error.message };
   }
 });
+module.exports={initiatePayment,verifyPayment,transferFundsToNGO}

@@ -1,4 +1,4 @@
-
+const mongoose = require("mongoose");
 const donationsSchema = new mongoose.Schema(
   {
     donor: {
@@ -14,12 +14,13 @@ const donationsSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
     },
 
-    donationType: {
-      type: String,
-      enum: ["money", "material", "service"],
-      required: true,
-    },
-
+  
+status:{
+  type: String,
+  enum: ["pending", "accepted", "rejected"],
+  default: "pending",
+},
+   
     matterialDonated: [
       {
         category: {
@@ -32,13 +33,11 @@ const donationsSchema = new mongoose.Schema(
         },
         quantity: {
           type: Number,
-          required: function () {
-            this.parent().donationType === "matterial";
-          },
+          required: true,
         },
       },
     ],
   },
   { timestamps: true }
 );
-module.exports = mongoose.model("Donations", needsSchema);
+module.exports = mongoose.model("Donations", donationsSchema);
