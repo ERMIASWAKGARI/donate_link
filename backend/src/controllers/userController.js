@@ -138,6 +138,7 @@ const registerUser = asyncWrapper(async (req, res) => {
       phone: newUser.phone,
       role: newUser.role,
       name: newUser.name,
+      requiresVerification: true,
     }
   );
 });
@@ -408,7 +409,7 @@ const updateUserProfile = asyncWrapper(async (req, res) => {
     );
   }
 
-  sendSuccessResponse(res, 200, 'Profile updated successfully.');
+  sendSuccessResponse(res, 200, 'Profile updated successfully.', user);
 });
 
 const deactivateAccount = asyncWrapper(async (req, res) => {
