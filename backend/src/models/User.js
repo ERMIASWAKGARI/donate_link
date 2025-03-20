@@ -20,8 +20,8 @@ const userSchema = new mongoose.Schema(
     email: { type: String, unique: true, lowercase: true },
     phone: { type: String, unique: true },
 
-    newEmail: { type: String }, // Store new email until verified
-    newPhone: { type: String }, // Store new phone until verified
+    newEmail: { type: String },
+    newPhone: { type: String },
 
     isNewEmailVerified: { type: Boolean },
     isNewPhoneVerified: { type: Boolean },

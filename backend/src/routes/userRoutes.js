@@ -1,4 +1,5 @@
 const express = require('express');
+
 const {
   registerUser,
   getUserProfile,
@@ -16,7 +17,6 @@ const { protect } = require('../middleware/authMiddleware');
 const router = express.Router();
 
 router.post('/register', registerUser);
-
 router.post(
   '/upload-profile-picture',
   protect,
@@ -28,7 +28,6 @@ router.patch('/me/update', protect, updateUserProfile);
 router.patch('/me/deactivate', protect, deactivateAccount);
 router.patch('/me/reactivate', reactivateAccount);
 router.delete('/me/delete', protect, deleteUserAccount);
-
 router.post(
   '/upload-verification-docs',
   protect,
