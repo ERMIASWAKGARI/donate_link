@@ -137,9 +137,45 @@ const bulkBanUsers = asyncWrapper(async (req, res) => {
     throw new AppError('Provide at least one user ID.', 400);
   }
 
-  await User.updateMany({ _id: { $in: userIds } }, { isBanned: true });
+  const result = await User.updateMany(
+    { _id: { $in: userIds }, isBanned: false },
+    { isBanned: true }
+  );
+
+  if (result.modifiedCount === 0) {
+    throw new AppError(
+      'No users were banned. Check if the IDs are valid and users are not banned.',
+      400
+    );
+  }
 
   sendSuccessResponse(res, 200, 'Selected users have been banned.');
+});
+
+const bulkUnbanUsers = asyncWrapper(async (req, res) => {
+  const { userIds } = req.body;
+
+  if (!Array.isArray(userIds) || userIds.length === 0) {
+    throw new AppError('Provide at least one user ID.', 400);
+  }
+
+  const result = await User.updateMany(
+    { _id: { $in: userIds }, isBanned: true }, // Ensure only banned users are updated
+    { isBanned: false }
+  );
+
+  if (result.modifiedCount === 0) {
+    throw new AppError(
+      'No users were unbanned. Check if the IDs are valid and users are banned.',
+      400
+    );
+  }
+
+  sendSuccessResponse(
+    res,
+    200,
+    `${result.modifiedCount} users have been unbanned.`
+  );
 });
 
 const softDeleteUser = asyncWrapper(async (req, res) => {
@@ -184,6 +220,8 @@ module.exports = {
   verifyUser,
   rejectUserVerification,
   banUser,
+  bulkBanUsers,
+  bulkUnbanUsers,
   unbanUser,
   deleteUser,
 };

@@ -6,6 +6,8 @@ const {
   verifyUser,
   rejectUserVerification,
   banUser,
+  bulkBanUsers,
+  bulkUnbanUsers,
   unbanUser,
   deleteUser,
 } = require('../controllers/adminController');
@@ -13,6 +15,9 @@ const {
 const router = express.Router();
 
 router.get('/users', protect, adminProtect, getAllUsers);
+router.patch('/users/bulk-ban', protect, adminProtect, bulkBanUsers);
+router.patch('/users/bulk-unban', protect, adminProtect, bulkUnbanUsers);
+router.patch('/users/bulk-ban', bulkBanUsers);
 router.get('/users/:id', protect, adminProtect, getUserById);
 router.patch('/users/:id', protect, adminProtect, verifyUser);
 router.patch(
