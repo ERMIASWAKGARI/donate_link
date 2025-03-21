@@ -99,7 +99,7 @@ const banUser = asyncWrapper(async (req, res) => {
   user.isBanned = true;
   await user.save();
 
-  await logAdminAction(req.user._id, 'Banned User', user._id); // Log action
+  // await logAdminAction(req.user._id, 'Banned User', user._id); // Log action
 
   sendSuccessResponse(res, 200, 'User account banned successfully.');
 });

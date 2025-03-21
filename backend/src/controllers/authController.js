@@ -197,8 +197,15 @@ const login = asyncWrapper(async (req, res) => {
     }
   }
 
-  // Check if the email is verified
+  if (user.isBanned) {
+    throw new AppError(
+      'Your account has been banned. Please contact an admin for resolving the case.',
+      403
+    );
+  }
+
   if (email && !user.isEmailVerified) {
+    // Check if the email is verified
     throw new AppError('Please verify your email before logging in.', 403);
   }
 
