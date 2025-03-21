@@ -1,9 +1,9 @@
-const User = require("../models/User");
-const asyncWrapper = require("../middleware/asyncWrapper");
-const AppError = require("../utils/appError");
-const sendSuccessResponse = require("../utils/responseHelper");
-const APIFeatures = require("../utils/apiFeatures");
-const { sendNotification } = require("../utils/notificationService");
+const User = require('../models/User');
+const asyncWrapper = require('../middleware/asyncWrapper');
+const AppError = require('../utils/appError');
+const sendSuccessResponse = require('../utils/responseHelper');
+const APIFeatures = require('../utils/apiFeatures');
+const { sendNotification } = require('../utils/notificationService');
 
 // Get all users
 const getAllUsers = asyncWrapper(async (req, res) => {
@@ -21,10 +21,10 @@ const getAllUsers = asyncWrapper(async (req, res) => {
   // console.log(users);
   const totalUsers = users.length;
   if (!totalUsers) {
-    throw new AppError("No users found", 404);
+    throw new AppError('No users found', 404);
   }
 
-  sendSuccessResponse(res, 200, "Users retrieved successfully", {
+  sendSuccessResponse(res, 200, 'Users retrieved successfully', {
     totalUsers,
     users,
   });
@@ -42,9 +42,9 @@ const getUserById = asyncWrapper(async (req, res) => {
   const user = await features.executeQuery();
 
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
-  sendSuccessResponse(res, 200, "User retrieved successfully", user);
+  sendSuccessResponse(res, 200, 'User retrieved successfully', user);
 });
 
 const verifyUser = asyncWrapper(async (req, res) => {
@@ -52,10 +52,10 @@ const verifyUser = asyncWrapper(async (req, res) => {
   const adminId = req.user._id;
 
   const user = await User.findById(userId);
-  if (!user) throw new AppError("User not found.", 404);
+  if (!user) throw new AppError('User not found.', 404);
 
   if (user.isVerified) {
-    throw new AppError("User is already verified.", 400);
+    throw new AppError('User is already verified.', 400);
   }
 
   user.isVerified = true;
@@ -64,58 +64,115 @@ const verifyUser = asyncWrapper(async (req, res) => {
   sendNotification(
     user._id,
     `Dear ${user.name} your account has been verified.`,
-    "general"
+    'general'
   );
 
-  sendSuccessResponse(res, 200, "User verified successfully.");
+  sendSuccessResponse(res, 200, 'User verified successfully.');
 });
 
 const rejectUserVerification = asyncWrapper(async (req, res) => {
   const userId = req.params.id;
-  const adminId = req.user._id;
+  const { rejectionReason } = req.body;
 
   const user = await User.findById(userId);
-  if (!user) throw new AppError("User not found.", 404);
+  if (!user) throw new AppError('User not found.', 404);
 
-  user.isVerified = true;
+  user.isVerified = false;
   await user.save();
 
   sendNotification(
     user._id,
-    `Dear ${user.name} your account has been verified.`,
-    "general"
+    `Dear ${user.name}, your account verification was rejected. Reason: ${rejectionReason}`,
+    'general'
   );
 
-  sendSuccessResponse(res, 200, "User verified successfully.");
+  sendSuccessResponse(res, 200, 'User verification rejected.');
 });
 
 // Deactivate a user account
 const banUser = asyncWrapper(async (req, res) => {
   const user = await User.findById(req.params.id);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   user.isBanned = true;
   await user.save();
 
-  sendSuccessResponse(res, 200, "User account banned successfully");
+  await logAdminAction(req.user._id, 'Banned User', user._id); // Log action
+
+  sendSuccessResponse(res, 200, 'User account banned successfully.');
+});
+
+const unbanUser = asyncWrapper(async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    throw new AppError('User not found', 404);
+  }
+
+  if (!user.isBanned) {
+    throw new AppError('User is not banned.', 400);
+  }
+
+  user.isBanned = false;
+  await user.save();
+
+  sendSuccessResponse(res, 200, 'User account unbanned successfully');
+});
+
+const bulkBanUsers = asyncWrapper(async (req, res) => {
+  const { userIds } = req.body;
+
+  if (!Array.isArray(userIds) || userIds.length === 0) {
+    throw new AppError('Provide at least one user ID.', 400);
+  }
+
+  await User.updateMany({ _id: { $in: userIds } }, { isBanned: true });
+
+  sendSuccessResponse(res, 200, 'Selected users have been banned.');
+});
+
+const softDeleteUser = asyncWrapper(async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    throw new AppError('User not found', 404);
+  }
+
+  if (user.isDeleted) {
+    throw new AppError('User is already deleted.', 400);
+  }
+
+  user.isDeleted = true;
+  user.deletedAt = new Date();
+  await user.save();
+
+  sendSuccessResponse(res, 200, 'User account has been deactivated.');
 });
 
 // Delete a user
 const deleteUser = asyncWrapper(async (req, res) => {
   const user = await User.findByIdAndDelete(req.params.id);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
-  sendSuccessResponse(res, 200, "User deleted successfully");
+  sendSuccessResponse(res, 200, 'User deleted successfully');
 });
+
+const logAdminAction = async (adminId, action, targetUserId) => {
+  await AdminLog.create({
+    admin: adminId,
+    action,
+    targetUser: targetUserId,
+    timestamp: new Date(),
+  });
+};
 
 module.exports = {
   getAllUsers,
   getUserById,
   verifyUser,
+  rejectUserVerification,
   banUser,
   deleteUser,
 };

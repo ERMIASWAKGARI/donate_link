@@ -35,6 +35,10 @@ const userSchema = new mongoose.Schema(
     isBanned: { type: Boolean, default: false },
     lastLogin: { type: Date },
     tokenVersion: { type: Number, default: 0 },
+
+    isDeleted: { type: Boolean, default: false },
+    deletedAt: { type: Date, default: null },
+
     address: {
       country: { type: String, default: undefined },
       region: { type: String, default: undefined },
