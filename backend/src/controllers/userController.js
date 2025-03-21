@@ -455,6 +455,41 @@ const reactivateAccount = asyncWrapper(async (req, res) => {
   );
 });
 
+const recoverAccount = asyncWrapper(async (req, res) => {
+  const { accountRecoveryToken } = req.body;
+
+  if (!accountRecoveryToken) {
+    throw new AppError('Recovery token is required.', 400);
+  }
+  // Verify the token
+  const decoded = jwt.verify(accountRecoveryToken, process.env.JWT_SECRET);
+  if (decoded.type !== 'recovery') {
+    throw new AppError('Invalid recovery token.', 400);
+  }
+
+  const user = await User.findById(decoded.userId);
+  if (!user) throw new AppError('User not found.', 404);
+
+  if (!user.isDeleted) {
+    return sendSuccessResponse(
+      res,
+      200,
+      'Your account is already working(NOT DELETED!).'
+    );
+  }
+
+  // Reactivate the account
+  user.isDeleted = false;
+  user.deletedAt = null;
+  await user.save();
+
+  sendSuccessResponse(
+    res,
+    200,
+    'Your account has been recovered. You can now log in.'
+  );
+});
+
 const deleteUserAccount = asyncWrapper(async (req, res) => {
   const user = await User.findById(req.user._id);
 
@@ -476,12 +511,41 @@ const deleteUserAccount = asyncWrapper(async (req, res) => {
   sendSuccessResponse(res, 200, 'Your account has been permanently deleted.');
 });
 
+const softDeleteUserAccount = asyncWrapper(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    throw new AppError('User not found.', 404);
+  }
+
+  if (user.isDeleted) {
+    throw new AppError('User is already deleted.', 400);
+  }
+
+  // 🔹 Prevent deletion if account is deactivated
+  if (!user.isActive) {
+    throw new AppError(
+      'Your account is deactivated. You cannot delete it.',
+      400
+    );
+  }
+
+  // 🔹 Soft delete: Mark user as deleted instead of removing
+  user.isDeleted = true;
+  user.deletedAt = new Date();
+  await user.save();
+
+  sendSuccessResponse(res, 200, 'Your account has been deleted (soft delete).');
+});
+
 module.exports = {
   registerUser,
   getUserProfile,
   updateUserProfile,
   deactivateAccount,
   reactivateAccount,
+  softDeleteUserAccount,
+  recoverAccount,
   deleteUserAccount,
   uploadVerificationDocs,
   uploadProfilePicture,
