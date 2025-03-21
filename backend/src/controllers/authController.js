@@ -233,7 +233,7 @@ const login = asyncWrapper(async (req, res) => {
     } else {
       // 🔹 Deny recovery after 30 days
       throw new AppError(
-        'Account recovery period has expired. You cannot recover this account.',
+        'User not found. Account recovery period has expired.',
         400
       );
     }

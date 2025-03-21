@@ -178,31 +178,44 @@ const bulkUnbanUsers = asyncWrapper(async (req, res) => {
   );
 });
 
-const softDeleteUser = asyncWrapper(async (req, res) => {
-  const user = await User.findById(req.params.id);
-  if (!user) {
-    throw new AppError('User not found', 404);
-  }
-
-  if (user.isDeleted) {
-    throw new AppError('User is already deleted.', 400);
-  }
-
-  user.isDeleted = true;
-  user.deletedAt = new Date();
-  await user.save();
-
-  sendSuccessResponse(res, 200, 'User account has been deactivated.');
-});
-
 // Delete a user
 const deleteUser = asyncWrapper(async (req, res) => {
-  const user = await User.findByIdAndDelete(req.params.id);
+  const user = await User.findById(req.params.id);
+
   if (!user) {
     throw new AppError('User not found', 404);
   }
 
-  sendSuccessResponse(res, 200, 'User deleted successfully');
+  if (!user.isDeleted) {
+    throw new AppError('You cannot delete this user account.', 400);
+  }
+
+  // 🔹 Check if user is already soft-deleted
+  if (user.isDeleted) {
+    const deletionDate = new Date(user.deletedAt);
+    const currentDate = new Date();
+    const daysSinceDeletion = Math.floor(
+      (currentDate - deletionDate) / (1000 * 60 * 60 * 24)
+    ); // Convert milliseconds to days
+
+    if (daysSinceDeletion >= 30) {
+      // 🔹 If 30+ days have passed, permanently delete user
+      await User.findByIdAndDelete(req.params.id);
+      return sendSuccessResponse(
+        res,
+        200,
+        'User permanently deleted after 30+ days.'
+      );
+    } else {
+      // 🔹 If less than 30 days, prevent permanent deletion
+      throw new AppError(
+        `Cannot delete user yet. ${
+          30 - daysSinceDeletion
+        } days left until permanent deletion.`,
+        400
+      );
+    }
+  }
 });
 
 const logAdminAction = async (adminId, action, targetUserId) => {
