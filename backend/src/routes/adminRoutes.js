@@ -23,6 +23,8 @@ router.patch(
 );
 
 router.patch('/users/:id/ban', protect, adminProtect, banUser);
+router.patch('/users/:id/unban', protect, adminProtect, unbanUser);
+
 router.delete('/users/:id', protect, adminProtect, deleteUser);
 
 module.exports = router;
