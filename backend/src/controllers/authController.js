@@ -197,8 +197,50 @@ const login = asyncWrapper(async (req, res) => {
     }
   }
 
-  // Check if the email is verified
+  if (user.isBanned) {
+    throw new AppError(
+      'Your account has been banned. Please contact an admin for resolving the case.',
+      403
+    );
+  }
+
+  if (user.isDeleted) {
+    const deletionDate = new Date(user.deletedAt);
+    const currentDate = new Date();
+    const daysSinceDeletion = Math.floor(
+      (currentDate - deletionDate) / (1000 * 60 * 60 * 24)
+    ); // Convert milliseconds to days
+
+    // 🔹 Allow recovery only if less than 30 days since deletion
+    if (daysSinceDeletion < 30) {
+      const accountRecoveryToken = jwt.sign(
+        { userId: user._id, type: 'recovery' },
+        process.env.JWT_SECRET,
+        { expiresIn: '10m' }
+      );
+
+      return sendSuccessResponse(
+        res,
+        200,
+        `Your account was deleted on ${
+          user.deletedAt
+        }. You can recover it within ${30 - daysSinceDeletion} days.`,
+        {
+          accountRecoveryTokenRequired: true,
+          accountRecoveryToken,
+        }
+      );
+    } else {
+      // 🔹 Deny recovery after 30 days
+      throw new AppError(
+        'User not found. Account recovery period has expired.',
+        400
+      );
+    }
+  }
+
   if (email && !user.isEmailVerified) {
+    // Check if the email is verified
     throw new AppError('Please verify your email before logging in.', 403);
   }
 
