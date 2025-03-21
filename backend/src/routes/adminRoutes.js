@@ -6,6 +6,7 @@ const {
   verifyUser,
   rejectUserVerification,
   banUser,
+  unbanUser,
   deleteUser,
 } = require('../controllers/adminController');
 

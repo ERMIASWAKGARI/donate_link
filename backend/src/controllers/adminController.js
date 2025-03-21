@@ -32,18 +32,28 @@ const getAllUsers = asyncWrapper(async (req, res) => {
 
 // Get user by ID
 const getUserById = asyncWrapper(async (req, res) => {
-  const features = new APIFeatures(User.findById(req.params.id), req.query)
+  // Fetch user without APIFeatures first
+  let user = await User.findById(req.params.id);
+
+  if (!user) {
+    throw new AppError('User not found', 404);
+  }
+
+  // Apply APIFeatures for additional filtering if needed
+  const features = new APIFeatures(User.find({ _id: user._id }), req.query)
     .filter()
     .search()
     .sort()
     .limit()
     .paginate();
 
-  const user = await features.executeQuery();
+  user = await features.executeQuery();
 
-  if (!user) {
+  // If query modifications return an empty array, handle it
+  if (Array.isArray(user) && user.length === 0) {
     throw new AppError('User not found', 404);
   }
+
   sendSuccessResponse(res, 200, 'User retrieved successfully', user);
 });
 
@@ -174,5 +184,6 @@ module.exports = {
   verifyUser,
   rejectUserVerification,
   banUser,
+  unbanUser,
   deleteUser,
 };
