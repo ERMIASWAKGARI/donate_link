@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
     email: { type: String, unique: true, lowercase: true },
-    phone: { type: String, unique: true },
+    phone: { type: String, unique: true, default: undefined },
 
     newEmail: { type: String },
     newPhone: { type: String },
@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema(
     isNewEmailVerified: { type: Boolean },
     isNewPhoneVerified: { type: Boolean },
 
-    password: { type: String, required: true, minlength: 6 },
+    password: { type: String },
     role: { type: String, enum: USER_ROLES, required: true },
     isEmailVerified: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
@@ -38,6 +38,8 @@ const userSchema = new mongoose.Schema(
 
     isDeleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
+
+    googleId: { type: String },
 
     address: {
       country: { type: String, default: undefined },

@@ -1,48 +1,77 @@
-import { useState } from "react";
+import { GoogleLogin } from '@react-oauth/google';
+
+import { useState } from 'react';
+import RegisterWithGoogle from './RegisterWithGoogle'; // Import the new component
 
 function LoginPage() {
-  const [formData, setFormData] = useState({
-    phone: "",
-    password: "",
-  });
+  const [googleUser, setGoogleUser] = useState(null);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleGoogleSignInSuccess = async (credentialResponse) => {
+    const idToken = credentialResponse.credential;
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Logging in user:", formData);
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // 🔹 If response is not OK, show error message
+        throw new Error(data.message || 'Google sign-in failed.');
+      }
+
+      console.log('Backend Response:', data);
+
+      if (data.data.accountRecoveryTokenRequired) {
+        // 🔹 Show an alert to the user that their account was deleted
+        alert(`${data.message}`);
+
+        // ✅ Handle account recovery (e.g., store token & show recovery UI)
+        localStorage.setItem(
+          'accountRecoveryToken',
+          data.data.accountRecoveryToken
+        );
+
+        return;
+      }
+
+      if (data.data.requiresRegistration) {
+        // 🔹 If user needs to register, show the registration form
+        setGoogleUser(data.data);
+      } else {
+        // 🔹 Successful login, store token, and redirect
+        localStorage.setItem('accessToken', data.data.accessToken);
+        alert('Google Sign-in Successful!');
+        window.location.href = '/dashboard';
+      }
+    } catch (error) {
+      console.error('Error authenticating with backend:', error.message);
+      alert('Google Sign-in Failed: ' + error.message);
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-96">
-        <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="tel"
-            name="phone"
-            placeholder="Phone Number"
-            required
-            className="w-full p-2 border border-gray-300 rounded"
-            onChange={handleChange}
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            required
-            className="w-full p-2 border border-gray-300 rounded"
-            onChange={handleChange}
-          />
-          <button
-            type="submit"
-            className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-700"
-          >
-            Login
-          </button>
-        </form>
+    <div className="min-h-screen flex items-center justify-center bg-gray-200">
+      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+        <h2 className="text-3xl font-semibold mb-6 text-center text-gray-800">
+          Login
+        </h2>
+
+        {/* Show Google Register Form If User Needs More Info */}
+        {googleUser ? (
+          <RegisterWithGoogle googleUser={googleUser} />
+        ) : (
+          <div className="flex flex-col items-center space-y-4">
+            <GoogleLogin
+              onSuccess={handleGoogleSignInSuccess}
+              onError={() => console.log('Login Failed')}
+              className="w-full bg-blue-500 text-white py-3 rounded-lg shadow-md hover:bg-blue-600 transition duration-300"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
