@@ -72,52 +72,23 @@ const registerUser = asyncWrapper(async (req, res) => {
       break;
 
     case 'organization_donor':
-      const {
-        address: organizationAddress,
-        location: organizationLocation,
-        organizationVerificationDocs,
-      } = req.body;
-
       userData = {
         ...userData,
-        address: organizationAddress,
-        location: organizationLocation,
         donorType: 'organization',
-        organizationVerificationDocs,
         isVerified: false,
       };
       break;
 
     case 'volunteer':
-      const {
-        skills,
-        address: volunteerAddress,
-        volunteerVerificationDocs,
-        availability,
-      } = req.body;
-
       userData = {
         ...userData,
-        skills,
-        address: volunteerAddress,
-        availability,
-        volunteerVerificationDocs,
         isVerified: false,
       };
       break;
 
     case 'ngo':
-      const {
-        address: ngoAddress,
-        location: ngoLocation,
-        ngoVerificationDocs,
-      } = req.body;
-
       userData = {
         ...userData,
-        address: ngoAddress,
-        location: ngoLocation,
-        ngoVerificationDocs,
         isVerified: false,
       };
       break;
