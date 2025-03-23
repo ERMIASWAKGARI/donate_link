@@ -1,11 +1,11 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const USER_ROLES = [
-  "individual_donor",
-  "organization_donor",
-  "volunteer",
-  "ngo",
-  "admin",
+  'individual_donor',
+  'organization_donor',
+  'volunteer',
+  'ngo',
+  'admin',
 ];
 
 // Define User Schema
@@ -19,6 +19,13 @@ const userSchema = new mongoose.Schema(
     },
     email: { type: String, unique: true, lowercase: true },
     phone: { type: String, unique: true },
+
+    newEmail: { type: String },
+    newPhone: { type: String },
+
+    isNewEmailVerified: { type: Boolean },
+    isNewPhoneVerified: { type: Boolean },
+
     password: { type: String, required: true, minlength: 6 },
     role: { type: String, enum: USER_ROLES, required: true },
     isEmailVerified: { type: Boolean, default: false },
@@ -28,6 +35,10 @@ const userSchema = new mongoose.Schema(
     isBanned: { type: Boolean, default: false },
     lastLogin: { type: Date },
     tokenVersion: { type: Number, default: 0 },
+
+    isDeleted: { type: Boolean, default: false },
+    deletedAt: { type: Date, default: null },
+
     address: {
       country: { type: String, default: undefined },
       region: { type: String, default: undefined },
@@ -45,10 +56,10 @@ const userSchema = new mongoose.Schema(
     },
     donorType: {
       type: String,
-      enum: ["individual", "organization"],
+      enum: ['individual', 'organization'],
       required: function () {
         return (
-          this.role === "individual_donor" || this.role === "organization_donor"
+          this.role === 'individual_donor' || this.role === 'organization_donor'
         );
       },
     },
@@ -102,13 +113,13 @@ const userSchema = new mongoose.Schema(
           day: {
             type: String,
             enum: [
-              "Monday",
-              "Tuesday",
-              "Wednesday",
-              "Thursday",
-              "Friday",
-              "Saturday",
-              "Sunday",
+              'Monday',
+              'Tuesday',
+              'Wednesday',
+              'Thursday',
+              'Friday',
+              'Saturday',
+              'Sunday',
             ],
             required: true,
           },
@@ -119,7 +130,7 @@ const userSchema = new mongoose.Schema(
       default: undefined,
     },
   },
-  { timestamps: true, strict: "throw" }
+  { timestamps: true, strict: 'throw' }
 );
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model('User', userSchema);
