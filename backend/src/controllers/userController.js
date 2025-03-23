@@ -32,6 +32,8 @@ const generateToken = (user) => {
 const registerUser = asyncWrapper(async (req, res) => {
   const { role, name, email, phone, password, googleId } = req.body;
 
+  console.log(req.body);
+
   // Check if the email or phone is already registered
   if (email) {
     const emailExists = await User.findOne({ email });
@@ -170,6 +172,7 @@ const registerUser = asyncWrapper(async (req, res) => {
       role: newUser.role,
       name: newUser.name,
       requiresVerification: !googleId, // If Google, no verification needed
+      verificationType: email ? 'email' : phone ? 'phone' : null, // ✅ Specify verification type
       ...(googleId && { accessToken }), // ✅ Only include accessToken if Google user
     }
   );
