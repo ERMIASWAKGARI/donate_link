@@ -1,7 +1,7 @@
 import { GoogleLogin } from '@react-oauth/google';
 
 import { useState } from 'react';
-import RegisterWithGoogle from './RegisterWithGoogle'; // Import the new component
+import RegisterWithGoogle from '../components/RegisterWithGoogle'; // Import the new component
 
 function LoginPage() {
   const [googleUser, setGoogleUser] = useState(null);
