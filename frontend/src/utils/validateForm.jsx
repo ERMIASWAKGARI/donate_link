@@ -13,8 +13,21 @@ const validateForm = (formData, selectedRole, setErrors) => {
     newErrors.ngoName = 'NGO Name is required.';
   }
 
-  // Email validation
+  // validates either email or phone is provided
+  if (!formData.email && !formData.phone) {
+    newErrors.email = 'Either email or phone number is required.';
+    newErrors.phone = 'Either phone number or email is required.';
+  }
+
+  //phone validation
+  if (formData.phone && !/^\d{9,12}$/.test(formData.phone)) {
+    newErrors.phone = 'Enter a valid phone number.';
+  }
+
+  // Email validation if no phone provided and email provided
   if (
+    !formData.phone &&
+    formData.email &&
     !formData.email.match(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)
   ) {
     newErrors.email = 'Enter a valid email address.';

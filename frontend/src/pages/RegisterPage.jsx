@@ -13,6 +13,7 @@ function RegisterPage() {
     ngoName: '',
     email: '',
     phone: '',
+    countryCode: '+251', // Default to Ethiopia
     password: '',
     confirmPassword: '',
     role: '',
@@ -44,9 +45,16 @@ function RegisterPage() {
 
     let filteredData = {
       role: formData.role,
-      email: formData.email,
       password: formData.password,
     };
+
+    if (formData.email) {
+      filteredData.email = formData.email;
+    }
+
+    if (formData.phone) {
+      filteredData.phone = `${formData.countryCode}${formData.phone}`;
+    }
 
     if (selectedRole === 'individual_donor' || selectedRole === 'volunteer') {
       filteredData.name = formData.name;
@@ -55,6 +63,8 @@ function RegisterPage() {
     } else if (selectedRole === 'ngo') {
       filteredData.name = formData.ngoName;
     }
+
+    console.log(filteredData);
 
     try {
       const response = await fetch('http://localhost:5000/api/users/register', {
@@ -119,7 +129,6 @@ function RegisterPage() {
 
         <AlertMessage message={message} />
 
-        {/* Role Selection */}
         {!selectedRole ? (
           <div className="grid grid-cols-2 gap-4 mb-4">
             {['individual_donor', 'organization_donor', 'volunteer', 'ngo'].map(
@@ -167,11 +176,6 @@ function RegisterPage() {
                     onChange={handleChange}
                     required
                   />
-                  {errors.organizationName && (
-                    <p className="text-red-500 text-sm">
-                      {errors.organizationName}
-                    </p>
-                  )}
                 </div>
               ) : (
                 <div>
@@ -183,9 +187,6 @@ function RegisterPage() {
                     onChange={handleChange}
                     required
                   />
-                  {errors.ngoName && (
-                    <p className="text-red-500 text-sm">{errors.ngoName}</p>
-                  )}
                 </div>
               )}
 
@@ -195,10 +196,34 @@ function RegisterPage() {
                 placeholder="Email"
                 className="w-full p-2 border border-gray-300 rounded"
                 onChange={handleChange}
-                required
               />
               {errors.email && (
                 <p className="text-red-500 text-sm">{errors.email}</p>
+              )}
+
+              {/* Phone Number with Country Code */}
+              <div className="flex">
+                <select
+                  name="countryCode"
+                  className="p-2 border border-gray-300 rounded-l"
+                  value={formData.countryCode}
+                  onChange={handleChange}
+                >
+                  <option value="+251">🇪🇹 +251</option>
+                  <option value="+1">🇺🇸 +1</option>
+                  <option value="+44">🇬🇧 +44</option>
+                  <option value="+91">🇮🇳 +91</option>
+                </select>
+                <input
+                  type="tel"
+                  name="phone"
+                  placeholder="Phone Number"
+                  className="w-full p-2 border border-gray-300 rounded-r"
+                  onChange={handleChange}
+                />
+              </div>
+              {errors.phone && (
+                <p className="text-red-500 text-sm">{errors.phone}</p>
               )}
 
               <input
