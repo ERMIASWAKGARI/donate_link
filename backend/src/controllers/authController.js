@@ -1,17 +1,17 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 
-const User = require('../models/User');
-const asyncWrapper = require('../middleware/asyncWrapper');
-const sendSuccessResponse = require('../utils/responseHelper');
-const AppError = require('../utils/appError');
-const sendOTP = require('../utils/sendOTP');
-const { sendResetPasswordEmail } = require('../utils/emailService');
-const { sendVerificationEmail } = require('../utils/emailService');
+const User = require("../models/User");
+const asyncWrapper = require("../middleware/asyncWrapper");
+const sendSuccessResponse = require("../utils/responseHelper");
+const AppError = require("../utils/appError");
+const sendOTP = require("../utils/sendOTP");
+const { sendResetPasswordEmail } = require("../utils/emailService");
+const { sendVerificationEmail } = require("../utils/emailService");
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
-const { client, verifySid } = require('../config/twilio');
+const { client, verifySid } = require("../config/twilio");
 
 // Generate JWT Token
 const generateToken = (user) => {
@@ -22,7 +22,7 @@ const generateToken = (user) => {
       tokenVersion: user.tokenVersion,
     },
     JWT_SECRET,
-    { expiresIn: '3h' } // Access token expires in 3 hour
+    { expiresIn: "3h" } // Access token expires in 3 hour
   );
 };
 
@@ -31,7 +31,7 @@ const generateRefreshToken = (user) => {
   return jwt.sign(
     { id: user._id },
     JWT_REFRESH_SECRET,
-    { expiresIn: '7d' } // Refresh token valid for 7 days
+    { expiresIn: "7d" } // Refresh token valid for 7 days
   );
 };
 
@@ -39,14 +39,14 @@ const verifyEmail = asyncWrapper(async (req, res) => {
   const { token } = req.query;
 
   if (!token) {
-    throw new AppError('Invalid or missing token.', 400);
+    throw new AppError("Invalid or missing token.", 400);
   }
 
   // Find user with matching email verification token
   const user = await User.findOne({ emailVerificationToken: token });
 
   if (!user) {
-    throw new AppError('Invalid or expired token.', 400);
+    throw new AppError("Invalid or expired token.", 400);
   }
 
   // 🔹 If verifying new account
@@ -57,7 +57,7 @@ const verifyEmail = asyncWrapper(async (req, res) => {
     return sendSuccessResponse(
       res,
       200,
-      'Email verified successfully. Your account is now active.'
+      "Email verified successfully. Your account is now active."
     );
   }
 
@@ -70,10 +70,10 @@ const verifyEmail = asyncWrapper(async (req, res) => {
 
     user.emailVerificationToken = undefined;
     await user.save();
-    return sendSuccessResponse(res, 200, 'Email verified successfully.');
+    return sendSuccessResponse(res, 200, "Email verified successfully.");
   }
 
-  throw new AppError('No email verification required.', 400);
+  throw new AppError("No email verification required.", 400);
 });
 
 const verifyOtp = asyncWrapper(async (req, res) => {
@@ -83,12 +83,12 @@ const verifyOtp = asyncWrapper(async (req, res) => {
   const user = await User.findOne({ $or: [{ phone }, { newPhone: phone }] });
 
   if (!user) {
-    throw new AppError('User not found or invalid phone number.', 400);
+    throw new AppError("User not found or invalid phone number.", 400);
   }
 
   // Check if phone is already verified
   if (user.phone === phone && user.isPhoneVerified) {
-    throw new AppError('Phone is already verified.', 400);
+    throw new AppError("Phone is already verified.", 400);
   }
 
   // Verify OTP via Twilio
@@ -96,8 +96,8 @@ const verifyOtp = asyncWrapper(async (req, res) => {
     .services(verifySid)
     .verificationChecks.create({ to: phone, code: otp });
 
-  if (verification_check.status !== 'approved') {
-    throw new AppError('Invalid OTP!', 400);
+  if (verification_check.status !== "approved") {
+    throw new AppError("Invalid OTP!", 400);
   }
 
   // 🔹 If verifying new account
@@ -107,7 +107,7 @@ const verifyOtp = asyncWrapper(async (req, res) => {
     return sendSuccessResponse(
       res,
       200,
-      'Phone verified successfully. Your account is now active.'
+      "Phone verified successfully. Your account is now active."
     );
   }
 
@@ -122,10 +122,10 @@ const verifyOtp = asyncWrapper(async (req, res) => {
     user.isNewPhoneVerified = undefined;
 
     await user.save();
-    return sendSuccessResponse(res, 200, 'Phone verified successfully.');
+    return sendSuccessResponse(res, 200, "Phone verified successfully.");
   }
 
-  throw new AppError('No phone verification required.', 400);
+  throw new AppError("No phone verification required.", 400);
 });
 
 const resendVerificationEmail = asyncWrapper(async (req, res) => {
@@ -135,16 +135,16 @@ const resendVerificationEmail = asyncWrapper(async (req, res) => {
   const user = await User.findOne({ email });
 
   if (!user) {
-    throw new AppError('User not found. Register first.', 404);
+    throw new AppError("User not found. Register first.", 404);
   }
 
   // Check if the user is already verified
   if (user.isEmailVerified) {
-    throw new AppError('Email is already verified', 400);
+    throw new AppError("Email is already verified", 400);
   }
 
   // Generate a new verification token
-  const newVerificationToken = crypto.randomBytes(32).toString('hex');
+  const newVerificationToken = crypto.randomBytes(32).toString("hex");
   // Update the user's verification token
   user.emailVerificationToken = newVerificationToken;
   await user.save();
@@ -152,31 +152,31 @@ const resendVerificationEmail = asyncWrapper(async (req, res) => {
   // Resend verification email
   await sendVerificationEmail(email, newVerificationToken);
 
-  sendSuccessResponse(res, 200, 'Verification email resent successfully.');
+  sendSuccessResponse(res, 200, "Verification email resent successfully.");
 });
 
 const resendOTP = asyncWrapper(async (req, res) => {
   const { phone } = req.body;
 
   if (!phone) {
-    throw new AppError('Phone number is required.', 400);
+    throw new AppError("Phone number is required.", 400);
   }
 
   // Check if the user exists
   const user = await User.findOne({ phone });
 
   if (!user) {
-    throw new AppError('User not found. Register first.', 404);
+    throw new AppError("User not found. Register first.", 404);
   }
 
   // Check if the phone is already verified
   if (user.isPhoneVerified) {
-    throw new AppError('Phone number is already verified', 400);
+    throw new AppError("Phone number is already verified", 400);
   }
 
   await sendOTP(phone); // ✅ Reuse sendOTP function
 
-  sendSuccessResponse(res, 200, 'OTP resent successfully.');
+  sendSuccessResponse(res, 200, "OTP resent successfully.");
 });
 
 const login = asyncWrapper(async (req, res) => {
@@ -186,20 +186,20 @@ const login = asyncWrapper(async (req, res) => {
   if (email) {
     user = await User.findOne({ email });
     if (!user) {
-      throw new AppError('User with this email not found.', 401);
+      throw new AppError("User with this email not found.", 401);
     }
   }
 
   if (phone) {
     user = await User.findOne({ phone });
     if (!user) {
-      throw new AppError('User with this phone not found', 401);
+      throw new AppError("User with this phone not found", 401);
     }
   }
 
   if (user.isBanned) {
     throw new AppError(
-      'Your account has been banned. Please contact an admin for resolving the case.',
+      "Your account has been banned. Please contact an admin for resolving the case.",
       403
     );
   }
@@ -214,9 +214,9 @@ const login = asyncWrapper(async (req, res) => {
     // 🔹 Allow recovery only if less than 30 days since deletion
     if (daysSinceDeletion < 30) {
       const accountRecoveryToken = jwt.sign(
-        { userId: user._id, type: 'recovery' },
+        { userId: user._id, type: "recovery" },
         process.env.JWT_SECRET,
-        { expiresIn: '10m' }
+        { expiresIn: "10m" }
       );
 
       return sendSuccessResponse(
@@ -233,7 +233,7 @@ const login = asyncWrapper(async (req, res) => {
     } else {
       // 🔹 Deny recovery after 30 days
       throw new AppError(
-        'User not found. Account recovery period has expired.',
+        "User not found. Account recovery period has expired.",
         400
       );
     }
@@ -241,27 +241,27 @@ const login = asyncWrapper(async (req, res) => {
 
   if (email && !user.isEmailVerified) {
     // Check if the email is verified
-    throw new AppError('Please verify your email before logging in.', 403);
+    throw new AppError("Please verify your email before logging in.", 403);
   }
 
   if (phone && !user.isPhoneVerified) {
-    throw new AppError('Please verify your phone before logging in.', 403);
+    throw new AppError("Please verify your phone before logging in.", 403);
   }
 
   // Compare the hashed password
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
-    throw new AppError('Invalid password.', 401);
+    throw new AppError("Invalid password.", 401);
   }
 
   if (!user.isActive) {
     const reactivationToken = jwt.sign(
-      { userId: user._id, type: 'reactivation' },
+      { userId: user._id, type: "reactivation" },
       process.env.JWT_SECRET,
-      { expiresIn: '10m' } // Expires in 10 minutes
+      { expiresIn: "10m" } // Expires in 10 minutes
     );
 
-    return sendSuccessResponse(res, 200, 'Account is deactivated.', {
+    return sendSuccessResponse(res, 200, "Account is deactivated.", {
       reactivationRequired: true,
       reactivationToken,
     });
@@ -275,7 +275,7 @@ const login = asyncWrapper(async (req, res) => {
   user.lastLogin = new Date();
   await user.save();
 
-  return sendSuccessResponse(res, 200, 'Login successful!', {
+  return sendSuccessResponse(res, 200, "Login successful!", {
     id: user._id,
     email: user.email,
     role: user.role,
@@ -290,14 +290,14 @@ const refreshToken = asyncWrapper(async (req, res) => {
   const { token } = req.body;
 
   if (!token) {
-    throw new AppError('Refresh token is required.', 401);
+    throw new AppError("Refresh token is required.", 401);
   }
 
   const decoded = jwt.verify(token, JWT_REFRESH_SECRET);
   const user = await User.findById(decoded.id);
 
   if (!user) {
-    throw new AppError('Invalid refresh token.', 401);
+    throw new AppError("Invalid refresh token.", 401);
   }
 
   const newAccessToken = generateToken(user);
@@ -308,7 +308,7 @@ const forgotPassword = asyncWrapper(async (req, res) => {
   const { email, phone } = req.body;
 
   if (!email && !phone) {
-    throw new AppError('Please provide either an email or phone number.', 400);
+    throw new AppError("Please provide either an email or phone number.", 400);
   }
 
   let user;
@@ -319,24 +319,24 @@ const forgotPassword = asyncWrapper(async (req, res) => {
   }
 
   if (!user) {
-    throw new AppError('User not found.', 404);
+    throw new AppError("User not found.", 404);
   }
 
   if (email) {
     // Generate JWT token for email-based password reset
     const resetToken = jwt.sign(
-      { id: user._id, version: user.tokenVersion, method: 'email' },
+      { id: user._id, version: user.tokenVersion, method: "email" },
       JWT_SECRET,
-      { expiresIn: '15m' }
+      { expiresIn: "15m" }
     );
 
     // Send reset link via email
     await sendResetPasswordEmail(user.email, resetToken);
-    sendSuccessResponse(res, 200, 'Password reset link sent to your email.');
+    sendSuccessResponse(res, 200, "Password reset link sent to your email.");
   } else if (phone) {
     // Generate OTP for phone-based password reset
     await sendOTP(user.phone);
-    sendSuccessResponse(res, 200, 'Password reset OTP sent to your phone.');
+    sendSuccessResponse(res, 200, "Password reset OTP sent to your phone.");
   }
 });
 
@@ -345,7 +345,7 @@ const resetPassword = asyncWrapper(async (req, res) => {
   const { token } = req.query;
 
   if (!newPassword) {
-    throw new AppError('New password is required.', 400);
+    throw new AppError("New password is required.", 400);
   }
 
   let user;
@@ -354,26 +354,26 @@ const resetPassword = asyncWrapper(async (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
 
     user = await User.findById(decoded.id);
-    if (!user) throw new AppError('User not found.', 404);
+    if (!user) throw new AppError("User not found.", 404);
 
     if (decoded.version !== user.tokenVersion) {
-      throw new AppError('Invalid or expired token.', 400);
+      throw new AppError("Invalid or expired token.", 400);
     }
   } else if (phone && otp) {
     // Handle Phone-based password reset using OTP
     user = await User.findOne({ phone });
-    if (!user) throw new AppError('User not found.', 404);
+    if (!user) throw new AppError("User not found.", 404);
 
     const verification_check = await client.verify.v2
       .services(verifySid)
       .verificationChecks.create({ to: phone, code: otp });
 
-    if (verification_check.status !== 'approved') {
-      throw new AppError('Invalid OTP. Please try again.', 400);
+    if (verification_check.status !== "approved") {
+      throw new AppError("Invalid OTP. Please try again.", 400);
     }
   } else {
     throw new AppError(
-      'Invalid request. Provide either a token or phone + OTP.',
+      "Invalid request. Provide either a token or phone + OTP.",
       400
     );
   }
@@ -388,7 +388,7 @@ const resetPassword = asyncWrapper(async (req, res) => {
   sendSuccessResponse(
     res,
     200,
-    'Password reset successful! You can now log in.'
+    "Password reset successful! You can now log in."
   );
 });
 
@@ -396,19 +396,19 @@ const changePassword = asyncWrapper(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
 
   if (!currentPassword || !newPassword) {
-    throw new AppError('Current and new password are required.', 400);
+    throw new AppError("Current and new password are required.", 400);
   }
 
   // Find the authenticated user
   const user = await User.findById(req.user._id);
   if (!user) {
-    throw new AppError('User not found.', 404);
+    throw new AppError("User not found.", 404);
   }
 
   // Compare current password
   const isMatch = await bcrypt.compare(currentPassword, user.password);
   if (!isMatch) {
-    throw new AppError('Incorrect current password.', 401);
+    throw new AppError("Incorrect current password.", 401);
   }
 
   // Hash and update new password
@@ -421,7 +421,7 @@ const changePassword = asyncWrapper(async (req, res) => {
   sendSuccessResponse(
     res,
     200,
-    'Password changed successfully. Please log in again.'
+    "Password changed successfully. Please log in again."
   );
 });
 
