@@ -1,11 +1,14 @@
 import { GoogleLogin } from '@react-oauth/google';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import { UserContext } from '../context/UserContext'; // Import the UserContext
 
 import AlertMessage from './AlertMessage';
 
 // eslint-disable-next-line react/prop-types
 function GoogleAuth({ setGoogleUser, setIsRegisteringWithGoogle }) {
+  const { login } = useContext(UserContext); // Access the login function from UserContext
   const navigate = useNavigate();
 
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -44,7 +47,8 @@ function GoogleAuth({ setGoogleUser, setIsRegisteringWithGoogle }) {
         setIsRegisteringWithGoogle(true);
         setGoogleUser(data.data);
       } else {
-        localStorage.setItem('accessToken', data.data.accessToken);
+        console.log(data.data.accessToken);
+        login(data.data.accessToken);
         setMessage({
           type: 'success',
           text: 'Google Sign-in Successful!',

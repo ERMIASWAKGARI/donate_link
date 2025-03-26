@@ -57,14 +57,14 @@ function LoginPage() {
         body: JSON.stringify(loginData),
       });
 
-      console.log(loginData);
+      // console.log(loginData);
 
       const data = await response.json();
 
-      console.log(data.data.user);
+      // console.log(data.data.user);
 
       if (data.status === 'success') {
-        login(data.data.accessToken, data.data.user);
+        login(data.data.accessToken);
         setMessage({
           type: 'success',
           text: 'Login successful! Redirecting...',

@@ -315,6 +315,8 @@ const getUserProfile = asyncWrapper(async (req, res) => {
     throw new AppError('User not found', 404);
   }
 
+  // console.log(user);
+
   sendSuccessResponse(res, 200, 'User profile retrieved successfully.', user);
 });
 

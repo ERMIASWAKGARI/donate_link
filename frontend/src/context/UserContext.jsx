@@ -1,47 +1,48 @@
 import { createContext, useEffect, useState } from 'react';
 
-// Create the context
 export const UserContext = createContext();
 
 // eslint-disable-next-line react/prop-types
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // For user data
+  const [user, setUser] = useState(null);
   const [accessToken, setAccessToken] = useState(
     localStorage.getItem('accessToken')
-  ); // Access token from localStorage
+  );
 
-  // Check if the token is available and get user details
   useEffect(() => {
     if (accessToken) {
-      // You can make an API call here to fetch the user data if you have an endpoint for that
-      fetchUserDetails();
+      fetchUserDetails(accessToken);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken]);
 
-  const fetchUserDetails = async () => {
+  const fetchUserDetails = async (token) => {
+    if (!token) return; // Prevent fetch if no token
+
     try {
-      const response = await fetch('http://localhost:5000/api/auth/user', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+      const response = await fetch('http://localhost:5000/api/users/me', {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` },
       });
+
       const data = await response.json();
+
+      // console.log(data);
+
       if (data.status === 'success') {
-        setUser(data.data.user);
+        // console.log(data.data[0]);
+        setUser(data.data[0]);
       } else {
-        console.error(data.message);
+        console.error('User fetch failed:', data.message);
       }
     } catch (error) {
       console.error('Error fetching user details:', error);
     }
   };
 
-  const login = (token, userData) => {
+  const login = (token) => {
     setAccessToken(token);
-    setUser(userData);
-    console.log(userData);
     localStorage.setItem('accessToken', token);
+    fetchUserDetails(token); // Fetch user after login
   };
 
   const logout = () => {
@@ -51,7 +52,9 @@ export const UserProvider = ({ children }) => {
   };
 
   return (
-    <UserContext.Provider value={{ user, accessToken, login, logout }}>
+    <UserContext.Provider
+      value={{ user, accessToken, login, logout, fetchUserDetails }}
+    >
       {children}
     </UserContext.Provider>
   );

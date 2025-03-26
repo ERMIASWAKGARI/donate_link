@@ -6,6 +6,7 @@ import { UserContext } from '../context/UserContext';
 const Dashboard = () => {
   const { user, logout } = useContext(UserContext);
   const navigate = useNavigate();
+  // console.log(user);
 
   const handleLogout = () => {
     logout();
