@@ -78,6 +78,7 @@ const verifyEmail = asyncWrapper(async (req, res) => {
 
 const verifyOtp = asyncWrapper(async (req, res) => {
   const { phone, otp } = req.body;
+  console.log(req.body);
 
   // Find user with matching phone or newPhone
   const user = await User.findOne({ $or: [{ phone }, { newPhone: phone }] });
@@ -131,6 +132,7 @@ const verifyOtp = asyncWrapper(async (req, res) => {
 const resendVerificationEmail = asyncWrapper(async (req, res) => {
   const { email } = req.body;
 
+  console.log(req.body);
   // Check if the user exists
   const user = await User.findOne({ email });
 
@@ -180,9 +182,86 @@ const resendOTP = asyncWrapper(async (req, res) => {
 });
 
 const login = asyncWrapper(async (req, res) => {
-  const { email, phone, password } = req.body;
-  let user = {};
+  const { email, phone, password, idToken } = req.body;
+  let user = null;
 
+  // console.log(req.body);
+
+  if (idToken) {
+    // 🔹 Verify Google ID Token with Google
+    const ticket = await clientI.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const { email, name, picture, sub } = ticket.getPayload();
+
+    user = await User.findOne({ email });
+
+    if (user) {
+      if (user.isBanned) {
+        throw new AppError(
+          "Your account has been banned. Please contact an admin.",
+          403
+        );
+      }
+
+      if (user.isDeleted) {
+        const deletionDate = new Date(user.deletedAt);
+        const currentDate = new Date();
+        const daysSinceDeletion = Math.floor(
+          (currentDate - deletionDate) / (1000 * 60 * 60 * 24)
+        ); // Convert milliseconds to days
+
+        if (daysSinceDeletion < 30) {
+          const accountRecoveryToken = jwt.sign(
+            { userId: user._id, type: "recovery" },
+            process.env.JWT_SECRET,
+            { expiresIn: "10m" }
+          );
+
+          return sendSuccessResponse(
+            res,
+            200,
+            `Your account was deleted on ${
+              user.deletedAt
+            }. You can recover it within ${30 - daysSinceDeletion} days.`,
+            {
+              accountRecoveryTokenRequired: true,
+              accountRecoveryToken,
+            }
+          );
+        } else {
+          throw new AppError(
+            "User not found. Account recovery period has expired.",
+            400
+          );
+        }
+      }
+
+      const accessToken = generateToken(user);
+      return sendSuccessResponse(res, 200, "Google authentication successful", {
+        accessToken,
+        user,
+      });
+    }
+
+    // 🔹 If user does not exist, ask for more info before registration
+    return sendSuccessResponse(
+      res,
+      200,
+      "Google authentication needs more info",
+      {
+        email,
+        name,
+        picture,
+        googleId: sub,
+        requiresRegistration: true,
+      }
+    );
+  }
+
+  // 🔹 Handle normal login
   if (email) {
     user = await User.findOne({ email });
     if (!user) {
@@ -197,6 +276,11 @@ const login = asyncWrapper(async (req, res) => {
     }
   }
 
+  if (!user) {
+    throw new AppError("Invalid login credentials", 401);
+  }
+
+  // 🔹 Handle account status (banned, deleted, inactive)
   if (user.isBanned) {
     throw new AppError(
       "Your account has been banned. Please contact an admin for resolving the case.",
@@ -211,7 +295,6 @@ const login = asyncWrapper(async (req, res) => {
       (currentDate - deletionDate) / (1000 * 60 * 60 * 24)
     ); // Convert milliseconds to days
 
-    // 🔹 Allow recovery only if less than 30 days since deletion
     if (daysSinceDeletion < 30) {
       const accountRecoveryToken = jwt.sign(
         { userId: user._id, type: "recovery" },
@@ -231,7 +314,6 @@ const login = asyncWrapper(async (req, res) => {
         }
       );
     } else {
-      // 🔹 Deny recovery after 30 days
       throw new AppError(
         "User not found. Account recovery period has expired.",
         400
@@ -239,6 +321,7 @@ const login = asyncWrapper(async (req, res) => {
     }
   }
 
+  // 🔹 Ensure the email or phone is verified
   if (email && !user.isEmailVerified) {
     // Check if the email is verified
     throw new AppError("Please verify your email before logging in.", 403);
@@ -254,6 +337,7 @@ const login = asyncWrapper(async (req, res) => {
     throw new AppError("Invalid password.", 401);
   }
 
+  // 🔹 If account is deactivated, request reactivation
   if (!user.isActive) {
     const reactivationToken = jwt.sign(
       { userId: user._id, type: "reactivation" },
@@ -267,7 +351,7 @@ const login = asyncWrapper(async (req, res) => {
     });
   }
 
-  // Generate JWT and Refresh Token
+  // 🔹 Generate JWT and Refresh Token
   const accessToken = generateToken(user);
   const refreshToken = generateRefreshToken(user);
 
