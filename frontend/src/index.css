@@ -1,1 +1,16 @@
 @import "tailwindcss";
+a.active hr{
+    display: block;
+    background-color: rgb(226, 206, 23);
+    height: 4px;
+    width: 40px;
+}
+::-webkit-scrollbar {
+    display: none;
+}
+/* @media (max-width:640px){
+    a.active{
+        background-color: rgb(183, 196, 11);
+        color: white;
+    }
+ } */
