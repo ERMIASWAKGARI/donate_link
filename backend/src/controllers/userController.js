@@ -8,19 +8,31 @@ const sendSuccessResponse = require('../utils/responseHelper');
 const sendOTP = require('../utils/sendOTP');
 const APIFeatures = require('../utils/apiFeatures');
 const { sendNotification } = require('../utils/notificationService');
+const JWT_SECRET = process.env.JWT_SECRET;
 
 const {
   sendVerificationEmail,
   sendEmailUpdateVerification,
 } = require('../utils/emailService');
 
+// Generate JWT Token
+const generateToken = (user) => {
+  return jwt.sign(
+    {
+      id: user._id,
+      role: user.role,
+      tokenVersion: user.tokenVersion,
+    },
+    JWT_SECRET,
+    { expiresIn: '3h' } // Access token expires in 3 hour
+  );
+};
+
 // Register User
 const registerUser = asyncWrapper(async (req, res) => {
-  const { role, name, email, phone, password } = req.body;
+  const { role, name, email, phone, password, googleId } = req.body;
 
-  if (!email && !phone) {
-    throw new AppError('Either email or phone number is required', 400);
-  }
+  console.log(req.body);
 
   // Check if the email or phone is already registered
   if (email) {
@@ -37,10 +49,22 @@ const registerUser = asyncWrapper(async (req, res) => {
     }
   }
 
-  // Hash the password
-  const hashedPassword = await bcrypt.hash(password, 10);
+  let hashedPassword = undefined;
 
-  let userData = { role, name, email, phone, password: hashedPassword };
+  if (googleId) {
+    hashedPassword = 'GoogleAuthUser';
+  } else {
+    hashedPassword = await bcrypt.hash(password, 10);
+  }
+
+  let userData = {
+    role,
+    name,
+    phone,
+    email,
+    password: hashedPassword,
+    googleId: googleId || undefined,
+  };
 
   // Assign role-specific fields
   switch (role) {
@@ -49,52 +73,23 @@ const registerUser = asyncWrapper(async (req, res) => {
       break;
 
     case 'organization_donor':
-      const {
-        address: organizationAddress,
-        location: organizationLocation,
-        organizationVerificationDocs,
-      } = req.body;
-
       userData = {
         ...userData,
-        address: organizationAddress,
-        location: organizationLocation,
         donorType: 'organization',
-        organizationVerificationDocs,
         isVerified: false,
       };
       break;
 
     case 'volunteer':
-      const {
-        skills,
-        address: volunteerAddress,
-        volunteerVerificationDocs,
-        availability,
-      } = req.body;
-
       userData = {
         ...userData,
-        skills,
-        address: volunteerAddress,
-        availability,
-        volunteerVerificationDocs,
         isVerified: false,
       };
       break;
 
     case 'ngo':
-      const {
-        address: ngoAddress,
-        location: ngoLocation,
-        ngoVerificationDocs,
-      } = req.body;
-
       userData = {
         ...userData,
-        address: ngoAddress,
-        location: ngoLocation,
-        ngoVerificationDocs,
         isVerified: false,
       };
       break;
@@ -105,9 +100,13 @@ const registerUser = asyncWrapper(async (req, res) => {
 
   // Handle Email Verification (if email is provided)
   if (email) {
-    const emailVerificationToken = crypto.randomBytes(32).toString('hex');
-    userData.isEmailVerified = false;
-    userData.emailVerificationToken = emailVerificationToken;
+    if (googleId) {
+      userData.isEmailVerified = true;
+    } else {
+      const emailVerificationToken = crypto.randomBytes(32).toString('hex');
+      userData.isEmailVerified = false;
+      userData.emailVerificationToken = emailVerificationToken;
+    }
   }
 
   // Handle Phone Verification
@@ -117,28 +116,38 @@ const registerUser = asyncWrapper(async (req, res) => {
     sendOTP(phone); // ✅ Reuse sendOTP function
   }
 
+  console.log(userData);
   // Create & Save User
   const newUser = new User(userData);
+  console.log(newUser);
   await newUser.save();
 
   // Send email verification if email exists
-  if (email) {
+  if (email && !googleId) {
     await sendVerificationEmail(email, userData.emailVerificationToken);
   }
+
+  const accessToken = googleId ? generateToken(newUser) : undefined;
 
   sendSuccessResponse(
     res,
     201,
-    `Registration successful. Please verify your ${
-      email ? 'email' : 'phone number'
-    }.`,
+    `${
+      googleId
+        ? 'Registration successful.'
+        : `Registration successful. Please verify your ${
+            email ? 'email' : 'phone number'
+          }.`
+    }`,
     {
       id: newUser._id,
       email: newUser.email,
       phone: newUser.phone,
       role: newUser.role,
       name: newUser.name,
-      requiresVerification: true,
+      requiresVerification: !googleId, // If Google, no verification needed
+      verificationType: email ? 'email' : phone ? 'phone' : null, // ✅ Specify verification type
+      ...(googleId && { accessToken }), // ✅ Only include accessToken if Google user
     }
   );
 });
@@ -306,6 +315,8 @@ const getUserProfile = asyncWrapper(async (req, res) => {
   if (!user) {
     throw new AppError('User not found', 404);
   }
+
+  // console.log(user);
 
   sendSuccessResponse(res, 200, 'User profile retrieved successfully.', user);
 });
