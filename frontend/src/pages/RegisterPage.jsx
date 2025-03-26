@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import RegisterWithGoogle from '../components/RegisterWithGoogle'; // Import the new component
+
+import GoogleAuth from '../components/GoogleAuth'; // Import the new component
+
 import AlertMessage from '../components/AlertMessage';
 import validateForm from '../utils/validateForm';
 
@@ -13,13 +17,15 @@ function RegisterPage() {
     ngoName: '',
     email: '',
     phone: '',
-    countryCode: '+251', // Default to Ethiopia
+    countryCode: '+251',
     password: '',
     confirmPassword: '',
     role: '',
   });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [googleUser, setGoogleUser] = useState(null);
+  const [isRegisteringWithGoogle, setIsRegisteringWithGoogle] = useState(false);
 
   // Handle input change
   const handleChange = (e) => {
@@ -162,114 +168,166 @@ function RegisterPage() {
           </div>
         ) : (
           <>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Name Field (Varies Based on Role) */}
-              {selectedRole === 'individual_donor' ||
-              selectedRole === 'volunteer' ? (
-                <div>
-                  <input
-                    type="text"
-                    name="name"
-                    placeholder="Full Name"
-                    className="w-full p-2 border border-gray-300 rounded"
-                    onChange={handleChange}
-                    required
-                  />
-                  {errors.name && (
-                    <p className="text-red-500 text-sm">{errors.name}</p>
+            {!isRegisteringWithGoogle ? (
+              <>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Name Field (Varies Based on Role) */}
+                  {selectedRole === 'individual_donor' ||
+                  selectedRole === 'volunteer' ? (
+                    <div>
+                      <input
+                        type="text"
+                        name="name"
+                        placeholder="Full Name"
+                        className="w-full p-2 border border-gray-300 rounded"
+                        onChange={handleChange}
+                        required
+                      />
+                      {errors.name && (
+                        <p className="text-red-500 text-sm">{errors.name}</p>
+                      )}
+                    </div>
+                  ) : selectedRole === 'organization_donor' ? (
+                    <div>
+                      <input
+                        type="text"
+                        name="organizationName"
+                        placeholder="Organization Name"
+                        className="w-full p-2 border border-gray-300 rounded"
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <input
+                        type="text"
+                        name="ngoName"
+                        placeholder="NGO Name"
+                        className="w-full p-2 border border-gray-300 rounded"
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
                   )}
-                </div>
-              ) : selectedRole === 'organization_donor' ? (
-                <div>
+
                   <input
-                    type="text"
-                    name="organizationName"
-                    placeholder="Organization Name"
+                    type="email"
+                    name="email"
+                    placeholder="Email"
+                    className="w-full p-2 border border-gray-300 rounded"
+                    onChange={handleChange}
+                  />
+                  {errors.email && (
+                    <p className="text-red-500 text-sm">{errors.email}</p>
+                  )}
+
+                  {/* Phone Number with Country Code */}
+                  <div className="flex">
+                    <select
+                      name="countryCode"
+                      className="p-2 border border-gray-300 rounded-l"
+                      value={formData.countryCode}
+                      onChange={handleChange}
+                    >
+                      <option value="+251">🇪🇹 +251</option>
+                      <option value="+1">🇺🇸 +1</option>
+                      <option value="+44">🇬🇧 +44</option>
+                      <option value="+91">🇮🇳 +91</option>
+                    </select>
+                    <input
+                      type="tel"
+                      name="phone"
+                      placeholder="Phone Number"
+                      className="w-full p-2 border border-gray-300 rounded-r"
+                      onChange={handleChange}
+                    />
+                  </div>
+                  {errors.phone && (
+                    <p className="text-red-500 text-sm">{errors.phone}</p>
+                  )}
+
+                  <input
+                    type="password"
+                    name="password"
+                    placeholder="Password"
                     className="w-full p-2 border border-gray-300 rounded"
                     onChange={handleChange}
                     required
                   />
-                </div>
-              ) : (
-                <div>
+                  {errors.password && (
+                    <p className="text-red-500 text-sm">{errors.password}</p>
+                  )}
+
                   <input
-                    type="text"
-                    name="ngoName"
-                    placeholder="NGO Name"
+                    type="password"
+                    name="confirmPassword"
+                    placeholder="Confirm Password"
                     className="w-full p-2 border border-gray-300 rounded"
                     onChange={handleChange}
                     required
                   />
+                  {errors.confirmPassword && (
+                    <p className="text-red-500 text-sm">
+                      {errors.confirmPassword}
+                    </p>
+                  )}
+
+                  <button
+                    type="submit"
+                    className="w-full bg-green-500 text-white p-2 rounded"
+                  >
+                    Register
+                  </button>
+                </form>
+
+                {googleUser ? (
+                  <RegisterWithGoogle googleUser={googleUser} />
+                ) : (
+                  <GoogleAuth
+                    setGoogleUser={setGoogleUser}
+                    setIsRegisteringWithGoogle={setIsRegisteringWithGoogle}
+                  />
+                )}
+
+                <div className="text-center mt-4">
+                  {/* ✅ Already Have an Account? */}
+                  <p className="text-gray-600">
+                    Already have an account?{' '}
+                    <a href="/login" className="text-blue-500 hover:underline">
+                      Log in
+                    </a>
+                  </p>
+
+                  {/* ✅ Terms & Conditions */}
+                  <p className="text-gray-500 text-xs mt-4">
+                    By signing up, you agree to our{' '}
+                    <a href="/terms" className="text-blue-500 hover:underline">
+                      Terms of Service
+                    </a>{' '}
+                    and{' '}
+                    <a
+                      href="/privacy"
+                      className="text-blue-500 hover:underline"
+                    >
+                      Privacy Policy
+                    </a>
+                    .
+                  </p>
                 </div>
-              )}
-
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                className="w-full p-2 border border-gray-300 rounded"
-                onChange={handleChange}
-              />
-              {errors.email && (
-                <p className="text-red-500 text-sm">{errors.email}</p>
-              )}
-
-              {/* Phone Number with Country Code */}
-              <div className="flex">
-                <select
-                  name="countryCode"
-                  className="p-2 border border-gray-300 rounded-l"
-                  value={formData.countryCode}
-                  onChange={handleChange}
-                >
-                  <option value="+251">🇪🇹 +251</option>
-                  <option value="+1">🇺🇸 +1</option>
-                  <option value="+44">🇬🇧 +44</option>
-                  <option value="+91">🇮🇳 +91</option>
-                </select>
-                <input
-                  type="tel"
-                  name="phone"
-                  placeholder="Phone Number"
-                  className="w-full p-2 border border-gray-300 rounded-r"
-                  onChange={handleChange}
-                />
-              </div>
-              {errors.phone && (
-                <p className="text-red-500 text-sm">{errors.phone}</p>
-              )}
-
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                className="w-full p-2 border border-gray-300 rounded"
-                onChange={handleChange}
-                required
-              />
-              {errors.password && (
-                <p className="text-red-500 text-sm">{errors.password}</p>
-              )}
-
-              <input
-                type="password"
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                className="w-full p-2 border border-gray-300 rounded"
-                onChange={handleChange}
-                required
-              />
-              {errors.confirmPassword && (
-                <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
-              )}
-
-              <button
-                type="submit"
-                className="w-full bg-green-500 text-white p-2 rounded"
-              >
-                Register
-              </button>
-            </form>
+              </>
+            ) : (
+              <>
+                {googleUser ? (
+                  <RegisterWithGoogle googleUser={googleUser} />
+                ) : (
+                  <GoogleAuth
+                    setGoogleUser={setGoogleUser}
+                    setIsRegisteringWithGoogle={setIsRegisteringWithGoogle}
+                  />
+                )}
+              </>
+            )}
           </>
         )}
       </div>

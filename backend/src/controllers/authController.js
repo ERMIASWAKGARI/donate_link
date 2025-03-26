@@ -206,7 +206,6 @@ const login = asyncWrapper(async (req, res) => {
         );
       }
 
-      console.log(user.isDeleted);
       if (user.isDeleted) {
         const deletionDate = new Date(user.deletedAt);
         const currentDate = new Date();
@@ -333,6 +332,11 @@ const login = asyncWrapper(async (req, res) => {
 
   // 🔹 Check password for normal users
   if (!idToken) {
+    if (user.password === 'GoogleAuthUser') {
+      throw new AppError(
+        'You have registered with a google account. Please login using your google account.'
+      );
+    }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       throw new AppError('Invalid password.', 401);
@@ -362,10 +366,7 @@ const login = asyncWrapper(async (req, res) => {
   await user.save();
 
   return sendSuccessResponse(res, 200, 'Login successful!', {
-    id: user._id,
-    email: user.email,
-    role: user.role,
-    name: user.name,
+    user,
     accessToken,
     refreshToken,
   });

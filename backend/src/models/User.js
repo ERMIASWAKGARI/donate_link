@@ -39,6 +39,8 @@ const userSchema = new mongoose.Schema(
     isDeleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
 
+    isFirstLogin: { type: Boolean, default: true },
+
     googleId: { type: String },
 
     address: {
