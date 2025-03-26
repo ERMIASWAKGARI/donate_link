@@ -94,9 +94,11 @@ function RegisterPage() {
         setTimeout(() => {
           setMessage({ type: '', text: '' });
           if (data.data.verificationType === 'email') {
+            console.log(data.data);
             navigate(`/verify-email?email=${data.data.email}`);
           }
           if (data.data.verificationType === 'phone') {
+            console.log(data.data);
             navigate(`/verify-otp?phone=${data.data.phone}`);
           }
         }, 3000);

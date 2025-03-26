@@ -60,6 +60,7 @@ const registerUser = asyncWrapper(async (req, res) => {
   let userData = {
     role,
     name,
+    phone,
     email,
     password: hashedPassword,
     googleId: googleId || undefined,
@@ -117,6 +118,7 @@ const registerUser = asyncWrapper(async (req, res) => {
 
   // Create & Save User
   const newUser = new User(userData);
+  console.log(newUser);
   await newUser.save();
 
   // Send email verification if email exists

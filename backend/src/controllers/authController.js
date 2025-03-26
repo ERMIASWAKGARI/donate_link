@@ -78,6 +78,7 @@ const verifyEmail = asyncWrapper(async (req, res) => {
 
 const verifyOtp = asyncWrapper(async (req, res) => {
   const { phone, otp } = req.body;
+  console.log(req.body);
 
   // Find user with matching phone or newPhone
   const user = await User.findOne({ $or: [{ phone }, { newPhone: phone }] });

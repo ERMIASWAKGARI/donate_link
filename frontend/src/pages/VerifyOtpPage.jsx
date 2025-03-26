@@ -6,7 +6,8 @@ import AlertMessage from '../components/AlertMessage';
 const VerifyOtpPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const phone = searchParams.get('phone');
+  const rawPhone = searchParams.get('phone').trim();
+  const phone = rawPhone.startsWith('+') ? rawPhone : `+${rawPhone}`;
 
   const [message, setMessage] = useState({ type: '', text: '' });
   const [otp, setOtp] = useState('');
@@ -23,7 +24,7 @@ const VerifyOtpPage = () => {
     setIsVerifyingOtp(true);
     try {
       const response = await fetch(
-        'http://localhost:5000/api/users/verify-otp',
+        'http://localhost:5000/api/auth/verify-otp',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -31,6 +32,7 @@ const VerifyOtpPage = () => {
         }
       );
 
+      console.log(phone, otp);
       const data = await response.json();
       if (data.status === 'success') {
         setMessage({
@@ -56,13 +58,15 @@ const VerifyOtpPage = () => {
   const resendOtp = async () => {
     try {
       const response = await fetch(
-        'http://localhost:5000/api/users/resend-verification',
+        'http://localhost:5000/api/auth/resend-otp',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone }),
         }
       );
+
+      console.log(phone);
 
       const data = await response.json();
       if (data.status === 'success') {
