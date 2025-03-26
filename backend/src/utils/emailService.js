@@ -55,7 +55,7 @@ const sendVerificationEmail = async (email, verificationToken) => {
 
 // Function to send verification email after email update
 const sendEmailUpdateVerification = async (email, verificationToken) => {
-  const verificationUrl = `http://localhost:5000/api/auth/verify-email?token=${verificationToken}`;
+  const verificationUrl = `http://localhost:5173/verify-email?token=${verificationToken}`;
   const subject = 'Verify Your New Email - Online Donation Platform';
 
   const html = `

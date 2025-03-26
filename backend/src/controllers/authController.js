@@ -131,6 +131,7 @@ const verifyOtp = asyncWrapper(async (req, res) => {
 const resendVerificationEmail = asyncWrapper(async (req, res) => {
   const { email } = req.body;
 
+  console.log(req.body);
   // Check if the user exists
   const user = await User.findOne({ email });
 
