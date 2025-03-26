@@ -12,6 +12,8 @@ const { sendVerificationEmail } = require("../utils/emailService");
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 const { client, verifySid } = require("../config/twilio");
+const { OAuth2Client } = require("google-auth-library");
+const clientI = new OAuth2Client(process.env.GOOGLE_CLIENT_ID); // 🔹 Correct Initialization
 
 // Generate JWT Token
 const generateToken = (user) => {
