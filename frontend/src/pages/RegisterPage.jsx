@@ -93,11 +93,12 @@ function RegisterPage() {
 
         setTimeout(() => {
           setMessage({ type: '', text: '' });
-          navigate(
-            `/verify?${data.data.verificationType}=${
-              data.data[data.data.verificationType]
-            }`
-          );
+          if (data.data.verificationType === 'email') {
+            navigate(`/verify-email?email=${data.data.email}`);
+          }
+          if (data.data.verificationType === 'phone') {
+            navigate(`/verify-otp?phone=${data.data.phone}`);
+          }
         }, 3000);
       } else {
         setMessage({
