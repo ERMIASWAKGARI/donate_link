@@ -116,6 +116,7 @@ const registerUser = asyncWrapper(async (req, res) => {
     sendOTP(phone); // ✅ Reuse sendOTP function
   }
 
+  console.log(userData);
   // Create & Save User
   const newUser = new User(userData);
   console.log(newUser);
