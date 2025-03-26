@@ -7,11 +7,14 @@ import FeaturedCauses from "../pages/landing_component/Featured";
 import Testimonials from "../pages/landing_component/Testimonials";
 import CTA from "../pages/landing_component/CTA";
 import Newsletter from "../pages/landing_component/Newsletter";
+import Header from "./common/Header";
+import Footer from "./common/Footer";
 
 function LandingPage() {
   return (
 
     <div>
+      <Header/>
       <Hero/>
       <FeaturedCauses/>
       <HowItWorksSection/>
@@ -20,6 +23,7 @@ function LandingPage() {
       <Testimonials/>
       <Newsletter/>
       <CTA/>
+      <Footer/>
     </div>
   );
 }
