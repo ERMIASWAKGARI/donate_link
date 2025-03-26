@@ -1,0 +1,413 @@
+import React, { useState, useEffect, useRef } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { ChevronDown, Menu, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import logo from "../../assets/logo.png";
+
+const Header = () => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isDonationsOpen, setIsDonationsOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const howItWorksRef = useRef(null);
+  const donationsRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (howItWorksRef.current && !howItWorksRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+      if (donationsRef.current && !donationsRef.current.contains(event.target)) {
+        setIsDonationsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.classList.add("overflow-hidden");
+    } else {
+      document.body.classList.remove("overflow-hidden");
+    }
+
+    return () => {
+      document.body.classList.remove("overflow-hidden");
+    };
+  }, [menuOpen]);
+
+  // Animation variants
+  const mobileMenuVariants = {
+    hidden: { x: "100%", opacity: 0 },
+    visible: { 
+      x: 0, 
+      opacity: 1,
+      transition: { 
+        type: "spring", 
+        stiffness: 100,
+        damping: 20
+      }
+    },
+    exit: { 
+      x: "100%", 
+      opacity: 0,
+      transition: { 
+        ease: "easeInOut",
+        duration: 0.3
+      }
+    }
+  };
+
+  const dropdownVariants = {
+    hidden: { y: -10, opacity: 0 },
+    visible: { 
+      y: 0, 
+      opacity: 1,
+      transition: { 
+        duration: 0.2,
+        ease: "easeOut"
+      }
+    },
+    exit: { 
+      y: -10, 
+      opacity: 0,
+      transition: { 
+        duration: 0.15
+      }
+    }
+  };
+
+  return (
+    <>
+      <motion.nav 
+        className="bg-green-800 text-white z-50 sticky top-0 shadow-lg"
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-20">
+            {/* Logo */}
+            <motion.div 
+              className="flex items-center cursor-pointer"
+              whileHover={{ scale: 1.05 }}
+              onClick={() => navigate("/")}
+            >
+              <img src={logo} alt="Logo" className="h-10 w-auto" />
+              <span className="ml-2 text-yellow-400 font-bold text-xl">
+                DonatiLink
+              </span>
+            </motion.div>
+
+            {/* Desktop Menu */}
+            <div className="hidden md:flex space-x-8 items-center">
+              {/* Home Link */}
+              <NavLink
+                to="/"
+                className={({ isActive }) => 
+                  `flex flex-col items-center gap-1 group transition duration-300 ${isActive ? "text-yellow-400" : ""}`
+                }
+              >
+                <p className="hover:text-yellow-400">Home</p>
+                <motion.div 
+                  className="w-2/4 h-[2px] bg-yellow-400"
+                  initial={{ scaleX: 0 }}
+                  whileHover={{ scaleX: 1 }}
+                />
+              </NavLink>
+
+              <a
+                href="#featured"
+                className="flex flex-col items-center gap-1 group transition duration-300"
+              >
+                <p className="hover:text-yellow-400">Featured Causes</p>
+                <motion.div 
+                  className="w-2/4 h-[2px] bg-yellow-400"
+                  initial={{ scaleX: 0 }}
+                  whileHover={{ scaleX: 1 }}
+                />
+              </a>
+
+              {/* About Us Link */}
+              <a
+                href="#about"
+                className="flex flex-col items-center gap-1 group transition duration-300"
+              >
+                <p className="hover:text-yellow-400">About Us</p>
+                <motion.div 
+                  className="w-2/4 h-[2px] bg-yellow-400"
+                  initial={{ scaleX: 0 }}
+                  whileHover={{ scaleX: 1 }}
+                />
+              </a>
+
+              {/* How It Works Dropdown */}
+              <div className="relative" ref={howItWorksRef}>
+                <motion.button
+                  onClick={() => setIsOpen(!isOpen)}
+                  className="flex items-center hover:text-yellow-400 transition"
+                  whileHover={{ scale: 1.05 }}
+                >
+                  How It Works
+                  <motion.div
+                    animate={{ rotate: isOpen ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ChevronDown size={16} className="ml-1" />
+                  </motion.div>
+                </motion.button>
+
+                <AnimatePresence>
+                  {isOpen && (
+                    <motion.div
+                      variants={dropdownVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      className="absolute left-0 mt-2 w-56 bg-white text-black rounded-md shadow-xl z-50 overflow-hidden"
+                    >
+                      {[
+                        { to: "/signup", text: "Sign Up" },
+                        { to: "/donate", text: "Choose Items to Donate" },
+                        { to: "/ngos", text: "Select an NGO" },
+                        { to: "/impact", text: "Track Your Impact" },
+                        { to: "/faq", text: "FAQs" },
+                        { to: "/contact", text: "Contact Support" }
+                      ].map((item, index) => (
+                        <motion.div
+                          key={index}
+                          whileHover={{ x: 5 }}
+                          transition={{ type: "spring", stiffness: 300 }}
+                        >
+                          <NavLink
+                            to={item.to}
+                            className={({ isActive }) => 
+                              `block px-4 py-3 hover:bg-gray-100 transition ${isActive ? "bg-gray-100 font-medium" : ""}`
+                            }
+                          >
+                            {item.text}
+                          </NavLink>
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Donations Dropdown */}
+              <div className="relative" ref={donationsRef}>
+                <motion.button
+                  onClick={() => setIsDonationsOpen(!isDonationsOpen)}
+                  className="flex items-center hover:text-yellow-400 transition"
+                  whileHover={{ scale: 1.05 }}
+                >
+                  Donations
+                  <motion.div
+                    animate={{ rotate: isDonationsOpen ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ChevronDown size={16} className="ml-1" />
+                  </motion.div>
+                </motion.button>
+
+                <AnimatePresence>
+                  {isDonationsOpen && (
+                    <motion.div
+                      variants={dropdownVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      className="absolute left-0 mt-2 w-56 bg-white text-black rounded-md shadow-xl z-50 overflow-hidden"
+                    >
+                      {[
+                        { to: "/donate", text: "Make a Donation" },
+                        { to: "/causes", text: "View Causes" },
+                        { to: "/recurring", text: "Recurring Donations" },
+                        { to: "/history", text: "Donation History" },
+                        { to: "/top-ngos", text: "Top NGOs" }
+                      ].map((item, index) => (
+                        <motion.div
+                          key={index}
+                          whileHover={{ x: 5 }}
+                          transition={{ type: "spring", stiffness: 300 }}
+                        >
+                          <NavLink
+                            to={item.to}
+                            className={({ isActive }) => 
+                              `block px-4 py-3 hover:bg-gray-100 transition ${isActive ? "bg-gray-100 font-medium" : ""}`
+                            }
+                          >
+                            {item.text}
+                          </NavLink>
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Contact Us */}
+              <a
+                href="#contact"
+                className="flex flex-col items-center gap-1 group transition duration-300"
+              >
+                <p className="hover:text-yellow-400">Contact Us</p>
+                <motion.div 
+                  className="w-2/4 h-[2px] bg-yellow-400"
+                  initial={{ scaleX: 0 }}
+                  whileHover={{ scaleX: 1 }}
+                />
+              </a>
+            </div>
+
+            {/* Donate Button */}
+            <div className="hidden md:block">
+              <motion.button
+                onClick={() => navigate("/register")}
+                className="bg-yellow-400 text-green-900 px-6 py-2 rounded-full font-medium hover:bg-yellow-500 transition cursor-pointer shadow-md"
+                whileHover={{ scale: 1.05, boxShadow: "0 5px 15px rgba(234, 179, 8, 0.4)" }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Register Now
+              </motion.button>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden">
+              <motion.button 
+                onClick={() => setMenuOpen(!menuOpen)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                {menuOpen ? (
+                  <X size={28} className="text-yellow-400" />
+                ) : (
+                  <Menu size={28} />
+                )}
+              </motion.button>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.div
+              variants={mobileMenuVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="md:hidden fixed inset-0 top-20 bg-green-900 z-40 shadow-2xl p-8 space-y-8 overflow-y-auto"
+            >
+              <NavLink
+                to="/"
+                className="block text-xl py-3 border-b border-green-700 hover:text-yellow-400 transition"
+                onClick={() => setMenuOpen(false)}
+              >
+                Home
+              </NavLink>
+              <a
+                href="#featured"
+                className="block text-xl py-3 border-b border-green-700 hover:text-yellow-400 transition"
+                onClick={() => setMenuOpen(false)}
+              >
+                Featured Causes
+              </a>
+              <a
+                href="#about"
+                className="block text-xl py-3 border-b border-green-700 hover:text-yellow-400 transition"
+                onClick={() => setMenuOpen(false)}
+              >
+                About Us
+              </a>
+              
+              <div className="pt-2">
+                <button 
+                  className="flex items-center justify-between w-full text-xl py-3 border-b border-green-700 hover:text-yellow-400 transition"
+                  onClick={() => setIsOpen(!isOpen)}
+                >
+                  How It Works
+                  <ChevronDown size={20} className={`transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                </button>
+                {isOpen && (
+                  <div className="pl-4 space-y-3 mt-2">
+                    {[
+                      { to: "/signup", text: "Sign Up" },
+                      { to: "/donate", text: "Choose Items" },
+                      { to: "/ngos", text: "Select an NGO" },
+                      { to: "/impact", text: "Track Impact" },
+                      { to: "/faq", text: "FAQs" }
+                    ].map((item) => (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        className="block py-2 hover:text-yellow-400 transition"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        {item.text}
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-2">
+                <button 
+                  className="flex items-center justify-between w-full text-xl py-3 border-b border-green-700 hover:text-yellow-400 transition"
+                  onClick={() => setIsDonationsOpen(!isDonationsOpen)}
+                >
+                  Donations
+                  <ChevronDown size={20} className={`transition-transform ${isDonationsOpen ? "rotate-180" : ""}`} />
+                </button>
+                {isDonationsOpen && (
+                  <div className="pl-4 space-y-3 mt-2">
+                    {[
+                      { to: "/donate", text: "Make a Donation" },
+                      { to: "/causes", text: "View Causes" },
+                      { to: "/recurring", text: "Recurring Donations" },
+                      { to: "/history", text: "Donation History" }
+                    ].map((item) => (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        className="block py-2 hover:text-yellow-400 transition"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        {item.text}
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <a
+                href="#contact"
+                className="block text-xl py-3 border-b border-green-700 hover:text-yellow-400 transition"
+                onClick={() => setMenuOpen(false)}
+              >
+                Contact Us
+              </a>
+
+              <motion.button
+                onClick={() => {
+                  navigate("/register");
+                  setMenuOpen(false);
+                }}
+                className="w-full bg-yellow-400 text-green-900 px-6 py-3 rounded-full font-medium text-xl mt-6 hover:bg-yellow-500 transition shadow-md"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Register Now
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.nav>
+    </>
+  );
+};
+
+export default Header;
