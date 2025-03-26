@@ -35,7 +35,17 @@ function RegisterPage() {
   // Allow user to go back and change role
   const handleRoleChange = () => {
     setSelectedRole('');
-    setFormData({ ...formData, role: '' });
+    setFormData({
+      name: '',
+      organizationName: '',
+      ngoName: '',
+      email: '',
+      phone: '',
+      countryCode: '+251', // Default to Ethiopia
+      password: '',
+      confirmPassword: '',
+      role: '',
+    });
   };
 
   // Handle form submission

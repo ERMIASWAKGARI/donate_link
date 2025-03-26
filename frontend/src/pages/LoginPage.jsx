@@ -1,10 +1,83 @@
-import { GoogleLogin } from '@react-oauth/google';
-
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import { GoogleLogin } from '@react-oauth/google';
+import AlertMessage from '../components/AlertMessage';
+
 import RegisterWithGoogle from '../components/RegisterWithGoogle'; // Import the new component
 
 function LoginPage() {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    email: '',
+    phone: '',
+    countryCode: '+251', // Default Ethiopia
+    password: '',
+  });
+  const [message, setMessage] = useState({ type: '', text: '' });
   const [googleUser, setGoogleUser] = useState(null);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!formData.email && !formData.phone) {
+      setMessage({
+        type: 'error',
+        text: 'Please enter either Email or Phone.',
+      });
+      return;
+    }
+
+    const loginData = {
+      password: formData.password,
+    };
+
+    if (formData.email) {
+      loginData.email = formData.email;
+    }
+
+    if (formData.phone) {
+      loginData.phone = `${formData.countryCode}${formData.phone}`;
+    }
+
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loginData),
+      });
+
+      console.log(loginData);
+
+      const data = await response.json();
+
+      console.log(data);
+
+      if (data.status === 'success') {
+        localStorage.setItem('accessToken', data.data.accessToken);
+        setMessage({
+          type: 'success',
+          text: 'Login successful! Redirecting...',
+        });
+
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 2000);
+      } else {
+        setMessage({ type: 'error', text: `Login Failed: ${data.message}` });
+      }
+    } catch (error) {
+      console.error('Login Error:', error);
+      setMessage({
+        type: 'error',
+        text: 'An error occurred. Please try again.',
+      });
+    }
+  };
 
   const handleGoogleSignInSuccess = async (credentialResponse) => {
     const idToken = credentialResponse.credential;
@@ -54,13 +127,59 @@ function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-200">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
-        <h2 className="text-3xl font-semibold mb-6 text-center text-gray-800">
-          Login
-        </h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-96">
+        <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
 
-        {/* Show Google Register Form If User Needs More Info */}
+        <AlertMessage message={message} />
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            className="w-full p-2 border border-gray-300 rounded"
+            onChange={handleChange}
+          />
+
+          <div className="flex">
+            <select
+              name="countryCode"
+              className="p-2 border border-gray-300 rounded-l"
+              value={formData.countryCode}
+              onChange={handleChange}
+            >
+              <option value="+251">🇪🇹 +251</option>
+              <option value="+1">🇺🇸 +1</option>
+              <option value="+44">🇬🇧 +44</option>
+              <option value="+91">🇮🇳 +91</option>
+            </select>
+            <input
+              type="tel"
+              name="phone"
+              placeholder="Phone Number"
+              className="w-full p-2 border border-gray-300 rounded-r"
+              onChange={handleChange}
+            />
+          </div>
+
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            className="w-full p-2 border border-gray-300 rounded"
+            onChange={handleChange}
+            required
+          />
+
+          <button
+            type="submit"
+            className="w-full bg-green-500 text-white p-2 rounded"
+          >
+            Login
+          </button>
+        </form>
+
         {googleUser ? (
           <RegisterWithGoogle googleUser={googleUser} />
         ) : (
