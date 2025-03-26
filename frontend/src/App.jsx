@@ -12,20 +12,10 @@ import VerifyOtp from "./pages/VerifyOtpPage";
 
 function App() {
   return (
-    <UserProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/verify-otp" element={<VerifyOtp />} />
-          <Route element={<PrivateRoute />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-          </Route>
-        </Routes>
-      </Router>{" "}
-    </UserProvider>
+    <div className="pb-16">
+      <ScrollToTop />
+      <AllRoutes />
+    </div>
   );
 }
 
