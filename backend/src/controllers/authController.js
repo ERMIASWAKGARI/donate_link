@@ -12,6 +12,8 @@ const { sendVerificationEmail } = require("../utils/emailService");
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 const { client, verifySid } = require("../config/twilio");
+const { OAuth2Client } = require("google-auth-library");
+const clientI = new OAuth2Client(process.env.GOOGLE_CLIENT_ID); // 🔹 Correct Initialization
 
 // Generate JWT Token
 const generateToken = (user) => {
@@ -42,34 +44,57 @@ const verifyEmail = asyncWrapper(async (req, res) => {
     throw new AppError("Invalid or missing token.", 400);
   }
 
-  // Find user with matching token
+  // Find user with matching email verification token
   const user = await User.findOne({ emailVerificationToken: token });
 
   if (!user) {
     throw new AppError("Invalid or expired token.", 400);
   }
 
-  // Update user record
-  user.isEmailVerified = true;
-  user.emailVerificationToken = null;
-  await user.save();
+  // 🔹 If verifying new account
+  if (!user.isEmailVerified && !user.newEmail) {
+    user.isEmailVerified = true;
+    user.emailVerificationToken = undefined;
+    await user.save();
+    return sendSuccessResponse(
+      res,
+      200,
+      "Email verified successfully. Your account is now active."
+    );
+  }
 
-  sendSuccessResponse(res, 200, "Email verified successfully.");
+  // 🔹 If verifying updated email
+  if (user.newEmail) {
+    user.email = user.newEmail;
+    user.newEmail = undefined;
+    user.isEmailVerified = true;
+    user.isNewEmailVerified = undefined;
+
+    user.emailVerificationToken = undefined;
+    await user.save();
+    return sendSuccessResponse(res, 200, "Email verified successfully.");
+  }
+
+  throw new AppError("No email verification required.", 400);
 });
 
 const verifyOtp = asyncWrapper(async (req, res) => {
   const { phone, otp } = req.body;
+  console.log(req.body);
 
-  const user = await User.findOne({ phone });
+  // Find user with matching phone or newPhone
+  const user = await User.findOne({ $or: [{ phone }, { newPhone: phone }] });
 
   if (!user) {
-    throw new AppError("User not found!", 400);
+    throw new AppError("User not found or invalid phone number.", 400);
   }
 
-  if (user.isPhoneVerified) {
-    throw new AppError("Phone is already verified", 400);
+  // Check if phone is already verified
+  if (user.phone === phone && user.isPhoneVerified) {
+    throw new AppError("Phone is already verified.", 400);
   }
 
+  // Verify OTP via Twilio
   const verification_check = await client.verify.v2
     .services(verifySid)
     .verificationChecks.create({ to: phone, code: otp });
@@ -78,15 +103,38 @@ const verifyOtp = asyncWrapper(async (req, res) => {
     throw new AppError("Invalid OTP!", 400);
   }
 
-  user.isPhoneVerified = true;
-  await user.save();
+  // 🔹 If verifying new account
+  if (!user.isPhoneVerified && !user.newPhone) {
+    user.isPhoneVerified = true;
+    await user.save();
+    return sendSuccessResponse(
+      res,
+      200,
+      "Phone verified successfully. Your account is now active."
+    );
+  }
 
-  sendSuccessResponse(res, 200, "Phone number verified successfully!");
+  // 🔹 If verifying updated phone
+  if (user.newPhone) {
+    user.isNewPhoneVerified = true;
+
+    user.phone = user.newPhone;
+    user.newPhone = undefined;
+    user.isPhoneVerified = true;
+    user.isNewEmailVerified = undefined;
+    user.isNewPhoneVerified = undefined;
+
+    await user.save();
+    return sendSuccessResponse(res, 200, "Phone verified successfully.");
+  }
+
+  throw new AppError("No phone verification required.", 400);
 });
 
 const resendVerificationEmail = asyncWrapper(async (req, res) => {
   const { email } = req.body;
 
+  console.log(req.body);
   // Check if the user exists
   const user = await User.findOne({ email });
 
@@ -136,9 +184,86 @@ const resendOTP = asyncWrapper(async (req, res) => {
 });
 
 const login = asyncWrapper(async (req, res) => {
-  const { email, phone, password } = req.body;
-  let user = {};
+  const { email, phone, password, idToken } = req.body;
+  let user = null;
 
+  // console.log(req.body);
+
+  if (idToken) {
+    // 🔹 Verify Google ID Token with Google
+    const ticket = await clientI.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const { email, name, picture, sub } = ticket.getPayload();
+
+    user = await User.findOne({ email });
+
+    if (user) {
+      if (user.isBanned) {
+        throw new AppError(
+          "Your account has been banned. Please contact an admin.",
+          403
+        );
+      }
+
+      if (user.isDeleted) {
+        const deletionDate = new Date(user.deletedAt);
+        const currentDate = new Date();
+        const daysSinceDeletion = Math.floor(
+          (currentDate - deletionDate) / (1000 * 60 * 60 * 24)
+        ); // Convert milliseconds to days
+
+        if (daysSinceDeletion < 30) {
+          const accountRecoveryToken = jwt.sign(
+            { userId: user._id, type: "recovery" },
+            process.env.JWT_SECRET,
+            { expiresIn: "10m" }
+          );
+
+          return sendSuccessResponse(
+            res,
+            200,
+            `Your account was deleted on ${
+              user.deletedAt
+            }. You can recover it within ${30 - daysSinceDeletion} days.`,
+            {
+              accountRecoveryTokenRequired: true,
+              accountRecoveryToken,
+            }
+          );
+        } else {
+          throw new AppError(
+            "User not found. Account recovery period has expired.",
+            400
+          );
+        }
+      }
+
+      const accessToken = generateToken(user);
+      return sendSuccessResponse(res, 200, "Google authentication successful", {
+        accessToken,
+        user,
+      });
+    }
+
+    // 🔹 If user does not exist, ask for more info before registration
+    return sendSuccessResponse(
+      res,
+      200,
+      "Google authentication needs more info",
+      {
+        email,
+        name,
+        picture,
+        googleId: sub,
+        requiresRegistration: true,
+      }
+    );
+  }
+
+  // 🔹 Handle normal login
   if (email) {
     user = await User.findOne({ email });
     if (!user) {
@@ -153,8 +278,54 @@ const login = asyncWrapper(async (req, res) => {
     }
   }
 
-  // Check if the email is verified
+  if (!user) {
+    throw new AppError("Invalid login credentials", 401);
+  }
+
+  // 🔹 Handle account status (banned, deleted, inactive)
+  if (user.isBanned) {
+    throw new AppError(
+      "Your account has been banned. Please contact an admin for resolving the case.",
+      403
+    );
+  }
+
+  if (user.isDeleted) {
+    const deletionDate = new Date(user.deletedAt);
+    const currentDate = new Date();
+    const daysSinceDeletion = Math.floor(
+      (currentDate - deletionDate) / (1000 * 60 * 60 * 24)
+    ); // Convert milliseconds to days
+
+    if (daysSinceDeletion < 30) {
+      const accountRecoveryToken = jwt.sign(
+        { userId: user._id, type: "recovery" },
+        process.env.JWT_SECRET,
+        { expiresIn: "10m" }
+      );
+
+      return sendSuccessResponse(
+        res,
+        200,
+        `Your account was deleted on ${
+          user.deletedAt
+        }. You can recover it within ${30 - daysSinceDeletion} days.`,
+        {
+          accountRecoveryTokenRequired: true,
+          accountRecoveryToken,
+        }
+      );
+    } else {
+      throw new AppError(
+        "User not found. Account recovery period has expired.",
+        400
+      );
+    }
+  }
+
+  // 🔹 Ensure the email or phone is verified
   if (email && !user.isEmailVerified) {
+    // Check if the email is verified
     throw new AppError("Please verify your email before logging in.", 403);
   }
 
@@ -168,6 +339,7 @@ const login = asyncWrapper(async (req, res) => {
     throw new AppError("Invalid password.", 401);
   }
 
+  // 🔹 If account is deactivated, request reactivation
   if (!user.isActive) {
     const reactivationToken = jwt.sign(
       { userId: user._id, type: "reactivation" },
@@ -181,7 +353,7 @@ const login = asyncWrapper(async (req, res) => {
     });
   }
 
-  // Generate JWT and Refresh Token
+  // 🔹 Generate JWT and Refresh Token
   const accessToken = generateToken(user);
   const refreshToken = generateRefreshToken(user);
 
