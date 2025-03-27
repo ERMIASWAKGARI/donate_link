@@ -161,6 +161,7 @@ const resendVerificationEmail = asyncWrapper(async (req, res) => {
 
 const resendOTP = asyncWrapper(async (req, res) => {
   const { phone } = req.body;
+  // console.log(req.body);
 
   if (!phone) {
     throw new AppError('Phone number is required.', 400);
@@ -171,11 +172,6 @@ const resendOTP = asyncWrapper(async (req, res) => {
 
   if (!user) {
     throw new AppError('User not found. Register first.', 404);
-  }
-
-  // Check if the phone is already verified
-  if (user.isPhoneVerified) {
-    throw new AppError('Phone number is already verified', 400);
   }
 
   await sendOTP(phone); // ✅ Reuse sendOTP function
@@ -392,7 +388,7 @@ const refreshToken = asyncWrapper(async (req, res) => {
 
 const forgotPassword = asyncWrapper(async (req, res) => {
   const { email, phone } = req.body;
-  console.log(req.body);
+  // console.log(req.body);
 
   if (!email && !phone) {
     throw new AppError('Please provide either an email or phone number.', 400);
@@ -428,14 +424,19 @@ const forgotPassword = asyncWrapper(async (req, res) => {
 });
 
 const resetPassword = asyncWrapper(async (req, res) => {
-  const { newPassword, phone, otp } = req.body;
+  const { password, phone, otp } = req.body;
   const { token } = req.query;
 
-  if (!newPassword) {
+  console.log(req.body);
+
+  if (!password) {
     throw new AppError('New password is required.', 400);
   }
 
   let user;
+  if (!token && (!phone || !otp)) {
+    throw new AppError('Please provide either a valid token.', 400);
+  }
   if (token) {
     // Handle Email-based password reset
     const decoded = jwt.verify(token, JWT_SECRET);
@@ -460,13 +461,13 @@ const resetPassword = asyncWrapper(async (req, res) => {
     }
   } else {
     throw new AppError(
-      'Invalid request. Provide either a token or phone + OTP.',
+      'Invalid request. Provide either a token + email or phone + OTP.',
       400
     );
   }
 
   // Hash and update new password
-  user.password = await bcrypt.hash(newPassword, 10);
+  user.password = await bcrypt.hash(password, 10);
 
   // Invalidate old tokens by incrementing version
   user.tokenVersion += 1;

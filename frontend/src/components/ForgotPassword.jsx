@@ -1,11 +1,16 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const ForgotPassword = () => {
+  const [method, setMethod] = useState('email'); // "email" or "phone"
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  // eslint-disable-next-line no-unused-vars
+  const [resending, setResending] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -13,12 +18,21 @@ const ForgotPassword = () => {
     setError('');
     setLoading(true);
 
-    const payload = email ? { email } : phone ? { phone } : null;
-
-    if (!payload) {
-      setError('Please enter either your email or phone number.');
-      setLoading(false);
-      return;
+    let payload;
+    if (method === 'email') {
+      if (!email) {
+        setError('Please enter your email.');
+        setLoading(false);
+        return;
+      }
+      payload = { email };
+    } else if (method === 'phone') {
+      if (!phone) {
+        setError('Please enter your phone number.');
+        setLoading(false);
+        return;
+      }
+      payload = { phone };
     }
 
     try {
@@ -32,10 +46,14 @@ const ForgotPassword = () => {
       );
 
       const data = await res.json();
-      console.log(data);
       if (!res.ok) throw new Error(data.message || 'Something went wrong');
 
       setMessage(data.message);
+
+      // Redirect to reset page for phone users
+      if (method === 'phone') {
+        navigate(`/reset-password?phone=${phone}`);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -49,28 +67,51 @@ const ForgotPassword = () => {
       {message && <p className="text-green-600">{message}</p>}
       {error && <p className="text-red-600">{error}</p>}
 
+      <div className="mb-4">
+        <label className="mr-4">Reset via:</label>
+        <button
+          className={`px-4 py-2 rounded ${
+            method === 'email' ? 'bg-blue-500 text-white' : 'bg-gray-300'
+          }`}
+          onClick={() => setMethod('email')}
+        >
+          Email
+        </button>
+        <button
+          className={`px-4 py-2 ml-2 rounded ${
+            method === 'phone' ? 'bg-blue-500 text-white' : 'bg-gray-300'
+          }`}
+          onClick={() => setMethod('phone')}
+        >
+          Phone
+        </button>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-2 border rounded"
-        />
-        <p className="text-center text-gray-500">OR</p>
-        <input
-          type="tel"
-          placeholder="Enter your phone number"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          className="w-full p-2 border rounded"
-        />
+        {method === 'email' && (
+          <input
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full p-2 border rounded"
+          />
+        )}
+        {method === 'phone' && (
+          <input
+            type="tel"
+            placeholder="Enter your phone number"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="w-full p-2 border rounded"
+          />
+        )}
         <button
           type="submit"
           className="w-full bg-red-500 text-white p-2 rounded hover:bg-red-600"
           disabled={loading}
         >
-          {loading ? 'Sending...' : 'Send Reset Link'}
+          {loading ? 'Sending...' : 'Send Reset'}
         </button>
       </form>
     </div>
