@@ -1,15 +1,23 @@
 const express=require('express')
 const router=express.Router()
 const routeProtect=require('../middleware/authMiddleware')
-const needController=require('../controllers/donationManagement/needController')
 const paymentController=require('../controllers/donationManagement/paymentController')
 const donateItems=require('../controllers/donationManagement/donateItems')
-console.log(typeof routeProtect.protect)
-router.post("/initiatePayment",routeProtect.protect,paymentController.initiatePayment);
-router.get('/verifyPayment',paymentController.verifyPayment)
-router.post('/postANeed',routeProtect.protect,needController.postANeed)
-router.get('/getAllNeeds',needController.getAllNeeds)
-router.get('/getNeedsByNGO',needController.getNeedsByNGO)
-router.get('/getNeedsById',needController.getNeedById)
-router.post('/donateItems',routeProtect.protect,donateItems)
+const authMiddleware=require('../middleware/authenticationMiddleware')
+const needsController=require("../controllers/donationManagement/needController")
+
+// Donor initiates payment
+router.post(
+  "/initiate",
+  authMiddleware(["individual_donor", "organization_donor"]),
+  paymentController.initiateDonation
+);
+router.post("/verify", paymentController.verifyPayment);
+router.post('/postNgosNeed',authMiddleware("ngo"),needsController.postNgosNeed)
+
+// Check payment status
+router.get("/getAllNeeds", needsController.getAllNeeds);
+router.get("/ngo/:ngoId", needsController.getNeedsByNgo);
+router.get("/:id", needsController.getNeedById);
+router.get("/:paymentId", authMiddleware(), paymentController.getPaymentStatus);
 module.exports=router
