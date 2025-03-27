@@ -15,8 +15,9 @@ const {
 
 // Register User
 const registerUser = asyncWrapper(async (req, res) => {
-  const { role, name, email, phone, password } = req.body;
+  const { role, name, email, phone, password, bankAccount } = req.body;
 
+  // Validate that either email or phone is provided
   if (!email && !phone) {
     throw new AppError("Either email or phone number is required", 400);
   }
@@ -89,11 +90,22 @@ const registerUser = asyncWrapper(async (req, res) => {
         ngoVerificationDocs,
       } = req.body;
 
+      // Validate bankAccount for NGOs
+      if (
+        !bankAccount ||
+        !bankAccount.account_number ||
+        !bankAccount.accountName ||
+        !bankAccount.bankName
+      ) {
+        throw new AppError("Bank account details are required for NGOs.", 400);
+      }
+
       userData = {
         ...userData,
         address: ngoAddress,
         location: ngoLocation,
         ngoVerificationDocs,
+        bankAccount, // Include bankAccount in userData
         isVerified: false,
       };
       break;
@@ -112,7 +124,6 @@ const registerUser = asyncWrapper(async (req, res) => {
   // Handle Phone Verification
   if (phone && !email) {
     userData.isPhoneVerified = false;
-
     sendOTP(phone); // ✅ Reuse sendOTP function
   }
 
@@ -140,7 +151,6 @@ const registerUser = asyncWrapper(async (req, res) => {
     }
   );
 });
-
 const uploadProfilePicture = asyncWrapper(async (req, res) => {
   const user = await User.findById(req.user._id);
 

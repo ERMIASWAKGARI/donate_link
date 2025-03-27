@@ -15,7 +15,8 @@ connectDB();
 
 // Middleware
 app.use(express.json());
-
+app.use(express.urlencoded({ extended: true }));
+app.use(express.raw({ type: "*/*" }));
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
