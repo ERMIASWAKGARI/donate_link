@@ -83,7 +83,7 @@ const Header = () => {
   return (
     <>
       <motion.nav 
-        className="bg-green-800 text-white z-50 sticky top-0 shadow-lg"
+        className="bg-green-900 text-white z-50 sticky top-0 shadow-lg"
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
@@ -300,7 +300,7 @@ const Header = () => {
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="md:hidden fixed inset-0 top-20 bg-green-900 z-40 shadow-2xl p-8 space-y-8 overflow-y-auto"
+              className="md:hidden fixed inset-0 top-20 bg-green-900 z-40 shadow-2xl p-8 space-y-4 overflow-y-auto"
             >
               <NavLink
                 to="/"

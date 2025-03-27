@@ -14,7 +14,6 @@ function LandingPage() {
   return (
 
     <div>
-      <Header/>
       <Hero/>
       <FeaturedCauses/>
       <HowItWorksSection/>
@@ -23,7 +22,6 @@ function LandingPage() {
       <Testimonials/>
       <Newsletter/>
       <CTA/>
-      <Footer/>
     </div>
   );
 }

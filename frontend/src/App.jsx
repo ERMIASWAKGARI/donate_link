@@ -8,7 +8,9 @@ function App() {
   return (
     <div className='pb-16'>
       <ScrollToTop/>
+      <Header/>
       <AllRoutes/>
+      <Footer/>
     </div>
   );
 }
