@@ -1,43 +1,105 @@
 const mongoose = require("mongoose");
-const donationsSchema = new mongoose.Schema(
+
+const donationSchema = new mongoose.Schema(
   {
     donor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-    }, // The donor (individual or organization)
+    },
     need: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Needs",
-    }, // The need being fulfilled (optional, if donation is not tied to a specific need)
-    NGO: {
-      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+    },
+    contributionType: {
+      type: String,
+      enum: ["money", "material", "service"],
+      required: true,
+      validate: {
+        validator: async function (v) {
+          const need = await mongoose.model("Needs").findById(this.need);
+          return need.needTypes.includes(v);
+        },
+        message: "Contribution type must match one of the need's types",
+      },
     },
 
-  
-status:{
-  type: String,
-  enum: ["pending", "accepted", "rejected"],
-  default: "pending",
-},
-   
-    matterialDonated: [
+    // For material donations
+    materialDetails:[ {
+      categoryName: String,
+      subCategoryName: String,
+      quantity: Number,
+      unit: String,
+      description: String,
+      deliveryMethod: String,
+    }],
+
+    // For service donations
+    serviceDetails:[ {
+      categoryName: String,
+      subCategoryName: String,
+      hoursCommitted: Number,
+      skills: [String],
+      availability: String,
+    }],
+
+    // Payment reference (for monetary donations)
+    payment: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Payment",
+      required: function () {
+        return this.contributionType === "money";
+      },
+    },
+
+    status: {
+      type: String,
+      enum: [
+        "Pending",
+        "Approved",
+        "Rejected",
+        "Completed",
+        "Partially Completed",
+        "Cancelled",
+      ],
+      default: "Pending",
+    },
+    notes: {
+      type: String,
+      maxlength: 1000,
+    },
+    proofOfDelivery: [String],
+    adminNotes: [
       {
-        category: {
-          type: String,
-          required: true,
+        note: String,
+        createdAt: {
+          type: Date,
+          default: Date.now,
         },
-        subCategory: {
-          type: String,
-          required: true,
-        },
-        quantity: {
-          type: Number,
-          required: true,
+        createdBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
         },
       },
     ],
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    discriminatorKey: "contributionType",
+  }
 );
-module.exports = mongoose.model("Donations", donationsSchema);
+
+// Update Need status when donation status changes
+donationSchema.post("save", async function (doc) {
+  if (["Approved", "Completed", "Cancelled"].includes(doc.status)) {
+    await updateNeedStatus(doc.need);
+  }
+});
+
+async function updateNeedStatus(needId) {
+  // Implementation from previous example
+  // This would calculate fulfillment based on approved donations
+}
+
+module.exports = mongoose.model("Donation", donationSchema);
