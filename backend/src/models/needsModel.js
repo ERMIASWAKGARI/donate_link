@@ -50,16 +50,16 @@ const needsSchema = new mongoose.Schema(
       default: "Open",
     },
 
-  endDate: {
-  type: Date,
-  required: true,
-  validate: {
-    validator: function (v) {
-      return v > new Date(); // Changed to greater than for FUTURE dates
+    endDate: {
+      type: Date,
+      required: true,
+      validate: {
+        validator: function (v) {
+          return v > new Date(); // Changed to greater than for FUTURE dates
+        },
+        message: "End date must be in the future",
+      },
     },
-    message: "End date must be in the future",
-  },
-},
 
     targetMoney: {
       type: Number,
@@ -76,17 +76,15 @@ const needsSchema = new mongoose.Schema(
         required: true,
         min: 1,
       },
-      pictures: [
-        {
-          type: String,
-          validate: {
-            validator: function (v) {
-              return v.length <= 10;
-            },
-            message: "Cannot upload more than 10 pictures",
+      pictures: {
+        type: [String], // Ensure it's an array of strings
+        validate: {
+          validator: function (v) {
+            return v.length <= 10; // Correctly check the total number of images
           },
+          message: "Cannot upload more than 10 pictures",
         },
-      ],
+      },
       location: {
         latitude: {
           type: Number,
@@ -106,12 +104,12 @@ const needsSchema = new mongoose.Schema(
         },
       },
     },
-application:[
-    {
-      type: mongoose.Schema.Types.ObjectId,
+    application: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
         ref: "Application",
-      }
-],
+      },
+    ],
     categories: {
       material: [
         {

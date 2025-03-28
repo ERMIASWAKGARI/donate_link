@@ -1,80 +1,131 @@
 const Need = require("../../models/needsModel");
+const path=require('path')
+const uploadNeedPictures = require("../../middleware/uploadNeedPictures");
+const AppError = require("../../utils/appError");
 
-postNgosNeed = async (req, res) => {
+// Helper function to handle the upload
+const handleUpload = (req, res) => {
+  return new Promise((resolve, reject) => {
+    uploadNeedPictures(req, res, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+};
+const postNgosNeed = async (req, res, next) => {
   try {
+    const uploadedFiles =
+      req.files?.map((file) =>
+        path.join("donations", path.basename(file.path))
+      ) || [];
+
+    // Validate number of pictures
+    // if (uploadedFiles.length > 10) {
+    //   throw new AppError("Cannot upload more than 10 pictures", 400);
+    // }
+
+    // Parse and validate form data
     const {
       title,
-      needTypes,
+      needTypes: needTypesStr,
       urgencyLevel,
       description,
       endDate,
       targetMoney,
-      beneficiaryInfo,
-      categories,
+      numberOfBeneficiaries,
+      latitude,
+      longitude,
+      address,
+      materialCategories: materialCategoriesStr,
+      serviceCategories: serviceCategoriesStr,
     } = req.body;
 
-    // Get NGO ID from authenticated user
-    const NGO = req.user._id;
+    // Parse JSON fields
+    const needTypes = JSON.parse(needTypesStr);
+    const materialCategories = materialCategoriesStr
+      ? JSON.parse(materialCategoriesStr)
+      : [];
+    const serviceCategories = serviceCategoriesStr
+      ? JSON.parse(serviceCategoriesStr)
+      : [];
 
-    // Validate need types
-    if (!Array.isArray(needTypes)) {
-      return res.status(400).json({
-        success: false,
-        error: "Need types must be an array",
-      });
+    // Validate need types according to model
+    if (
+      !Array.isArray(needTypes) ||
+      needTypes.length === 0 ||
+      needTypes.length > 3
+    ) {
+      throw new AppError("Must specify 1-3 unique need types", 400);
+    }
+    if (new Set(needTypes).size !== needTypes.length) {
+      throw new AppError("Need types must be unique", 400);
     }
 
     // Validate categories based on need types
+    if (needTypes.includes("material") && materialCategories.length === 0) {
+      throw new AppError(
+        "Material categories required when need type includes material",
+        400
+      );
+    }
+
+    if (needTypes.includes("service") && serviceCategories.length === 0) {
+      throw new AppError(
+        "Service categories required when need type includes service",
+        400
+      );
+    }
+
+    // Validate location coordinates
     if (
-      needTypes.includes("material") &&
-      (!categories.material || categories.material.length === 0)
+      latitude < -90 ||
+      latitude > 90 ||
+      longitude < -180 ||
+      longitude > 180
     ) {
-      return res.status(400).json({
-        success: false,
-        error: "Material categories required when need type includes material",
-      });
+      throw new AppError("Invalid location coordinates", 400);
     }
 
-    if (
-      needTypes.includes("service") &&
-      (!categories.service || categories.service.length === 0)
-    ) {
-      return res.status(400).json({
-        success: false,
-        error: "Service categories required when need type includes service",
-      });
-    }
-
-    // Validate target money for money needs
-    if (needTypes.includes("money") && (!targetMoney || targetMoney <= 0)) {
-      return res.status(400).json({
-        success: false,
-        error: "Valid target money amount required for money needs",
-      });
-    }
-
-   
-
-    // Validate pictures array length
-    if (beneficiaryInfo.pictures && beneficiaryInfo.pictures.length > 10) {
-      return res.status(400).json({
-        success: false,
-        error: "Cannot upload more than 10 pictures",
-      });
-    }
-
-    // Create the new need
+    // Create the new need document
     const need = new Need({
-      NGO,
+      NGO: req.user._id,
       title,
       needTypes,
       urgencyLevel,
       description,
       endDate,
-      targetMoney: needTypes.includes("money") ? targetMoney : null,
-      beneficiaryInfo,
-      categories,
+      targetMoney: needTypes.includes("money") ? parseFloat(targetMoney) : null,
+      beneficiaryInfo: {
+        numberOfBeneficiaries: parseInt(numberOfBeneficiaries),
+        pictures: uploadedFiles,
+        location: {
+          latitude: parseFloat(latitude),
+          longitude: parseFloat(longitude),
+          address,
+        },
+      },
+      categories: {
+        material: materialCategories.map((cat) => ({
+          categoryName: cat.categoryName,
+          subCategoryName: cat.subCategoryName,
+          targetAmountNeeded: cat.targetAmountNeeded,
+        })),
+        service: serviceCategories.map((cat) => ({
+          categoryName: cat.categoryName,
+          subCategoryName: cat.subCategoryName,
+          vacancy: cat.vacancy,
+        })),
+      },
     });
+
+    // Validate the document against the schema
+    const validationError = need.validateSync();
+    if (validationError) {
+      throw new AppError(validationError.message, 400);
+    }
 
     await need.save();
 
@@ -84,23 +135,28 @@ postNgosNeed = async (req, res) => {
       data: need,
     });
   } catch (error) {
-    console.error("Error posting need:", error);
-
-    // Handle Mongoose validation errors specifically
-    if (error.name === "ValidationError") {
-      const errors = Object.values(error.errors).map((err) => err.message);
-      return res.status(400).json({
-        success: false,
-        error: `Validation failed: ${errors.join(", ")}`,
+    // Clean up uploaded files on error
+    if (req.files?.length) {
+      req.files.forEach((file) => {
+        try {
+          fs.unlinkSync(file.path);
+        } catch (err) {
+          console.error("Failed to delete uploaded file:", file.path, err);
+        }
       });
     }
 
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
+    if (error instanceof SyntaxError) {
+      return next(new AppError("Invalid JSON data in form fields", 400));
+    }
+    if (error.name === "ValidationError") {
+      return next(new AppError(error.message, 400));
+    }
+    next(error);
   }
 };
+
+
 
 
 // Get all needs (with optional filtering)
@@ -147,7 +203,7 @@ getNeedsByNgo = async (req, res) => {
     }
 
     const needs = await Need.find(filter)
-      .populate("application", "status donor") // Populate application info
+      // .populate("application", "status donor") // Populate application info
       .sort({ createdAt: -1 });
 
     if (!needs || needs.length === 0) {
