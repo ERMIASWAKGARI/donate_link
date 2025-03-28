@@ -4,7 +4,7 @@ const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 const authRoutes = require("./routes/authRoutes");
-const adminRoutes = require("./routes/adminRoutes"); // <-- Import admin routes
+const adminRoutes = require("./routes/adminRoutes");
 const donation = require("./routes/donation");
 const errorHandler = require("./middleware/errorHandler");
 const AppError = require("./utils/appError");
@@ -13,28 +13,46 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
-
 // Connect to Database
 connectDB();
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.raw({ type: "*/*" }));
+// CORS Configuration
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
+
+
+// 1. First set up body parsers with increased limits
+app.use(express.json({ limit: "50mb" }));
+app.use(
+  express.urlencoded({
+    limit: "50mb",
+    extended: true,
+  })
+);
+
+
+
+// 3. Static file serving
+app.use("/uploads", express.static("uploads/"));
+app.use("/public", express.static("public")); // Fixed syntax
+
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/donation", donationRoutes);
-
 app.use("/api/organization", donation);
 app.use("/api/admin", adminRoutes);
+
+// 404 Handler
 app.all("*", (req, res, next) => {
   next(new AppError(`Cannot find ${req.originalUrl} on this server!`, 404));
 });
 
-app.use("/uploads", express.static("uploads"));
-//Global error Handler Middleware
+// Global error Handler Middleware
 app.use(errorHandler);
 
 module.exports = app;

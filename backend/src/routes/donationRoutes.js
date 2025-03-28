@@ -1,23 +1,20 @@
-const express=require('express')
-const router=express.Router()
-const routeProtect=require('../middleware/authMiddleware')
-const paymentController=require('../controllers/donationManagement/paymentController')
-const donateItems=require('../controllers/donationManagement/donateItems')
-const authMiddleware=require('../middleware/authenticationMiddleware')
-const needsController=require("../controllers/donationManagement/needController")
+const express = require("express");
+const router = express.Router();
+const needsController = require("../controllers/donationManagement/needController");
+const uploadNeedPictures = require("../middleware/uploadNeedPictures");
+const authMiddleware = require("../middleware/authenticationMiddleware");
 
-// Donor initiates payment
+// Post NGO's Need with file upload support
 router.post(
-  "/initiate",
-  authMiddleware(["individual_donor", "organization_donor"]),
-  paymentController.initiateDonation
+  "/postNgosNeed",
+  authMiddleware("ngo"),
+  uploadNeedPictures, // Add the upload middleware
+  needsController.postNgosNeed
 );
-router.post("/verify", paymentController.verifyPayment);
-router.post('/postNgosNeed',authMiddleware("ngo"),needsController.postNgosNeed)
 
-// Check payment status
+// Other routes remain the same
 router.get("/getAllNeeds", needsController.getAllNeeds);
 router.get("/ngo/:ngoId", needsController.getNeedsByNgo);
 router.get("/:id", needsController.getNeedById);
-router.get("/:paymentId", authMiddleware(), paymentController.getPaymentStatus);
-module.exports=router
+
+module.exports = router;

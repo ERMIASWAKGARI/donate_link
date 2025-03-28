@@ -1,5 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { FaTimes, FaPlus, FaUpload } from "react-icons/fa";
+
+import Axios from "../../config/axiosConfig";
+import MapComponent from "./mapComponent";
+
+// Fix for default marker icons in React-Leaflet
+
 const NgoNeedForm = ({ onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
     title: "",
@@ -17,6 +23,29 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
   });
 
   const [previewImages, setPreviewImages] = useState([]);
+  const [showMap, setShowMap] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleMapClick = (e) => {
+    const { lat, lng } = e.latlng;
+    setFormData((prev) => ({
+      ...prev,
+      beneficiaryInfo: {
+        ...prev.beneficiaryInfo,
+        location: {
+          ...prev.beneficiaryInfo.location,
+          latitude: lat.toString(),
+          longitude: lng.toString(),
+        },
+      },
+    }));
+  };
+
+  const handleDoubleClick = (e) => {
+    handleMapClick(e);
+    setShowMap(false);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -75,46 +104,168 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
     });
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageSelection = (e) => {
     const files = Array.from(e.target.files);
-    if (files.length + formData.beneficiaryInfo.pictures.length > 10) {
-      alert("Cannot upload more than 10 pictures.");
+
+    // Check if adding these files would exceed limit
+    const totalFiles = previewImages.length + files.length;
+    if (totalFiles > 10) {
+      alert(
+        `You can upload maximum 10 images. Currently ${previewImages.length} selected.`
+      );
       return;
     }
 
-    const newPreviews = files.map((file) => URL.createObjectURL(file));
-    setPreviewImages([...previewImages, ...newPreviews]);
-
-    setFormData((prev) => ({
-      ...prev,
-      beneficiaryInfo: {
-        ...prev.beneficiaryInfo,
-        pictures: [...prev.beneficiaryInfo.pictures, ...files],
-      },
+    // Create previews for new files
+    const newPreviews = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
     }));
+
+    setPreviewImages((prev) => [...prev, ...newPreviews]);
   };
 
   const removeImage = (index) => {
-    const newPreviews = [...previewImages];
-    newPreviews.splice(index, 1);
-    setPreviewImages(newPreviews);
-
-    const newPictures = [...formData.beneficiaryInfo.pictures];
-    newPictures.splice(index, 1);
-    setFormData((prev) => ({
-      ...prev,
-      beneficiaryInfo: {
-        ...prev.beneficiaryInfo,
-        pictures: newPictures,
-      },
-    }));
+    setPreviewImages((prev) => {
+      const newPreviews = [...prev];
+      URL.revokeObjectURL(newPreviews[index].preview);
+      newPreviews.splice(index, 1);
+      return newPreviews;
+    });
   };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
-  };
+    setIsSubmitting(true);
 
+    // Validate form data according to model requirements
+    if (formData.needTypes.length === 0 || formData.needTypes.length > 3) {
+      alert("Please select 1-3 need types");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (new Set(formData.needTypes).size !== formData.needTypes.length) {
+      alert("Need types must be unique");
+      setIsSubmitting(false);
+      return;
+    }
+
+    const endDateObj = new Date(formData.endDate);
+    if (isNaN(endDateObj.getTime())) {
+      alert("Please enter a valid date");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (endDateObj <= new Date()) {
+      alert("End date must be in the future");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (
+      formData.needTypes.includes("money") &&
+      (!formData.targetMoney || formData.targetMoney <= 0)
+    ) {
+      alert("Please enter a valid target amount for money needs");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (
+      !formData.beneficiaryInfo.numberOfBeneficiaries ||
+      formData.beneficiaryInfo.numberOfBeneficiaries < 1
+    ) {
+      alert("Please enter a valid number of beneficiaries (minimum 1)");
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const formDataToSend = new FormData();
+
+      // Append basic fields
+      formDataToSend.append("title", formData.title);
+      formDataToSend.append("needTypes", JSON.stringify(formData.needTypes));
+      formDataToSend.append("urgencyLevel", formData.urgencyLevel);
+      formDataToSend.append("description", formData.description);
+      formDataToSend.append("endDate", formData.endDate);
+      formDataToSend.append("targetMoney", formData.targetMoney || "0");
+
+      // Append beneficiary info
+      formDataToSend.append(
+        "numberOfBeneficiaries",
+        formData.beneficiaryInfo.numberOfBeneficiaries
+      );
+      formDataToSend.append(
+        "latitude",
+        formData.beneficiaryInfo.location.latitude
+      );
+      formDataToSend.append(
+        "longitude",
+        formData.beneficiaryInfo.location.longitude
+      );
+      formDataToSend.append(
+        "address",
+        formData.beneficiaryInfo.location.address
+      );
+
+      // Append categories with proper validation
+      if (formData.needTypes.includes("material")) {
+        formDataToSend.append(
+          "materialCategories",
+          JSON.stringify(
+            formData.categories.material.map((cat) => ({
+              categoryName: cat.categoryName?.slice(0, 50),
+              subCategoryName: cat.subCategoryName?.slice(0, 50),
+              targetAmountNeeded: cat.targetAmountNeeded,
+            }))
+          )
+        );
+      }
+
+      if (formData.needTypes.includes("service")) {
+        formDataToSend.append(
+          "serviceCategories",
+          JSON.stringify(
+            formData.categories.service.map((cat) => ({
+              categoryName: cat.categoryName?.slice(0, 50),
+              subCategoryName: cat.subCategoryName?.slice(0, 50),
+              vacancy: cat.vacancy,
+            }))
+          )
+        );
+      }
+
+      // Append images
+      previewImages.forEach(({ file }) => {
+        formDataToSend.append("pictures", file);
+      });
+
+      const response = await Axios.post(
+        "/donation/postNgosNeed",
+        formDataToSend,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          maxContentLength: 100 * 1024 * 1024,
+          maxBodyLength: 100 * 1024 * 1024,
+        }
+      );
+
+      onSubmit(response.data);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert(
+        `Failed to submit form: ${
+          error.response?.data?.message || error.message
+        }`
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   return (
     <div className="bg-white rounded-lg shadow-md p-6 max-w-4xl mx-auto my-6">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Post a New Need</h2>
@@ -135,6 +286,7 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
               onChange={handleChange}
               className="w-full p-2 border border-gray-300 rounded"
               required
+              maxLength="100"
             />
           </div>
 
@@ -184,6 +336,7 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
               className="w-full p-2 border border-gray-300 rounded"
               rows="4"
               required
+              maxLength="2000"
             ></textarea>
           </div>
 
@@ -200,7 +353,6 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
             />
           </div>
 
-          {/* Conditional Money Field */}
           {formData.needTypes.includes("money") && (
             <div className="mb-4">
               <label className="block text-gray-700 mb-2">Target Money*</label>
@@ -251,7 +403,6 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
             <label className="block text-gray-700 mb-2">Location*</label>
             <input
               type="text"
-              name="location.address"
               placeholder="Address"
               value={formData.beneficiaryInfo.location.address}
               onChange={(e) =>
@@ -269,62 +420,50 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
               className="w-full p-2 border border-gray-300 rounded mb-2"
               required
             />
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-gray-700 text-sm mb-1">
-                  Latitude
-                </label>
-                <input
-                  type="number"
-                  name="location.latitude"
-                  value={formData.beneficiaryInfo.location.latitude}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      beneficiaryInfo: {
-                        ...prev.beneficiaryInfo,
-                        location: {
-                          ...prev.beneficiaryInfo.location,
-                          latitude: e.target.value,
-                        },
-                      },
-                    }))
-                  }
-                  className="w-full p-2 border border-gray-300 rounded"
-                  min="-90"
-                  max="90"
-                  step="0.000001"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 text-sm mb-1">
-                  Longitude
-                </label>
-                <input
-                  type="number"
-                  name="location.longitude"
-                  value={formData.beneficiaryInfo.location.longitude}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      beneficiaryInfo: {
-                        ...prev.beneficiaryInfo,
-                        location: {
-                          ...prev.beneficiaryInfo.location,
-                          longitude: e.target.value,
-                        },
-                      },
-                    }))
-                  }
-                  className="w-full p-2 border border-gray-300 rounded"
-                  min="-180"
-                  max="180"
-                  step="0.000001"
-                  required
-                />
-              </div>
+
+            <div className="mb-2">
+              <button
+                type="button"
+                onClick={() => setShowMap(true)}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                Select Location on Map
+              </button>
             </div>
+
+            {formData.beneficiaryInfo.location.latitude &&
+              formData.beneficiaryInfo.location.longitude && (
+                <div className="text-sm text-gray-600 mb-2">
+                  Selected Coordinates: Latitude:{" "}
+                  {parseFloat(
+                    formData.beneficiaryInfo.location.latitude
+                  ).toFixed(6)}
+                  , Longitude:{" "}
+                  {parseFloat(
+                    formData.beneficiaryInfo.location.longitude
+                  ).toFixed(6)}
+                </div>
+              )}
+
+            {showMap && (
+              <MapComponent
+                center={[
+                  formData.beneficiaryInfo.location.latitude || 0,
+                  formData.beneficiaryInfo.location.longitude || 0,
+                ]}
+                onLocationSelect={handleMapClick}
+                onClose={() => setShowMap(false)}
+                selectedLocation={
+                  formData.beneficiaryInfo.location.latitude &&
+                  formData.beneficiaryInfo.location.longitude
+                    ? [
+                        parseFloat(formData.beneficiaryInfo.location.latitude),
+                        parseFloat(formData.beneficiaryInfo.location.longitude),
+                      ]
+                    : null
+                }
+              />
+            )}
           </div>
 
           <div className="mb-4">
@@ -333,7 +472,7 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
             </label>
             <div className="border border-dashed border-gray-300 rounded p-4">
               <div className="flex flex-wrap gap-4 mb-4">
-                {previewImages.map((preview, index) => (
+                {previewImages.map(({ preview }, index) => (
                   <div key={index} className="relative">
                     <img
                       src={preview}
@@ -353,24 +492,25 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
 
               <label className="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded cursor-pointer hover:bg-gray-300">
                 <FaUpload className="mr-2" />
-                Upload Photos
+                Select Photos
                 <input
                   type="file"
                   multiple
                   accept="image/*"
-                  onChange={handleImageUpload}
+                  onChange={handleImageSelection}
                   className="hidden"
+                  ref={fileInputRef}
                   disabled={previewImages.length >= 10}
                 />
               </label>
               <span className="text-sm text-gray-500 ml-2">
-                {previewImages.length}/10 photos uploaded
+                {previewImages.length}/10 photos selected
               </span>
             </div>
           </div>
         </div>
 
-        {/* Conditional Category Sections */}
+        {/* Material Categories */}
         {formData.needTypes.includes("material") && (
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">
@@ -468,6 +608,7 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
           </div>
         )}
 
+        {/* Service Categories */}
         {formData.needTypes.includes("service") && (
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">
@@ -577,8 +718,9 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
           <button
             type="submit"
             className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            disabled={isSubmitting}
           >
-            Post Need
+            {isSubmitting ? "Processing..." : "Post Need"}
           </button>
         </div>
       </form>

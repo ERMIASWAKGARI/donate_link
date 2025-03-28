@@ -1,25 +1,25 @@
-import { useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import AlertMessage from '../components/AlertMessage';
+import AlertMessage from "../components/AlertMessage";
 
-import RegisterWithGoogle from '../components/RegisterWithGoogle'; // Import the new component
+import RegisterWithGoogle from "../components/RegisterWithGoogle"; // Import the new component
 
-import GoogleAuth from '../components/GoogleAuth'; // Import the new component
+import GoogleAuth from "../components/GoogleAuth"; // Import the new component
 
-import { UserContext } from '../context/UserContext';
+import { UserContext } from "../context/UserContext";
 
 function LoginPage() {
   const { login } = useContext(UserContext);
 
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    email: '',
-    phone: '',
-    countryCode: '+251', // Default Ethiopia
-    password: '',
+    email: "",
+    phone: "",
+    countryCode: "+251", // Default Ethiopia
+    password: "",
   });
-  const [message, setMessage] = useState({ type: '', text: '' });
+  const [message, setMessage] = useState({ type: "", text: "" });
   const [googleUser, setGoogleUser] = useState(null);
   const [isRegisteringWithGoogle, setIsRegisteringWithGoogle] = useState(false);
 
@@ -32,8 +32,8 @@ function LoginPage() {
 
     if (!formData.email && !formData.phone) {
       setMessage({
-        type: 'error',
-        text: 'Please enter either Email or Phone.',
+        type: "error",
+        text: "Please enter either Email or Phone.",
       });
       return;
     }
@@ -51,9 +51,9 @@ function LoginPage() {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(loginData),
       });
 
@@ -61,26 +61,24 @@ function LoginPage() {
 
       const data = await response.json();
 
-      // console.log(data.data.user);
-
-      if (data.status === 'success') {
+      if (data.status === "success") {
         login(data.data.accessToken);
         setMessage({
-          type: 'success',
-          text: 'Login successful! Redirecting...',
+          type: "success",
+          text: "Login successful! Redirecting...",
         });
 
         setTimeout(() => {
-          navigate('/dashboard');
+          navigate("/ngo-dashboard");
         }, 2000);
       } else {
-        setMessage({ type: 'error', text: `Login Failed: ${data.message}` });
+        setMessage({ type: "error", text: `Login Failed: ${data.message}` });
       }
     } catch (error) {
-      console.error('Login Error:', error);
+      console.error("Login Error:", error);
       setMessage({
-        type: 'error',
-        text: 'An error occurred. Please try again.',
+        type: "error",
+        text: "An error occurred. Please try again.",
       });
     }
   };
@@ -158,7 +156,7 @@ function LoginPage() {
           </>
         ) : (
           <>
-            {' '}
+            {" "}
             {googleUser ? (
               <RegisterWithGoogle googleUser={googleUser} />
             ) : (
@@ -170,7 +168,7 @@ function LoginPage() {
           </>
         )}
         <p className="text-center text-gray-600 mt-4">
-          Don&apos;t have an account?{' '}
+          Don&apos;t have an account?{" "}
           <a href="/register" className="text-blue-500 hover:underline">
             Register
           </a>
