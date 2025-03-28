@@ -10,6 +10,7 @@ import RegisterPage from "./pages/RegisterPage";
 import VerifyEmail from "./pages/VerifyEmailPage";
 import VerifyOtp from "./pages/VerifyOtpPage";
 import ScrollToTop from "./components/common/ScrollToTop";
+import NgoDashboard from "./components/NGO/NgoDashboard";
 
 function App() {
   return (
@@ -25,6 +26,9 @@ function App() {
             <Route path="/verify-otp" element={<VerifyOtp />} />
             <Route element={<PrivateRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
+            </Route>
+            <Route element={<PrivateRoute />}>
+              <Route path="/ngo-dashboard" element={<NgoDashboard />} />
             </Route>
           </Routes>
         </Router>{" "}
