@@ -2,6 +2,7 @@ const { client, verifySid } = require('../config/twilio');
 const AppError = require('../utils/appError');
 
 const sendOTP = async (phone) => {
+  console.log('Sending OTP to:', phone);
   try {
     if (!phone) {
       throw new AppError('Phone number is required.', 400);
