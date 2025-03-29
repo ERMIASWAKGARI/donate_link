@@ -10,6 +10,7 @@ import RegisterPage from "./pages/RegisterPage";
 import VerifyEmail from "./pages/VerifyEmailPage";
 import VerifyOtp from "./pages/VerifyOtpPage";
 import ScrollToTop from "./components/common/ScrollToTop";
+import DonationForm from "./pages/organization_donor/DonationForm";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             <Route element={<PrivateRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
             </Route>
+            <Route path="/donation-form" element={<DonationForm />} />
           </Routes>
         </Router>{" "}
       </UserProvider>

@@ -12,8 +12,20 @@ const donationRoutes = require("./routes/donationRoutes");
 dotenv.config();
 
 const app = express();
+// app.use(cors());
 
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+// ❌ Remove this duplicate line
+// app.use(cors());
+
+// ✅ Keep only this one with proper configuration
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Must match your frontend URL exactly
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 // Connect to Database
 connectDB();

@@ -84,23 +84,55 @@ const createMaterialDonation = asyncWrapper(async (req, res, next) => {
 
     console.log("7. Files processed successfully");
 
-    // Validate and format location data
-    if (!req.body.location || !req.body.location.coordinates) {
+    // Debug: Log the complete request body
+    console.log("7.1 Raw request body:", req.body);
+
+    // Parse the JSON data if it's sent as a string in FormData
+    let donationData = {};
+    if (req.body.data) {
+      try {
+        donationData = JSON.parse(req.body.data);
+        console.log("7.2 Parsed donation data:", donationData);
+      } catch (e) {
+        console.error("7.3 Error parsing JSON data:", e);
+        return next(new AppError("Invalid donation data format", 400));
+      }
+    }
+
+    // Get location data from either direct body or parsed data
+    const locationSource = req.body.location || donationData.location;
+    console.log("7.4 Location source:", locationSource);
+
+    if (!locationSource || !locationSource.coordinates) {
+      console.log("7.5 Missing location coordinates");
       return next(new AppError("Location coordinates are required", 400));
     }
 
+    // Parse coordinates
+    const longitude = parseFloat(locationSource.coordinates[0]);
+    const latitude = parseFloat(locationSource.coordinates[1]);
+
+    if (isNaN(longitude) || isNaN(latitude)) {
+      console.log("7.6 Invalid coordinates:", {
+        longitude: locationSource.coordinates[0],
+        latitude: locationSource.coordinates[1],
+      });
+      return next(new AppError("Valid location coordinates are required", 400));
+    }
+
     const location = {
-      type: "Point", // Ensure correct case
-      coordinates: [
-        parseFloat(req.body.location.coordinates[0]), // longitude
-        parseFloat(req.body.location.coordinates[1]), // latitude
-      ],
+      type: "Point",
+      coordinates: [longitude, latitude],
     };
 
-    // Create donation
+    console.log("7.7 Formatted location:", location);
+
+    // Create donation using combined data sources
     const donation = await Donations.create({
       donor: donorId,
-      ...req.body,
+      ...donationData, // Use the parsed data first
+      ...req.body, // Then override with any direct body fields
+      location, // Use our properly formatted location
       images: fileUrls,
       trackingId: generateTrackingId(),
       donationType: "material",
@@ -108,7 +140,6 @@ const createMaterialDonation = asyncWrapper(async (req, res, next) => {
     });
 
     console.log("8. Donation created successfully");
-
     sendSuccessResponse(res, 201, { donation });
   } catch (err) {
     console.error("9. Error in donation creation:", err);

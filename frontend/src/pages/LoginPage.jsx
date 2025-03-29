@@ -1,25 +1,21 @@
-import { useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import AlertMessage from '../components/AlertMessage';
-
-import RegisterWithGoogle from '../components/RegisterWithGoogle'; // Import the new component
-
-import GoogleAuth from '../components/GoogleAuth'; // Import the new component
-
-import { UserContext } from '../context/UserContext';
+import AlertMessage from "../components/AlertMessage";
+import RegisterWithGoogle from "../components/RegisterWithGoogle";
+import GoogleAuth from "../components/GoogleAuth";
+import { UserContext } from "../context/UserContext";
 
 function LoginPage() {
   const { login } = useContext(UserContext);
-
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    email: '',
-    phone: '',
-    countryCode: '+251', // Default Ethiopia
-    password: '',
+    email: "",
+    phone: "",
+    countryCode: "+251", // Default Ethiopia
+    password: "",
   });
-  const [message, setMessage] = useState({ type: '', text: '' });
+  const [message, setMessage] = useState({ type: "", text: "" });
   const [googleUser, setGoogleUser] = useState(null);
   const [isRegisteringWithGoogle, setIsRegisteringWithGoogle] = useState(false);
 
@@ -27,13 +23,23 @@ function LoginPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const storeUserData = (accessToken) => {
+    try {
+      // Store the access token in localStorage
+      localStorage.setItem("accessToken", accessToken);
+      console.log("accessToken", accessToken);
+    } catch (error) {
+      console.error("Error storing user data:", error);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.email && !formData.phone) {
       setMessage({
-        type: 'error',
-        text: 'Please enter either Email or Phone.',
+        type: "error",
+        text: "Please enter either Email or Phone.",
       });
       return;
     }
@@ -51,36 +57,37 @@ function LoginPage() {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(loginData),
       });
 
-      // console.log(loginData);
-
       const data = await response.json();
 
-      // console.log(data.data.user);
+      if (data.status === "success") {
+        // Store the access token and user data in localStorage
+        storeUserData(data.data.accessToken);
 
-      if (data.status === 'success') {
+        // Call the login function from context
         login(data.data.accessToken);
+
         setMessage({
-          type: 'success',
-          text: 'Login successful! Redirecting...',
+          type: "success",
+          text: "Login successful! Redirecting...",
         });
 
         setTimeout(() => {
-          navigate('/dashboard');
+          navigate("/donation-form");
         }, 2000);
       } else {
-        setMessage({ type: 'error', text: `Login Failed: ${data.message}` });
+        setMessage({ type: "error", text: `Login Failed: ${data.message}` });
       }
     } catch (error) {
-      console.error('Login Error:', error);
+      console.error("Login Error:", error);
       setMessage({
-        type: 'error',
-        text: 'An error occurred. Please try again.',
+        type: "error",
+        text: "An error occurred. Please try again.",
       });
     }
   };
@@ -158,7 +165,7 @@ function LoginPage() {
           </>
         ) : (
           <>
-            {' '}
+            {" "}
             {googleUser ? (
               <RegisterWithGoogle googleUser={googleUser} />
             ) : (
@@ -170,7 +177,7 @@ function LoginPage() {
           </>
         )}
         <p className="text-center text-gray-600 mt-4">
-          Don&apos;t have an account?{' '}
+          Don&apos;t have an account?{" "}
           <a href="/register" className="text-blue-500 hover:underline">
             Register
           </a>

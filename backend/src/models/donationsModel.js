@@ -17,7 +17,7 @@ const donationsSchema = new mongoose.Schema(
     },
     donationType: {
       type: String,
-      enum: ["money", "material", "service"],
+      enum: ["money", "material", "service", "others"],
       required: true,
     },
 
@@ -34,6 +34,13 @@ const donationsSchema = new mongoose.Schema(
       required: function () {
         return this.donationType === "money";
       },
+    },
+
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 150,
     },
 
     // --- Material Donation Fields ---
