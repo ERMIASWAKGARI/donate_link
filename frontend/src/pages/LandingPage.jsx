@@ -7,12 +7,12 @@ import Testimonials from "../pages/landing_component/Testimonials";
 import CTA from "../pages/landing_component/CTA";
 import Newsletter from "../pages/landing_component/Newsletter";
 import Header from "../components/common/Header";
-import Footer from "../components/common/Footer";
 
 function LandingPage() {
+
   return (
     <div>
-      <Header />
+      <Header/>
       <Hero />
       <FeaturedCauses />
       <HowItWorksSection />
@@ -21,7 +21,7 @@ function LandingPage() {
       <Testimonials />
       <Newsletter />
       <CTA />
-      <Footer />
+     
     </div>
   );
 }

@@ -274,21 +274,33 @@ const Header = () => {
                 />
               </a>
             </div>
+             
+           {/* Add this right before the Register button */}
+<div className="hidden md:flex items-center space-x-4">
+  <motion.button
+    onClick={() => navigate("/login")}
+    className="bg-transparent border border-yellow-400 text-yellow-400 px-6 py-2 rounded-full font-medium hover:bg-yellow-400 hover:text-green-900 transition cursor-pointer shadow-md"
+    whileHover={{
+      scale: 1.05,
+      boxShadow: "0 5px 15px rgba(234, 179, 8, 0.4)",
+    }}
+    whileTap={{ scale: 0.95 }}
+  >
+    Login
+  </motion.button>
 
-            {/* Donate Button */}
-            <div className="hidden md:block">
-              <motion.button
-                onClick={() => navigate("/register")}
-                className="bg-yellow-400 text-green-900 px-6 py-2 rounded-full font-medium hover:bg-yellow-500 transition cursor-pointer shadow-md"
-                whileHover={{
-                  scale: 1.05,
-                  boxShadow: "0 5px 15px rgba(234, 179, 8, 0.4)",
-                }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Register Now
-              </motion.button>
-            </div>
+  <motion.button
+    onClick={() => navigate("/register")}
+    className="bg-yellow-400 text-green-900 px-6 py-2 rounded-full font-medium hover:bg-yellow-500 transition cursor-pointer shadow-md"
+    whileHover={{
+      scale: 1.05,
+      boxShadow: "0 5px 15px rgba(234, 179, 8, 0.4)",
+    }}
+    whileTap={{ scale: 0.95 }}
+  >
+    Register Now
+  </motion.button>
+</div>
 
             {/* Mobile Menu Button */}
             <div className="md:hidden">
@@ -415,18 +427,31 @@ const Header = () => {
               >
                 Contact Us
               </a>
+              
+              {/* Add this before the Register button in mobile menu */}
+<motion.button
+  onClick={() => {
+    navigate("/login");
+    setMenuOpen(false);
+  }}
+  className="w-full bg-transparent border border-yellow-400 text-yellow-400 px-6 py-3 rounded-full font-medium text-xl mb-4 hover:bg-yellow-400 hover:text-green-900 transition shadow-md"
+  whileHover={{ scale: 1.02 }}
+  whileTap={{ scale: 0.98 }}
+>
+  Login
+</motion.button>
 
-              <motion.button
-                onClick={() => {
-                  navigate("/register");
-                  setMenuOpen(false);
-                }}
-                className="w-full bg-yellow-400 text-green-900 px-6 py-3 rounded-full font-medium text-xl mt-6 hover:bg-yellow-500 transition shadow-md"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                Register Now
-              </motion.button>
+<motion.button
+  onClick={() => {
+    navigate("/register");
+    setMenuOpen(false);
+  }}
+  className="w-full bg-yellow-400 text-green-900 px-6 py-3 rounded-full font-medium text-xl mt-2 hover:bg-yellow-500 transition shadow-md"
+  whileHover={{ scale: 1.02 }}
+  whileTap={{ scale: 0.98 }}
+>
+  Register Now
+</motion.button>
             </motion.div>
           )}
         </AnimatePresence>
