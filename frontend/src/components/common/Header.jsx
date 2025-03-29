@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import logo from "../../assets/logo.png";
+import logo from "../../../public/logosa.jpg";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);

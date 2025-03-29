@@ -112,6 +112,7 @@ const registerUser = asyncWrapper(async (req, res) => {
   // Handle Phone Verification
   if (phone && !email) {
     userData.isPhoneVerified = false;
+    console.log(phone);
 
     sendOTP(phone); // ✅ Reuse sendOTP function
   }

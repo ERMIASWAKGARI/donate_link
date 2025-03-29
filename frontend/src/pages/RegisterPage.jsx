@@ -127,6 +127,7 @@ const EnhancedRegisterPage = () => {
       });
 
       const data = await response.json();
+      console.log(data);
 
       if (data.status === 'success') {
         setMessage({
