@@ -1,5 +1,12 @@
 import { useState, useContext, useEffect } from "react";
-import { FaPlus, FaEye, FaTrash, FaTimes } from "react-icons/fa";
+import {
+  FaPlus,
+  FaEye,
+  FaTrash,
+  FaTimes,
+  FaChevronLeft,
+  FaChevronRight,
+} from "react-icons/fa";
 import NgoNeedForm from "./PostNeedsForm";
 import Axios from "../../config/axiosConfig";
 import { UserContext } from "../../context/UserContext";
@@ -12,20 +19,30 @@ function PostedNeeds() {
   const [error, setError] = useState(null);
   const [selectedNeed, setSelectedNeed] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const imageUrl = "uploads/donations";
-  // Fetch needs when component mounts
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(6); // Number of items per page
+  const [totalItems, setTotalItems] = useState(0);
+
+  // Fetch needs when component mounts or page changes
   useEffect(() => {
     fetchNeeds();
-  }, []);
+  }, [currentPage]);
 
   const fetchNeeds = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await Axios.get(`/donation/ngo/${user._id}`);
-      console.log("response", response);
+      const response = await Axios.get(`/donation/ngo/${user._id}`, {
+        params: {
+          page: currentPage,
+          limit: itemsPerPage,
+        },
+      });
+
       setNeeds(response.data.data || []);
-      console.log(response);
+      setTotalItems(response.data.total || 0);
     } catch (err) {
       setError(
         err.response?.data?.message || err.message || "Failed to fetch needs"
@@ -40,27 +57,20 @@ function PostedNeeds() {
       setLoading(true);
       setError(null);
 
-      setNeeds((prev) => [...prev, formData.data.data.need]);
+      const newNeed =
+        formData.data.need || formData.data.data?.need || formData.data;
+
+      if (!newNeed) {
+        throw new Error("Invalid response structure from server");
+      }
+
+      setNeeds((prev) => [newNeed, ...prev]);
       setShowNeedForm(false);
+      setTotalItems((prev) => prev + 1); // Update total count
     } catch (err) {
-      console.error(err.response?.data?.message, err.message);
+      console.error("Error adding need:", err);
       setError(
         err.response?.data?.message || err.message || "Failed to post need"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteNeed = async (needId) => {
-    try {
-      setLoading(true);
-      setError(null);
-      await Axios.delete(`/needs/${needId}`);
-      setNeeds((prev) => prev.filter((need) => need._id !== needId));
-    } catch (err) {
-      setError(
-        err.response?.data?.message || err.message || "Failed to delete need"
       );
     } finally {
       setLoading(false);
@@ -76,6 +86,28 @@ function PostedNeeds() {
     setShowDetailsModal(false);
     setSelectedNeed(null);
   };
+
+  // Calculate total pages
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  // Change page
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  // Previous page
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  // Next page
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  // ... keep the rest of your existing functions (openDetailsModal, closeDetailsModal, etc.)
 
   if (loading) return <div className="text-center py-4">Loading...</div>;
 
@@ -113,56 +145,137 @@ function PostedNeeds() {
           No needs posted yet. Click the button above to post your first need.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-          {needs.map((need) => (
-            <div
-              key={need._id}
-              className="p-4 bg-white shadow rounded-lg relative"
-            >
-              <h3 className="font-bold text-lg">{need.title || "Untitled"}</h3>
-              <p className="font-medium">
-                {need.description || "No description provided"}
-              </p>
-              <div className="flex flex-wrap gap-1 my-2">
-                {Array.isArray(need.needTypes) &&
-                  need.needTypes.map((type) => (
-                    <span
-                      key={type}
-                      className="px-2 py-1 bg-gray-100 text-xs rounded"
-                    >
-                      {type}
-                    </span>
-                  ))}
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            {needs.map((need) => (
+              <div
+                key={need._id}
+                className="p-4 bg-white shadow rounded-lg relative"
+              >
+                <h3 className="font-bold text-lg">
+                  {need.title || "Untitled"}
+                </h3>
+                <p className="font-medium">
+                  {need.description || "No description provided"}
+                </p>
+                <div className="flex flex-wrap gap-1 my-2">
+                  {Array.isArray(need.needTypes) &&
+                    need.needTypes.map((type) => (
+                      <span
+                        key={type}
+                        className="px-2 py-1 bg-gray-100 text-xs rounded"
+                      >
+                        {type}
+                      </span>
+                    ))}
+                </div>
+                {need.needTypes?.includes("money") && need.targetMoney && (
+                  <p className="text-gray-600">Amount: {need.targetMoney}</p>
+                )}
+                <p
+                  className={`text-sm font-semibold ${
+                    need.status === "Fulfilled"
+                      ? "text-green-600"
+                      : need.status === "Expired"
+                      ? "text-red-600"
+                      : "text-blue-600"
+                  }`}
+                >
+                  Status: {need.status || "Unknown"}
+                </p>
+                <p className="text-sm text-gray-500">
+                  Urgency: {need.urgencyLevel || "Not specified"}
+                </p>
+                <div className="flex justify-between mt-2">
+                  <button
+                    onClick={() => openDetailsModal(need)}
+                    className="px-3 py-1 bg-yellow-500 text-white rounded cursor-pointer hover:bg-yellow-600"
+                  >
+                    <FaEye />
+                  </button>
+                </div>
               </div>
-              {need.needTypes?.includes("money") && need.targetMoney && (
-                <p className="text-gray-600">Amount: {need.targetMoney}</p>
-              )}
-              <p
-                className={`text-sm font-semibold ${
-                  need.status === "Fulfilled"
-                    ? "text-green-600"
-                    : need.status === "Expired"
-                    ? "text-red-600"
-                    : "text-blue-600"
-                }`}
-              >
-                Status: {need.status || "Unknown"}
-              </p>
-              <p className="text-sm text-gray-500">
-                Urgency: {need.urgencyLevel || "Not specified"}
-              </p>
-              <button
-                onClick={() => openDetailsModal(need)}
-                className="mt-2 px-3 py-1 bg-yellow-500 text-white rounded hover:bg-blue-600"
-              >
-                <FaEye />
-              </button>
+            ))}
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-6">
+              <nav className="flex items-center gap-1">
+                <button
+                  onClick={prevPage}
+                  disabled={currentPage === 1}
+                  className={`px-3 py-1 rounded ${
+                    currentPage === 1
+                      ? "text-gray-400 cursor-not-allowed"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  <FaChevronLeft />
+                </button>
+
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  // Show first pages, current page, and last pages
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => paginate(pageNum)}
+                      className={`px-3 py-1 rounded ${
+                        currentPage === pageNum
+                          ? "bg-blue-500 text-white"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+
+                {totalPages > 5 && currentPage < totalPages - 2 && (
+                  <span className="px-2">...</span>
+                )}
+
+                {totalPages > 5 && currentPage < totalPages - 2 && (
+                  <button
+                    onClick={() => paginate(totalPages)}
+                    className={`px-3 py-1 rounded ${
+                      currentPage === totalPages
+                        ? "bg-blue-500 text-white"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {totalPages}
+                  </button>
+                )}
+
+                <button
+                  onClick={nextPage}
+                  disabled={currentPage === totalPages}
+                  className={`px-3 py-1 rounded ${
+                    currentPage === totalPages
+                      ? "text-gray-400 cursor-not-allowed"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  <FaChevronRight />
+                </button>
+              </nav>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
-      {/* Need Details Modal */}
       {showDetailsModal && selectedNeed && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">

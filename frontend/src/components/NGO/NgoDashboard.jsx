@@ -9,6 +9,8 @@ import {
   FaTimes,
   FaGreaterThan,
   FaLessThan,
+  FaChevronCircleRight,
+  FaChevronRight,
 } from "react-icons/fa";
 import PostedNeeds from "./postedNeeds";
 import DonationsList from "./donationsList";
@@ -113,7 +115,7 @@ export default function NgoDashboard() {
             <h1 className="text-2xl font-bold text-blue-700">
               Welcome, {user?.name}
             </h1>
-            <p className="text-gray-600">Email: {user.email}</p>
+            <p className="text-gray-600">Email: {user?.email}</p>
             <div className="mt-4 p-4 bg-white shadow rounded-lg">
               <p className="text-lg">Welcome to your NGO Dashboard</p>
               <p className="text-gray-600 mt-2">
@@ -149,17 +151,17 @@ export default function NgoDashboard() {
         <div className="p-4 flex items-center justify-between border-b border-blue-700">
           <h1 className="text-xl font-bold truncate">
             {sidebarOpen || mobileSidebarOpen
-              ? `${user.name}`
-              : `${user.name.slice(0, 1)}`}
+              ? `${user?.name}`
+              : `${user?.name.slice(0, 1)}`}
           </h1>
           <button
             onClick={toggleSidebar}
-            className="hidden md:block p-1 hover:bg-blue-700 rounded focus:outline-none"
+            className="hidden md:block p-1 hover:bg-blue-700  focus:outline-none"
           >
             {sidebarOpen ? (
               <FaLessThan size={14} />
             ) : (
-              <FaGreaterThan size={14} />
+              <FaChevronRight size={14} />
             )}
           </button>
         </div>
@@ -171,8 +173,8 @@ export default function NgoDashboard() {
                   setActiveSection("home");
                   setMobileSidebarOpen(false);
                 }}
-                className={`flex items-center p-2 w-full rounded hover:bg-[#008080] transition-colors ${
-                  activeSection === "home" ? "bg-blue-600" : ""
+                className={`flex items-center p-2 w-full rounded  transition-colors ${
+                  activeSection === "home" ? "bg-yellow-400" : ""
                 }`}
               >
                 <FaHome className="text-lg flex-shrink-0" />
@@ -188,8 +190,8 @@ export default function NgoDashboard() {
                   setMobileSidebarOpen(false);
                   setShowNeedForm(false);
                 }}
-                className={`flex items-center p-2 w-full rounded hover:bg-[#008080] transition-colors ${
-                  activeSection === "needs" ? "bg-[#006466]" : ""
+                className={`flex items-center p-2 w-full rounded  transition-colors ${
+                  activeSection === "needs" ? "bg-[#006466] bg-yellow-400" : ""
                 }`}
               >
                 <FaHandHoldingHeart className="text-lg flex-shrink-0" />
@@ -204,8 +206,10 @@ export default function NgoDashboard() {
                   setActiveSection("donations");
                   setMobileSidebarOpen(false);
                 }}
-                className={`flex items-center p-2 w-full rounded hover:bg-[#008080] transition-colors ${
-                  activeSection === "donations" ? "bg-blue-600" : ""
+                className={`flex items-center p-2 w-full rounded  transition-colors ${
+                  activeSection === "donations"
+                    ? "bg-blue-600 bg-yellow-400"
+                    : ""
                 }`}
               >
                 <FaHandsHelping className="text-lg flex-shrink-0" />
@@ -220,7 +224,7 @@ export default function NgoDashboard() {
                   setActiveSection("volunteers");
                   setMobileSidebarOpen(false);
                 }}
-                className={`flex items-center p-2 w-full rounded hover:bg-[#008080] transition-colors ${
+                className={`flex items-center p-2 w-full rounded  transition-colors ${
                   activeSection === "volunteers" ? "bg-yellow-400" : ""
                 }`}
               >

@@ -268,6 +268,10 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
   };
   return (
     <div className="bg-white rounded-lg shadow-md p-6 max-w-4xl mx-auto my-6">
+      <p className="text-sm text-yellow-700">
+        <strong>Note:</strong> Posts cannot be edited after submission. Please
+        verify all details before posting.
+      </p>
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Post a New Need</h2>
 
       <form onSubmit={handleSubmit}>
@@ -302,7 +306,7 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
                   onClick={() => handleNeedTypeChange(type)}
                   className={`px-4 py-2 rounded-full text-sm font-medium ${
                     formData.needTypes.includes(type)
-                      ? "bg-blue-500 text-white"
+                      ? "bg-yellow-400 text-white"
                       : "bg-gray-200 text-gray-700"
                   }`}
                 >

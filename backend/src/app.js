@@ -1,4 +1,4 @@
-const express = require('express');
+const express=require("express")
 const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
@@ -10,17 +10,7 @@ const errorHandler = require('./middleware/errorHandler');
 const AppError = require('./utils/appError');
 const donationRoutes = require('./routes/donationRoutes');
 const path=require("path")
-const express = require("express");
-const cors = require("cors");
-const dotenv = require("dotenv");
-const connectDB = require("./config/db");
-const userRoutes = require("./routes/userRoutes");
-const authRoutes = require("./routes/authRoutes");
-const adminRoutes = require("./routes/adminRoutes"); // <-- Import admin routes
-const donation = require("./routes/donation");
-const errorHandler = require("./middleware/errorHandler");
-const AppError = require("./utils/appError");
-const donationRoutes = require("./routes/donationRoutes");
+
 dotenv.config();
 
 const app = express();

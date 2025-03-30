@@ -195,17 +195,27 @@ getAllNeeds = async (req, res) => {
 getNeedsByNgo = async (req, res) => {
   try {
     const ngoId = req.params.ngoId;
-   
-    const { status } = req.query;
+    const { status, page = 1, limit = 10 } = req.query;
+
     const filter = { NGO: ngoId };
 
     if (status) {
       filter.status = status;
     }
 
+    // Convert page and limit to numbers
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    // Get total count of documents
+    const total = await Need.countDocuments(filter);
+
     const needs = await Need.find(filter)
-      // .populate("application", "status donor") // Populate application info
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 }) // Sort by newest first
+      .skip(skip)
+      .limit(limitNumber);
+    // .populate("application", "status donor") // Uncomment if you need to populate
 
     if (!needs || needs.length === 0) {
       return res.status(404).json({
@@ -217,6 +227,9 @@ getNeedsByNgo = async (req, res) => {
     res.status(200).json({
       success: true,
       count: needs.length,
+      total,
+      page: pageNumber,
+      pages: Math.ceil(total / limitNumber),
       data: needs,
     });
   } catch (error) {
