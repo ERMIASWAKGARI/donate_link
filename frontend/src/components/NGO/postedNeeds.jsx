@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from "react";
-import { FaPlus, FaTrash, FaTimes } from "react-icons/fa";
+import { FaPlus, FaEye, FaTrash, FaTimes } from "react-icons/fa";
 import NgoNeedForm from "./PostNeedsForm";
 import Axios from "../../config/axiosConfig";
 import { UserContext } from "../../context/UserContext";
@@ -23,6 +23,7 @@ function PostedNeeds() {
       setLoading(true);
       setError(null);
       const response = await Axios.get(`/donation/ngo/${user._id}`);
+      console.log("response", response);
       setNeeds(response.data.data || []);
       console.log(response);
     } catch (err) {
@@ -92,7 +93,7 @@ function PostedNeeds() {
         <h2 className="text-xl font-semibold text-gray-800">Posted Needs</h2>
         <button
           onClick={() => setShowNeedForm(!showNeedForm)}
-          className="flex items-center px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="flex items-center px-3 py-2 bg-yellow-400 text-black rounded hover:bg-yellow-600"
           disabled={loading}
         >
           <FaPlus className="mr-2" />
@@ -118,14 +119,6 @@ function PostedNeeds() {
               key={need._id}
               className="p-4 bg-white shadow rounded-lg relative"
             >
-              <button
-                onClick={() => handleDeleteNeed(need._id)}
-                className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                title="Delete need"
-                disabled={loading}
-              >
-                <FaTrash />
-              </button>
               <h3 className="font-bold text-lg">{need.title || "Untitled"}</h3>
               <p className="font-medium">
                 {need.description || "No description provided"}
@@ -160,9 +153,9 @@ function PostedNeeds() {
               </p>
               <button
                 onClick={() => openDetailsModal(need)}
-                className="mt-2 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                className="mt-2 px-3 py-1 bg-yellow-500 text-white rounded hover:bg-blue-600"
               >
-                View Details
+                <FaEye />
               </button>
             </div>
           ))}

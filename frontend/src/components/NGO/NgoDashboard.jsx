@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import PostNeedForm from "./PostNeedsForm";
 import {
   FaHome,
@@ -7,10 +7,13 @@ import {
   FaUsers,
   FaBars,
   FaTimes,
+  FaGreaterThan,
+  FaLessThan,
 } from "react-icons/fa";
 import PostedNeeds from "./postedNeeds";
 import DonationsList from "./donationsList";
 import VolunteerApplication from "./VolunteerApplication";
+import { UserContext } from "../../context/UserContext";
 
 const ngoData = {
   name: "Helping Hands NGO",
@@ -66,6 +69,7 @@ export default function NgoDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [showNeedForm, setShowNeedForm] = useState(false);
+  const { user } = useContext(UserContext);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -107,9 +111,9 @@ export default function NgoDashboard() {
         return (
           <div className="mt-6">
             <h1 className="text-2xl font-bold text-blue-700">
-              Welcome, {ngoData.name}
+              Welcome, {user?.name}
             </h1>
-            <p className="text-gray-600">Email: {ngoData.email}</p>
+            <p className="text-gray-600">Email: {user.email}</p>
             <div className="mt-4 p-4 bg-white shadow rounded-lg">
               <p className="text-lg">Welcome to your NGO Dashboard</p>
               <p className="text-gray-600 mt-2">
@@ -123,14 +127,14 @@ export default function NgoDashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 overflow-hidden">
       {/* Mobile sidebar toggle button */}
       <div className="md:hidden fixed top-4 left-4 z-50">
         <button
           onClick={toggleMobileSidebar}
-          className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          {mobileSidebarOpen ? <FaTimes /> : <FaBars />}
+          {mobileSidebarOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
         </button>
       </div>
 
@@ -138,17 +142,25 @@ export default function NgoDashboard() {
       <div
         className={`${
           mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 transform fixed md:relative z-40 w-64 bg-[#006400] text-white h-full transition-transform duration-300 ease-in-out`}
+        } md:translate-x-0 transform fixed md:relative z-40 ${
+          sidebarOpen ? "w-64" : "w-20"
+        } bg-[#006400] text-white h-full transition-all duration-300 ease-in-out flex-shrink-0`}
       >
         <div className="p-4 flex items-center justify-between border-b border-blue-700">
           <h1 className="text-xl font-bold truncate">
-            {sidebarOpen || mobileSidebarOpen ? "Helping Hands" : "HH"}
+            {sidebarOpen || mobileSidebarOpen
+              ? `${user.name}`
+              : `${user.name.slice(0, 1)}`}
           </h1>
           <button
             onClick={toggleSidebar}
-            className="hidden md:block p-1 hover:bg-blue-700 rounded"
+            className="hidden md:block p-1 hover:bg-blue-700 rounded focus:outline-none"
           >
-            {sidebarOpen ? <FaTimes size={14} /> : <FaBars size={14} />}
+            {sidebarOpen ? (
+              <FaLessThan size={14} />
+            ) : (
+              <FaGreaterThan size={14} />
+            )}
           </button>
         </div>
         <nav className="p-4">
@@ -159,13 +171,13 @@ export default function NgoDashboard() {
                   setActiveSection("home");
                   setMobileSidebarOpen(false);
                 }}
-                className={`flex items-center p-2 w-full rounded hover:bg-blue-700 ${
+                className={`flex items-center p-2 w-full rounded hover:bg-[#008080] transition-colors ${
                   activeSection === "home" ? "bg-blue-600" : ""
                 }`}
               >
-                <FaHome className="text-lg" />
+                <FaHome className="text-lg flex-shrink-0" />
                 {(sidebarOpen || mobileSidebarOpen) && (
-                  <span className="ml-3">Dashboard</span>
+                  <span className="ml-3 truncate">Dashboard</span>
                 )}
               </button>
             </li>
@@ -176,13 +188,13 @@ export default function NgoDashboard() {
                   setMobileSidebarOpen(false);
                   setShowNeedForm(false);
                 }}
-                className={`flex items-center p-2 w-full rounded hover:bg-blue-700 ${
+                className={`flex items-center p-2 w-full rounded hover:bg-[#008080] transition-colors ${
                   activeSection === "needs" ? "bg-[#006466]" : ""
                 }`}
               >
-                <FaHandHoldingHeart className="text-lg" />
+                <FaHandHoldingHeart className="text-lg flex-shrink-0" />
                 {(sidebarOpen || mobileSidebarOpen) && (
-                  <span className="ml-3">Posted Needs</span>
+                  <span className="ml-3 truncate">Posted Needs</span>
                 )}
               </button>
             </li>
@@ -192,13 +204,13 @@ export default function NgoDashboard() {
                   setActiveSection("donations");
                   setMobileSidebarOpen(false);
                 }}
-                className={`flex items-center p-2 w-full rounded hover:bg-blue-700 ${
+                className={`flex items-center p-2 w-full rounded hover:bg-[#008080] transition-colors ${
                   activeSection === "donations" ? "bg-blue-600" : ""
                 }`}
               >
-                <FaHandsHelping className="text-lg" />
+                <FaHandsHelping className="text-lg flex-shrink-0" />
                 {(sidebarOpen || mobileSidebarOpen) && (
-                  <span className="ml-3">Received Donations</span>
+                  <span className="ml-3 truncate">Received Donations</span>
                 )}
               </button>
             </li>
@@ -208,13 +220,13 @@ export default function NgoDashboard() {
                   setActiveSection("volunteers");
                   setMobileSidebarOpen(false);
                 }}
-                className={`flex items-center p-2 w-full rounded hover:bg-blue-700 ${
-                  activeSection === "volunteers" ? "bg-blue-600" : ""
+                className={`flex items-center p-2 w-full rounded hover:bg-[#008080] transition-colors ${
+                  activeSection === "volunteers" ? "bg-yellow-400" : ""
                 }`}
               >
-                <FaUsers className="text-lg" />
+                <FaUsers className="text-lg flex-shrink-0" />
                 {(sidebarOpen || mobileSidebarOpen) && (
-                  <span className="ml-3">Applications</span>
+                  <span className="ml-3 truncate">Applications</span>
                 )}
               </button>
             </li>
@@ -225,10 +237,10 @@ export default function NgoDashboard() {
       {/* Main content */}
       <div
         className={`flex-1 overflow-auto transition-all duration-300 ${
-          sidebarOpen ? "md:ml-64" : "md:ml-20"
+          sidebarOpen ? "md:ml-24 mx-auto" : "md:ml-10"
         }`}
       >
-        <div className="p-6">{renderContent()}</div>
+        <div className="p-4 md:p-6">{renderContent()}</div>
       </div>
     </div>
   );

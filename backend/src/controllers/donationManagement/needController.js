@@ -195,6 +195,7 @@ getAllNeeds = async (req, res) => {
 getNeedsByNgo = async (req, res) => {
   try {
     const ngoId = req.params.ngoId;
+   
     const { status } = req.query;
     const filter = { NGO: ngoId };
 

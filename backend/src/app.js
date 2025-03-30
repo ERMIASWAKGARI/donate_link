@@ -9,6 +9,7 @@ const donation = require('./routes/donation');
 const errorHandler = require('./middleware/errorHandler');
 const AppError = require('./utils/appError');
 const donationRoutes = require('./routes/donationRoutes');
+const path=require("path")
 dotenv.config();
 
 const app = express();

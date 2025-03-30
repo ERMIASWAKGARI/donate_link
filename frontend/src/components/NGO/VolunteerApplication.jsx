@@ -11,7 +11,7 @@ function VolunteerApplication({ volunteers }) {
           <div key={volunteer.id} className="p-4 bg-white shadow rounded-lg">
             <p className="font-medium">{volunteer.name}</p>
             <p className="text-gray-600">{volunteer.role}</p>
-            <button className="mt-2 px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600">
+            <button className="mt-2 px-3 py-1 bg-yellow-400 text-black cursor-pointer rounded hover:bg-yellow-600">
               Contact
             </button>
           </div>
