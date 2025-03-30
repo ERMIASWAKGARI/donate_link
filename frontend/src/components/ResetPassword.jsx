@@ -6,8 +6,10 @@ const ResetPassword = () => {
   const navigate = useNavigate();
 
   const token = searchParams.get('token'); // If email reset
-  const rawPhone = searchParams.get('phone').trim();
-  const phone = rawPhone.startsWith('+') ? rawPhone : `+${rawPhone}`;
+  const rawPhone = searchParams.get('phone') || ''; // Ensure it's a string
+  const phone = rawPhone.trim().startsWith('+')
+    ? rawPhone.trim()
+    : `+${rawPhone.trim()}`;
 
   const [otp, setOtp] = useState('');
   const [password, setPassword] = useState('');
@@ -98,7 +100,8 @@ const ResetPassword = () => {
       {error && <p className="text-red-600">{error}</p>}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {phone && (
+        {/* If resetting via phone, show OTP input & Resend OTP button */}
+        {phone && !token && (
           <>
             <input
               type="text"
@@ -117,20 +120,35 @@ const ResetPassword = () => {
             </button>
           </>
         )}
-        <input
-          type="password"
-          placeholder="New password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-2 border rounded"
-        />
-        <input
-          type="password"
-          placeholder="Confirm password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          className="w-full p-2 border rounded"
-        />
+
+        {/* Password fields (always shown if either token or phone is present) */}
+        {(token || phone) && (
+          <>
+            <input
+              type="password"
+              placeholder="New password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-2 border rounded"
+            />
+            <input
+              type="password"
+              placeholder="Confirm password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full p-2 border rounded"
+            />
+          </>
+        )}
+
+        {/* Show "Didn't receive email?" button ONLY if token exists and NOT phone */}
+        {token && !phone && (
+          <button type="button" className="text-blue-500">
+            Didn&apos;t receive email? Resend
+          </button>
+        )}
+
+        {/* Submit button */}
         <button
           type="submit"
           className="w-full bg-green-500 text-white p-2 rounded"
