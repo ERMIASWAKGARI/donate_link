@@ -10,7 +10,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import VerifyEmail from "./pages/VerifyEmailPage";
 import VerifyOtp from "./pages/VerifyOtpPage";
-import DonationForm from "./pages/organization_donor/DonationForm";
+
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 
@@ -31,7 +31,6 @@ function App() {
             <Route element={<PrivateRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
             </Route>
-            <Route path="/donation-form" element={<DonationForm />} />
           </Routes>
         </Router>{" "}
       </UserProvider>

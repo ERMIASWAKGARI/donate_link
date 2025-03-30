@@ -67,13 +67,13 @@ const Footer = () => {
 
   return (
     <motion.footer
-      className="bg-green-800 text-white py-12 relative z-20"
+      className="bg-green-800 text-white py-12  relative z-20"
       initial="hidden"
       whileInView="visible"
       variants={containerVariants}
       viewport={{ once: true, margin: "-100px" }}
     >
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto px-4 pb-12 sm:px-6 lg:px-8 bottom-22">
         <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-8">
           {/* Quick Links */}
           <motion.div

@@ -8,8 +8,8 @@ const About = () => {
   }, []);
 
   return (
-    <div>
-      <section className="bg-gray-100 py-16 px-4 md:px-8" id="about">
+    <div id="about">
+      <section className="bg-gray-100 py-16 px-4 md:px-8">
         <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center">
           {/* Left Side - Image */}
           <div
