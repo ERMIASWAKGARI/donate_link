@@ -7,12 +7,16 @@ import Testimonials from "../pages/landing_component/Testimonials";
 import CTA from "../pages/landing_component/CTA";
 import Newsletter from "../pages/landing_component/Newsletter";
 import Header from "../components/common/Header";
+import { useState } from "react";
+
 
 function LandingPage() {
-
+  
+  
   return (
-    <div>
-      <Header/>
+  <div>
+    <Header />
+
       <Hero />
       <FeaturedCauses />
       <HowItWorksSection />
@@ -21,9 +25,10 @@ function LandingPage() {
       <Testimonials />
       <Newsletter />
       <CTA />
-     
+    
     </div>
-  );
+  
+  )
 }
 
 export default LandingPage;

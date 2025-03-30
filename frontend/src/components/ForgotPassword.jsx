@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Header from './common/Header';
 
 const ForgotPassword = () => {
   const [method, setMethod] = useState('email'); // "email" or "phone"
@@ -62,6 +63,8 @@ const ForgotPassword = () => {
   };
 
   return (
+    <>
+    <Header/>
     <div className="max-w-md mx-auto p-6 bg-white shadow-md rounded-lg">
       <h2 className="text-xl font-bold mb-4">Forgot Password</h2>
       {message && <p className="text-green-600">{message}</p>}
@@ -115,6 +118,8 @@ const ForgotPassword = () => {
         </button>
       </form>
     </div>
+    </>
+    
   );
 };
 

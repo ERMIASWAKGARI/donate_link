@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { FaUser, FaBuilding, FaHandsHelping, FaUsers, FaInfoCircle, FaArrowLeft } from 'react-icons/fa';
-import { X } from 'lucide-react';
+import { FaUser, FaBuilding, FaHandsHelping, FaUsers, FaInfoCircle } from 'react-icons/fa';
+import { Eye, EyeOff, X } from 'lucide-react';
 import AlertMessage from '../components/AlertMessage';
 import validateForm from '../utils/validateForm';
 import GoogleAuth from '../components/GoogleAuth';
@@ -20,6 +20,7 @@ const cardImages = {
 const EnhancedRegisterPage = () => {
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState('');
+  const [loginMethod, setLoginMethod] = useState('email'); // 'email' or 'phone'
   const [formData, setFormData] = useState({
     name: '',
     organizationName: '',
@@ -35,6 +36,8 @@ const EnhancedRegisterPage = () => {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [googleUser, setGoogleUser] = useState(null);
   const [isRegisteringWithGoogle, setIsRegisteringWithGoogle] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const roles = [
     {
@@ -101,6 +104,17 @@ const EnhancedRegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate that either email or phone is provided
+    if (loginMethod === 'email' && !formData.email) {
+      setErrors({...errors, email: 'Please enter your email'});
+      return;
+    }
+    if (loginMethod === 'phone' && !formData.phone) {
+      setErrors({...errors, phone: 'Please enter your phone number'});
+      return;
+    }
+    
     if (!validateForm(formData, selectedRole, setErrors)) return;
 
     let filteredData = {
@@ -108,8 +122,12 @@ const EnhancedRegisterPage = () => {
       password: formData.password,
     };
 
-    if (formData.email) filteredData.email = formData.email;
-    if (formData.phone) filteredData.phone = `${formData.countryCode}${formData.phone}`;
+    // Only include the selected method
+    if (loginMethod === 'email') {
+      filteredData.email = formData.email;
+    } else {
+      filteredData.phone = `${formData.countryCode}${formData.phone}`;
+    }
 
     if (selectedRole === 'individual_donor' || selectedRole === 'volunteer') {
       filteredData.name = formData.name;
@@ -127,7 +145,6 @@ const EnhancedRegisterPage = () => {
       });
 
       const data = await response.json();
-      console.log(data);
 
       if (data.status === 'success') {
         setMessage({
@@ -237,7 +254,8 @@ const EnhancedRegisterPage = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 backdrop-blur-sm bg-black/30 z-50 flex items-center justify-center p-4"              >
+                className="fixed inset-0 backdrop-blur-sm bg-black/30 z-50 flex items-center justify-center p-4"
+              >
                 <motion.div
                   initial={{ scale: 0.9, y: 20 }}
                   animate={{ scale: 1, y: 0 }}
@@ -305,29 +323,55 @@ const EnhancedRegisterPage = () => {
                         </div>
                       )}
 
-                      {currentRole?.fields.includes('email') && (
+                      {/* Login Method Toggle */}
+                      <div className="flex mb-4 border-b">
+                        <button
+                          type="button"
+                          className={`flex-1 py-2 font-medium text-sm ${
+                            loginMethod === 'email' 
+                              ? 'text-green-600 border-b-2 border-green-600' 
+                              : 'text-gray-500 hover:text-gray-700'
+                          }`}
+                          onClick={() => setLoginMethod('email')}
+                        >
+                          Use Email
+                        </button>
+                        <button
+                          type="button"
+                          className={`flex-1 py-2 font-medium text-sm ${
+                            loginMethod === 'phone' 
+                              ? 'text-green-600 border-b-2 border-green-600' 
+                              : 'text-gray-500 hover:text-gray-700'
+                          }`}
+                          onClick={() => setLoginMethod('phone')}
+                        >
+                          Use Phone
+                        </button>
+                      </div>
+
+                      {/* Email or Phone Input */}
+                      {loginMethod === 'email' ? (
                         <div>
-                          <label className="block text-gray-700 mb-1">Email</label>
+                          <label className="block text-gray-700 mb-1">Email Address</label>
                           <input
                             type="email"
                             name="email"
-                            value={formData.email}
-                            onChange={handleChange}
+                            placeholder="your@email.com"
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            onChange={handleChange}
+                            value={formData.email}
                           />
                           {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
                         </div>
-                      )}
-
-                      {currentRole?.fields.includes('phone') && (
+                      ) : (
                         <div>
                           <label className="block text-gray-700 mb-1">Phone Number</label>
                           <div className="flex">
                             <select
                               name="countryCode"
+                              className="p-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500"
                               value={formData.countryCode}
                               onChange={handleChange}
-                              className="p-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500"
                             >
                               <option value="+251">🇪🇹 +251</option>
                               <option value="+1">🇺🇸 +1</option>
@@ -337,46 +381,75 @@ const EnhancedRegisterPage = () => {
                             <input
                               type="tel"
                               name="phone"
-                              value={formData.phone}
+                              placeholder="1234567890"
+                              className="flex-1 p-3 border-t border-b border-r border-gray-300 rounded-r-lg focus:ring-2 focus:ring-blue-500"
                               onChange={handleChange}
-                              className="w-full p-3 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-blue-500"
+                              value={formData.phone}
                             />
                           </div>
                           {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
                         </div>
                       )}
 
-                      {currentRole?.fields.includes('password') && (
-                        <div>
-                          <label className="block text-gray-700 mb-1">Password</label>
+                      {/* Password Field */}
+                      <div>
+                        <label className="block text-gray-700 mb-1">Password</label>
+                        <div className="relative">
                           <input
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             name="password"
+                            placeholder="••••••••"
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 pr-10"
+                            onChange={handleChange}
                             value={formData.password}
-                            onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                             required
                           />
-                          {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+                          <button
+                            type="button"
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                            onClick={() => setShowPassword(!showPassword)}
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                          >
+                            {showPassword ? (
+                              <EyeOff size={18} className="text-gray-400" />
+                            ) : (
+                              <Eye size={18} className="text-gray-400" />
+                            )}
+                          </button>
                         </div>
-                      )}
+                        {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+                      </div>
 
-                      {currentRole?.fields.includes('confirmPassword') && (
-                        <div>
-                          <label className="block text-gray-700 mb-1">Confirm Password</label>
+                      {/* Confirm Password Field */}
+                      <div>
+                        <label className="block text-gray-700 mb-1">Confirm Password</label>
+                        <div className="relative">
                           <input
-                            type="password"
+                            type={showConfirmPassword ? "text" : "password"}
                             name="confirmPassword"
-                            value={formData.confirmPassword}
+                            placeholder="••••••••"
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 pr-10"
                             onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            value={formData.confirmPassword}
                             required
                           />
-                          {errors.confirmPassword && (
-                            <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
-                          )}
+                          <button
+                            type="button"
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                          >
+                            {showConfirmPassword ? (
+                              <EyeOff size={18} className="text-gray-400" />
+                            ) : (
+                              <Eye size={18} className="text-gray-400" />
+                            )}
+                          </button>
                         </div>
-                      )}
+                        {errors.confirmPassword && (
+                          <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
+                        )}
+                      </div>
 
                       <motion.button
                         type="submit"
@@ -420,342 +493,3 @@ const EnhancedRegisterPage = () => {
 };
 
 export default EnhancedRegisterPage;
-
-// import { useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
-
-// import RegisterWithGoogle from '../components/RegisterWithGoogle'; // Import the new component
-
-// import GoogleAuth from '../components/GoogleAuth'; // Import the new component
-
-// import AlertMessage from '../components/AlertMessage';
-// import validateForm from '../utils/validateForm';
-
-// function RegisterPage() {
-//   const navigate = useNavigate();
-//   const [selectedRole, setSelectedRole] = useState('');
-//   const [formData, setFormData] = useState({
-//     name: '',
-//     organizationName: '',
-//     ngoName: '',
-//     email: '',
-//     phone: '',
-//     countryCode: '+251',
-//     password: '',
-//     confirmPassword: '',
-//     role: '',
-//   });
-//   const [errors, setErrors] = useState({});
-//   const [message, setMessage] = useState({ type: '', text: '' });
-//   const [googleUser, setGoogleUser] = useState(null);
-//   const [isRegisteringWithGoogle, setIsRegisteringWithGoogle] = useState(false);
-
-//   // Handle input change
-//   const handleChange = (e) => {
-//     setFormData({ ...formData, [e.target.name]: e.target.value });
-//   };
-
-//   // Handle role selection
-//   const handleRoleSelect = (role) => {
-//     setSelectedRole(role);
-//     setFormData({ ...formData, role });
-//   };
-
-//   // Allow user to go back and change role
-//   const handleRoleChange = () => {
-//     setSelectedRole('');
-//     setFormData({
-//       name: '',
-//       organizationName: '',
-//       ngoName: '',
-//       email: '',
-//       phone: '',
-//       countryCode: '+251', // Default to Ethiopia
-//       password: '',
-//       confirmPassword: '',
-//       role: '',
-//     });
-//   };
-
-//   // Handle form submission
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     if (!validateForm(formData, selectedRole, setErrors)) return;
-
-//     let filteredData = {
-//       role: formData.role,
-//       password: formData.password,
-//     };
-
-//     if (formData.email) {
-//       filteredData.email = formData.email;
-//     }
-
-//     if (formData.phone) {
-//       filteredData.phone = `${formData.countryCode}${formData.phone}`;
-//     }
-
-//     if (selectedRole === 'individual_donor' || selectedRole === 'volunteer') {
-//       filteredData.name = formData.name;
-//     } else if (selectedRole === 'organization_donor') {
-//       filteredData.name = formData.organizationName;
-//     } else if (selectedRole === 'ngo') {
-//       filteredData.name = formData.ngoName;
-//     }
-
-//     console.log(filteredData);
-
-//     try {
-//       const response = await fetch('http://localhost:5000/api/users/register', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify(filteredData),
-//       });
-
-//       const data = await response.json();
-
-//       if (data.status === 'success') {
-//         setMessage({
-//           type: 'success',
-//           text: `Registration successful! Please verify your ${data.data.verificationType}.`,
-//         });
-
-//         setTimeout(() => {
-//           setMessage({ type: '', text: '' });
-//           if (data.data.verificationType === 'email') {
-//             console.log(data.data);
-//             navigate(`/verify-email?email=${data.data.email}`);
-//           }
-//           if (data.data.verificationType === 'phone') {
-//             console.log(data.data);
-//             navigate(`/verify-otp?phone=${data.data.phone}`);
-//           }
-//         }, 3000);
-//       } else {
-//         setMessage({
-//           type: 'error',
-//           text: `Registration Failed: ${data.message}`,
-//         });
-
-//         setTimeout(() => {
-//           setMessage({ type: '', text: '' });
-//         }, 3000);
-//       }
-//     } catch (error) {
-//       console.error('Registration Error:', error.message);
-//       setMessage({
-//         type: 'error',
-//         text: 'An error occurred. Please try again.',
-//       });
-
-//       setTimeout(() => {
-//         setMessage({ type: '', text: '' });
-//       }, 3000);
-//     }
-//   };
-
-//   return (
-//     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-//       <div className="bg-white p-8 rounded-lg shadow-lg w-96">
-//         <div className="flex items-center justify-between mb-4">
-//           {selectedRole && (
-//             <button
-//               onClick={handleRoleChange}
-//               className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
-//             >
-//               ⬅️
-//             </button>
-//           )}
-//           <h2 className="text-2xl font-bold flex-grow text-center">Register</h2>
-//         </div>
-
-//         <AlertMessage message={message} />
-
-//         {!selectedRole ? (
-//           <div className="grid grid-cols-2 gap-4 mb-4">
-//             {['individual_donor', 'organization_donor', 'volunteer', 'ngo'].map(
-//               (role) => (
-//                 <button
-//                   key={role}
-//                   className={`p-3 rounded ${
-//                     selectedRole === role
-//                       ? 'bg-blue-600 text-white'
-//                       : 'bg-gray-300 text-black'
-//                   }`}
-//                   onClick={() => handleRoleSelect(role)}
-//                 >
-//                   {role.replace('_', ' ').toUpperCase()}
-//                 </button>
-//               )
-//             )}
-//           </div>
-//         ) : (
-//           <>
-//             {!isRegisteringWithGoogle ? (
-//               <>
-//                 <form onSubmit={handleSubmit} className="space-y-4">
-//                   {/* Name Field (Varies Based on Role) */}
-//                   {selectedRole === 'individual_donor' ||
-//                   selectedRole === 'volunteer' ? (
-//                     <div>
-//                       <input
-//                         type="text"
-//                         name="name"
-//                         placeholder="Full Name"
-//                         className="w-full p-2 border border-gray-300 rounded"
-//                         onChange={handleChange}
-//                         required
-//                       />
-//                       {errors.name && (
-//                         <p className="text-red-500 text-sm">{errors.name}</p>
-//                       )}
-//                     </div>
-//                   ) : selectedRole === 'organization_donor' ? (
-//                     <div>
-//                       <input
-//                         type="text"
-//                         name="organizationName"
-//                         placeholder="Organization Name"
-//                         className="w-full p-2 border border-gray-300 rounded"
-//                         onChange={handleChange}
-//                         required
-//                       />
-//                     </div>
-//                   ) : (
-//                     <div>
-//                       <input
-//                         type="text"
-//                         name="ngoName"
-//                         placeholder="NGO Name"
-//                         className="w-full p-2 border border-gray-300 rounded"
-//                         onChange={handleChange}
-//                         required
-//                       />
-//                     </div>
-//                   )}
-
-//                   <input
-//                     type="email"
-//                     name="email"
-//                     placeholder="Email"
-//                     className="w-full p-2 border border-gray-300 rounded"
-//                     onChange={handleChange}
-//                   />
-//                   {errors.email && (
-//                     <p className="text-red-500 text-sm">{errors.email}</p>
-//                   )}
-
-//                   {/* Phone Number with Country Code */}
-//                   <div className="flex">
-//                     <select
-//                       name="countryCode"
-//                       className="p-2 border border-gray-300 rounded-l"
-//                       value={formData.countryCode}
-//                       onChange={handleChange}
-//                     >
-//                       <option value="+251">🇪🇹 +251</option>
-//                       <option value="+1">🇺🇸 +1</option>
-//                       <option value="+44">🇬🇧 +44</option>
-//                       <option value="+91">🇮🇳 +91</option>
-//                     </select>
-//                     <input
-//                       type="tel"
-//                       name="phone"
-//                       placeholder="Phone Number"
-//                       className="w-full p-2 border border-gray-300 rounded-r"
-//                       onChange={handleChange}
-//                     />
-//                   </div>
-//                   {errors.phone && (
-//                     <p className="text-red-500 text-sm">{errors.phone}</p>
-//                   )}
-
-//                   <input
-//                     type="password"
-//                     name="password"
-//                     placeholder="Password"
-//                     className="w-full p-2 border border-gray-300 rounded"
-//                     onChange={handleChange}
-//                     required
-//                   />
-//                   {errors.password && (
-//                     <p className="text-red-500 text-sm">{errors.password}</p>
-//                   )}
-
-//                   <input
-//                     type="password"
-//                     name="confirmPassword"
-//                     placeholder="Confirm Password"
-//                     className="w-full p-2 border border-gray-300 rounded"
-//                     onChange={handleChange}
-//                     required
-//                   />
-//                   {errors.confirmPassword && (
-//                     <p className="text-red-500 text-sm">
-//                       {errors.confirmPassword}
-//                     </p>
-//                   )}
-
-//                   <button
-//                     type="submit"
-//                     className="w-full bg-green-500 text-white p-2 rounded"
-//                   >
-//                     Register
-//                   </button>
-//                 </form>
-
-//                 {googleUser ? (
-//                   <RegisterWithGoogle googleUser={googleUser} />
-//                 ) : (
-//                   <GoogleAuth
-//                     setGoogleUser={setGoogleUser}
-//                     setIsRegisteringWithGoogle={setIsRegisteringWithGoogle}
-//                   />
-//                 )}
-
-//                 <div className="text-center mt-4">
-//                   {/* ✅ Already Have an Account? */}
-//                   <p className="text-gray-600">
-//                     Already have an account?{' '}
-//                     <a href="/login" className="text-blue-500 hover:underline">
-//                       Log in
-//                     </a>
-//                   </p>
-
-//                   {/* ✅ Terms & Conditions */}
-//                   <p className="text-gray-500 text-xs mt-4">
-//                     By signing up, you agree to our{' '}
-//                     <a href="/terms" className="text-blue-500 hover:underline">
-//                       Terms of Service
-//                     </a>{' '}
-//                     and{' '}
-//                     <a
-//                       href="/privacy"
-//                       className="text-blue-500 hover:underline"
-//                     >
-//                       Privacy Policy
-//                     </a>
-//                     .
-//                   </p>
-//                 </div>
-//               </>
-//             ) : (
-//               <>
-//                 {googleUser ? (
-//                   <RegisterWithGoogle googleUser={googleUser} />
-//                 ) : (
-//                   <GoogleAuth
-//                     setGoogleUser={setGoogleUser}
-//                     setIsRegisteringWithGoogle={setIsRegisteringWithGoogle}
-//                   />
-//                 )}
-//               </>
-//             )}
-//           </>
-//         )}
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default RegisterPage;
