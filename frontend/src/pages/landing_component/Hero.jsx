@@ -1,6 +1,5 @@
-import React from "react";
 import { motion } from "framer-motion";
-import pic from "../../../public/Background_image.jpg";
+import pic from "../../../src/assets/Background_image.jpg";
 
 const Hero = () => {
   const containerVariants = {
@@ -13,9 +12,9 @@ const Hero = () => {
         stiffness: 60,
         damping: 20,
         when: "beforeChildren",
-        staggerChildren: 0.2
-      }
-    }
+        staggerChildren: 0.2,
+      },
+    },
   };
 
   const childVariants = {
@@ -23,14 +22,17 @@ const Hero = () => {
     visible: {
       y: 0,
       opacity: 1,
-      transition: { duration: 0.6, ease: "easeOut" }
-    }
+      transition: { duration: 0.6, ease: "easeOut" },
+    },
   };
 
   return (
-    <div className="relative w-full h-[85vh] flex items-center justify-center bg-gray-100 z-10 overflow-hidden" id="hero">
+    <div
+      className="relative w-full h-[85vh] flex items-center justify-center bg-gray-100 z-10 overflow-hidden"
+      id="hero"
+    >
       {/* Background Image */}
-      <motion.div 
+      <motion.div
         className="absolute inset-0"
         initial={{ scale: 1.1 }}
         animate={{ scale: 1 }}
@@ -41,7 +43,7 @@ const Hero = () => {
           alt="Happy children"
           className="w-full h-full object-cover"
         />
-        <motion.div 
+        <motion.div
           className="absolute inset-0 bg-black opacity-30"
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.3 }}
@@ -70,7 +72,7 @@ const Hero = () => {
               duration: Math.random() * 5 + 5,
               repeat: Infinity,
               ease: "linear",
-              delay: Math.random() * 3
+              delay: Math.random() * 3,
             }}
           />
         ))}
@@ -115,7 +117,10 @@ const Hero = () => {
 
         <motion.div variants={childVariants} className="mt-6 flex gap-4">
           <motion.button
-            whileHover={{ scale: 1.05, boxShadow: "0 8px 20px rgba(234, 179, 8, 0.3)" }}
+            whileHover={{
+              scale: 1.05,
+              boxShadow: "0 8px 20px rgba(234, 179, 8, 0.3)",
+            }}
             whileTap={{ scale: 0.95 }}
             className="px-6 py-2 bg-yellow-400 hover:bg-yellow-500 
             text-white font-semibold rounded-full shadow-lg 
@@ -139,17 +144,28 @@ const Hero = () => {
       </motion.div>
 
       {/* Floating CTA */}
-      <motion.div 
+      <motion.div
         className="absolute bottom-6 right-6 z-20"
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 1.5 }}
       >
-        <button className="px-5 py-1.5 bg-teal-500 hover:bg-teal-600 text-white 
-          rounded-full shadow-lg flex items-center gap-2 transition-all text-sm">
+        <button
+          className="px-5 py-1.5 bg-teal-500 hover:bg-teal-600 text-white 
+          rounded-full shadow-lg flex items-center gap-2 transition-all text-sm"
+        >
           <span>Join Volunteers</span>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clipRule="evenodd" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z"
+              clipRule="evenodd"
+            />
           </svg>
         </button>
       </motion.div>

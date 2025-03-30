@@ -10,7 +10,8 @@ import GoogleAuth from "../components/GoogleAuth"; // Import the new component
 import { UserContext } from "../context/UserContext";
 import Header from "../components/common/Header";
 
-import image from "../../public/Background_image.jpg";
+import image from "../../src/assets/Background_image.jpg";
+// ../assets/Background_image.jpg";
 
 function LoginPage() {
   const { login } = useContext(UserContext);

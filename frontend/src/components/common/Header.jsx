@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import logo from "../../../public/logosa.jpg";
+import logo from "../../../src/assets/logosa.png";
+// public/;
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -102,7 +103,7 @@ const Header = () => {
               whileHover={{ scale: 1.05 }}
               onClick={() => navigate("/")}
             >
-              <img src={logo} alt="Logo" className="h-10 w-auto" />
+              <img src={logo} alt="Logo" className="h-14 w-auto" />
               <span className="ml-2 text-yellow-400 font-bold text-xl">
                 DonatiLink
               </span>
@@ -274,33 +275,33 @@ const Header = () => {
                 />
               </a>
             </div>
-             
-           {/* Add this right before the Register button */}
-<div className="hidden md:flex items-center space-x-4">
-  <motion.button
-    onClick={() => navigate("/login")}
-    className="bg-transparent border border-yellow-400 text-yellow-400 px-6 py-2 rounded-full font-medium hover:bg-yellow-400 hover:text-green-900 transition cursor-pointer shadow-md"
-    whileHover={{
-      scale: 1.05,
-      boxShadow: "0 5px 15px rgba(234, 179, 8, 0.4)",
-    }}
-    whileTap={{ scale: 0.95 }}
-  >
-    Login
-  </motion.button>
 
-  <motion.button
-    onClick={() => navigate("/register")}
-    className="bg-yellow-400 text-green-900 px-6 py-2 rounded-full font-medium hover:bg-yellow-500 transition cursor-pointer shadow-md"
-    whileHover={{
-      scale: 1.05,
-      boxShadow: "0 5px 15px rgba(234, 179, 8, 0.4)",
-    }}
-    whileTap={{ scale: 0.95 }}
-  >
-    Register Now
-  </motion.button>
-</div>
+            {/* Add this right before the Register button */}
+            <div className="hidden md:flex items-center space-x-4">
+              <motion.button
+                onClick={() => navigate("/login")}
+                className="bg-transparent border border-yellow-400 text-yellow-400 px-6 py-2 rounded-full font-medium hover:bg-yellow-400 hover:text-green-900 transition cursor-pointer shadow-md"
+                whileHover={{
+                  scale: 1.05,
+                  boxShadow: "0 5px 15px rgba(234, 179, 8, 0.4)",
+                }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Login
+              </motion.button>
+
+              <motion.button
+                onClick={() => navigate("/register")}
+                className="bg-yellow-400 text-green-900 px-6 py-2 rounded-full font-medium hover:bg-yellow-500 transition cursor-pointer shadow-md"
+                whileHover={{
+                  scale: 1.05,
+                  boxShadow: "0 5px 15px rgba(234, 179, 8, 0.4)",
+                }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Register Now
+              </motion.button>
+            </div>
 
             {/* Mobile Menu Button */}
             <div className="md:hidden">
@@ -427,31 +428,31 @@ const Header = () => {
               >
                 Contact Us
               </a>
-              
-              {/* Add this before the Register button in mobile menu */}
-<motion.button
-  onClick={() => {
-    navigate("/login");
-    setMenuOpen(false);
-  }}
-  className="w-full bg-transparent border border-yellow-400 text-yellow-400 px-6 py-3 rounded-full font-medium text-xl mb-4 hover:bg-yellow-400 hover:text-green-900 transition shadow-md"
-  whileHover={{ scale: 1.02 }}
-  whileTap={{ scale: 0.98 }}
->
-  Login
-</motion.button>
 
-<motion.button
-  onClick={() => {
-    navigate("/register");
-    setMenuOpen(false);
-  }}
-  className="w-full bg-yellow-400 text-green-900 px-6 py-3 rounded-full font-medium text-xl mt-2 hover:bg-yellow-500 transition shadow-md"
-  whileHover={{ scale: 1.02 }}
-  whileTap={{ scale: 0.98 }}
->
-  Register Now
-</motion.button>
+              {/* Add this before the Register button in mobile menu */}
+              <motion.button
+                onClick={() => {
+                  navigate("/login");
+                  setMenuOpen(false);
+                }}
+                className="w-full bg-transparent border border-yellow-400 text-yellow-400 px-6 py-3 rounded-full font-medium text-xl mb-4 hover:bg-yellow-400 hover:text-green-900 transition shadow-md"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Login
+              </motion.button>
+
+              <motion.button
+                onClick={() => {
+                  navigate("/register");
+                  setMenuOpen(false);
+                }}
+                className="w-full bg-yellow-400 text-green-900 px-6 py-3 rounded-full font-medium text-xl mt-2 hover:bg-yellow-500 transition shadow-md"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Register Now
+              </motion.button>
             </motion.div>
           )}
         </AnimatePresence>
