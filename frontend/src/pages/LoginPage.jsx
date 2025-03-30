@@ -8,7 +8,7 @@ import { UserContext } from "../context/UserContext";
 import Header from "../components/common/Header";
 
 function LoginPage() {
-  const { login } = useContext(UserContext);
+  const { login, user } = useContext(UserContext);
   const navigate = useNavigate();
 
   // State management
@@ -56,7 +56,7 @@ function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(loginData),
       });
-
+      console.log("response", response);
       const data = await response.json();
 
       if (data.status === "success") {
@@ -65,7 +65,12 @@ function LoginPage() {
           type: "success",
           text: "Login successful! Redirecting...",
         });
-        setTimeout(() => navigate("/dashboard"), 2000);
+        setTimeout(() => {
+          if (user?.role === "ngo") navigate("/ngo-dashboard");
+          else {
+            navigate("/dashboard");
+          }
+        }, 2000);
       } else {
         setMessage({ type: "error", text: `Login Failed: ${data.message}` });
       }
