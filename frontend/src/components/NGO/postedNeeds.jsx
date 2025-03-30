@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from "react";
-import { FaPlus, FaTrash } from "react-icons/fa";
+import { FaPlus, FaTrash, FaTimes } from "react-icons/fa";
 import NgoNeedForm from "./PostNeedsForm";
 import Axios from "../../config/axiosConfig";
 import { UserContext } from "../../context/UserContext";
@@ -10,7 +10,9 @@ function PostedNeeds() {
   const [showNeedForm, setShowNeedForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  const [selectedNeed, setSelectedNeed] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const imageUrl = "uploads/donations";
   // Fetch needs when component mounts
   useEffect(() => {
     fetchNeeds();
@@ -22,6 +24,7 @@ function PostedNeeds() {
       setError(null);
       const response = await Axios.get(`/donation/ngo/${user._id}`);
       setNeeds(response.data.data || []);
+      console.log(response);
     } catch (err) {
       setError(
         err.response?.data?.message || err.message || "Failed to fetch needs"
@@ -31,26 +34,15 @@ function PostedNeeds() {
     }
   };
 
-  // PostedNeeds.js (updated handleAddNeed)
   const handleAddNeed = async (formData) => {
     try {
       setLoading(true);
       setError(null);
 
-      // Standardized response handling
-
-      // Handle both possible response structures
-      const newNeed =
-        formData.data.need || formData.data.data?.need || formData.data;
-
-      if (!newNeed) {
-        throw new Error("Invalid response structure from server");
-      }
-
-      setNeeds((prev) => [...prev, newNeed]);
+      setNeeds((prev) => [...prev, formData.data.data.need]);
       setShowNeedForm(false);
     } catch (err) {
-      console.error("Error adding need:", err);
+      console.error(err.response?.data?.message, err.message);
       setError(
         err.response?.data?.message || err.message || "Failed to post need"
       );
@@ -72,6 +64,16 @@ function PostedNeeds() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const openDetailsModal = (need) => {
+    setSelectedNeed(need);
+    setShowDetailsModal(true);
+  };
+
+  const closeDetailsModal = () => {
+    setShowDetailsModal(false);
+    setSelectedNeed(null);
   };
 
   if (loading) return <div className="text-center py-4">Loading...</div>;
@@ -156,11 +158,224 @@ function PostedNeeds() {
               <p className="text-sm text-gray-500">
                 Urgency: {need.urgencyLevel || "Not specified"}
               </p>
-              <button className="mt-2 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+              <button
+                onClick={() => openDetailsModal(need)}
+                className="mt-2 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
                 View Details
               </button>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Need Details Modal */}
+      {showDetailsModal && selectedNeed && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="text-2xl font-bold text-gray-800">
+                  {selectedNeed.title}
+                </h2>
+                <button
+                  onClick={closeDetailsModal}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <FaTimes size={24} />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Left Column */}
+                <div>
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                      Description
+                    </h3>
+                    <p className="text-gray-600">{selectedNeed.description}</p>
+                  </div>
+
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                      Need Types
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedNeed.needTypes?.map((type) => (
+                        <span
+                          key={type}
+                          className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                        >
+                          {type}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                      Status & Urgency
+                    </h3>
+                    <div className="flex gap-4">
+                      <div>
+                        <span className="font-medium">Status:</span>{" "}
+                        <span
+                          className={`font-semibold ${
+                            selectedNeed.status === "Fulfilled"
+                              ? "text-green-600"
+                              : selectedNeed.status === "Expired"
+                              ? "text-red-600"
+                              : "text-blue-600"
+                          }`}
+                        >
+                          {selectedNeed.status}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Urgency:</span>{" "}
+                        <span className="font-semibold">
+                          {selectedNeed.urgencyLevel}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {selectedNeed.needTypes?.includes("money") && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                        Financial Target
+                      </h3>
+                      <p className="text-gray-600">
+                        ${selectedNeed.targetMoney}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Right Column */}
+                <div>
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                      Beneficiary Information
+                    </h3>
+                    <p className="text-gray-600">
+                      <span className="font-medium">Number:</span>{" "}
+                      {selectedNeed.beneficiaryInfo?.numberOfBeneficiaries}
+                    </p>
+                    {selectedNeed.beneficiaryInfo?.location && (
+                      <div className="mt-2">
+                        <p className="font-medium">Location:</p>
+                        <p className="text-gray-600">
+                          {selectedNeed.beneficiaryInfo.location.address}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Lat: {selectedNeed.beneficiaryInfo.location.latitude},
+                          Lng: {selectedNeed.beneficiaryInfo.location.longitude}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {selectedNeed.beneficiaryInfo.pictures?.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                        Images
+                      </h3>
+                      <div className="grid grid-cols-3 gap-2">
+                        {selectedNeed.beneficiaryInfo.pictures.map(
+                          (pic, index) => (
+                            <div key={index} className="relative">
+                              <img
+                                src={`http://localhost:5000/uploads/${pic.replace(
+                                  /\\/g,
+                                  "/"
+                                )}`}
+                                alt={`Need ${pic.replace(/\\/g, "/")}`}
+                                className="w-full h-24 object-cover rounded"
+                              />
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Material Categories */}
+                  {selectedNeed.categories?.material?.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                        Material Needs
+                      </h3>
+                      <div className="space-y-2">
+                        {selectedNeed.categories.material.map(
+                          (category, index) => (
+                            <div key={index} className="p-3 bg-gray-50 rounded">
+                              <p>
+                                <span className="font-medium">Category:</span>{" "}
+                                {category.categoryName}
+                              </p>
+                              <p>
+                                <span className="font-medium">
+                                  Sub-category:
+                                </span>{" "}
+                                {category.subCategoryName}
+                              </p>
+                              <p>
+                                <span className="font-medium">
+                                  Amount Needed:
+                                </span>{" "}
+                                {category.targetAmountNeeded}
+                              </p>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Service Categories */}
+                  {selectedNeed.categories?.service?.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                        Service Needs
+                      </h3>
+                      <div className="space-y-2">
+                        {selectedNeed.categories.service.map(
+                          (category, index) => (
+                            <div key={index} className="p-3 bg-gray-50 rounded">
+                              <p>
+                                <span className="font-medium">Category:</span>{" "}
+                                {category.categoryName}
+                              </p>
+                              <p>
+                                <span className="font-medium">
+                                  Sub-category:
+                                </span>{" "}
+                                {category.subCategoryName}
+                              </p>
+                              <p>
+                                <span className="font-medium">Vacancy:</span>{" "}
+                                {category.vacancy}
+                              </p>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t flex justify-end">
+                <button
+                  onClick={closeDetailsModal}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

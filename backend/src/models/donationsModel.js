@@ -15,26 +15,87 @@ const donationsSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "NGO",
     },
-    donationType: {
+    material: [
+      {
+        categoryName: {
+          type: String,
+          required:true,
+          maxlength: 50,
+        },
+        subCategoryName: {
+          type: String,
+          required:true,
+          maxlength: 50,
+        },
+        targetAmountNeeded: {
+          type: String,
+          required:true,
+          min: 1,
+        },
+        unit: {
+          type: String,
+          required: function () {
+            return this.donationType === "material";
+          },
+        },
+        condition: {
+          type: String,
+          enum: ["new", "used", "refurbished"],
+          required: function () {
+            return this.donationType === "material";
+          },
+        },
+        expirationDate: {
+          type: Date,
+         
+        },
+      },
+    ],
+    description: {
       type: String,
-      enum: ["money", "material", "service"],
-      required: true,
+      maxlength: 500,
     },
+    title:{
+      type:String,
+    },
+    location: {
+      latitude: {
+        type: Number,
+        required: true,
+        min: -90,
+        max: 90,
+      },
+      longitude: {
+        type: Number,
+        required: true,
+        min: -180,
+        max: 180,
+      },
+      address: {
+        type: String,
+        required: true,
+      },
+    },
+    // donationType: {
+    //   type: String,
+    //   enum: ["money", "material", "service"],
+    //   required: true,
+    // },
 
     // --- Monetary Donation Fields ---
-    amount: {
-      type: Number,
-      required: function () {
-        return this.donationType === "money";
-      },
-    },
-    currency: {
-      type: String,
-      default: "ETB",
-      required: function () {
-        return this.donationType === "money";
-      },
-    },
+    // amount: {
+    //   type: Number,
+    //   required: function () {
+    //     return this.donationType === "money";
+    //   },
+    // },
+    // currency: {
+    //   type: String,
+    //   default: "ETB",
+    //   required: function () {
+    //     return this.donationType === "money";
+    //   },
+    // },
 
     // --- Material Donation Fields ---
     materialDetails: {
@@ -87,12 +148,12 @@ const donationsSchema = new mongoose.Schema(
     },
 
     // --- Service Donation Fields ---
-    serviceDetails: {
-      type: String,
-      required: function () {
-        return this.donationType === "service";
-      },
-    },
+    // serviceDetails: {
+    //   type: String,
+    //   required: function () {
+    //     return this.donationType === "service";
+    //   },
+    // },
 
     // --- Location & Address ---
     address: {
@@ -120,14 +181,13 @@ const donationsSchema = new mongoose.Schema(
       default: [],
     },
 
-    // --- Tracking & Status ---
-    trackingId: {
-      type: String,
-      unique: true,
-      required: function () {
-        return this.donationType === "material";
-      },
-    },
+    // trackingId: {
+    //   type: String,
+    //   unique: true,
+    //   required: function () {
+    //     return this.donationType === "material";
+    //   },
+    // },
     status: {
       type: String,
       enum: ["pending", "requested", "accepted", "rejected", "completed"],
@@ -135,12 +195,12 @@ const donationsSchema = new mongoose.Schema(
     },
 
     // --- Notifications ---
-    notifications: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Notification",
-      },
-    ],
+    // notifications: [
+    //   {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "Notification",
+    //   },
+    // ],
   },
   {
     timestamps: true,

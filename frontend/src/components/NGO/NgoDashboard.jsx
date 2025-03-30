@@ -138,7 +138,7 @@ export default function NgoDashboard() {
       <div
         className={`${
           mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 transform fixed md:relative z-40 w-64 bg-blue-800 text-white h-full transition-transform duration-300 ease-in-out`}
+        } md:translate-x-0 transform fixed md:relative z-40 w-64 bg-[#006400] text-white h-full transition-transform duration-300 ease-in-out`}
       >
         <div className="p-4 flex items-center justify-between border-b border-blue-700">
           <h1 className="text-xl font-bold truncate">
@@ -177,7 +177,7 @@ export default function NgoDashboard() {
                   setShowNeedForm(false);
                 }}
                 className={`flex items-center p-2 w-full rounded hover:bg-blue-700 ${
-                  activeSection === "needs" ? "bg-blue-600" : ""
+                  activeSection === "needs" ? "bg-[#006466]" : ""
                 }`}
               >
                 <FaHandHoldingHeart className="text-lg" />

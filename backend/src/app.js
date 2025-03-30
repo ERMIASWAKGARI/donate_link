@@ -9,6 +9,7 @@ const donation = require("./routes/donation");
 const errorHandler = require("./middleware/errorHandler");
 const AppError = require("./utils/appError");
 const donationRoutes = require("./routes/donationRoutes");
+const path=require("path")
 dotenv.config();
 
 const app = express();
@@ -37,9 +38,9 @@ app.use(
 
 
 // 3. Static file serving
-app.use("/uploads", express.static("uploads/"));
+app.use("/uploads", express.static("uploads"));
 app.use("/public", express.static("public")); // Fixed syntax
-
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
