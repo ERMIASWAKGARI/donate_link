@@ -10,7 +10,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import VerifyEmail from "./pages/VerifyEmailPage";
 import VerifyOtp from "./pages/VerifyOtpPage";
-
+import NgoDashboard from "./components/NGO/NgoDashboard";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 
