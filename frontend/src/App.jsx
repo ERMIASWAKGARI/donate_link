@@ -3,14 +3,16 @@ import { UserProvider } from "./context/UserContext";
 
 import PrivateRoute from "./components/PrivateRoute"; // Import PrivateRoute
 
+import ScrollToTop from "./components/common/ScrollToTop";
 import Dashboard from "./pages/Dashboard";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import VerifyEmail from "./pages/VerifyEmailPage";
 import VerifyOtp from "./pages/VerifyOtpPage";
-import ScrollToTop from "./components/common/ScrollToTop";
-import NgoDashboard from "./components/NGO/NgoDashboard";
+
+import ForgotPassword from "./components/ForgotPassword";
+import ResetPassword from "./components/ResetPassword";
 
 function App() {
   return (
@@ -24,6 +26,8 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/verify-otp" element={<VerifyOtp />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route element={<PrivateRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
             </Route>

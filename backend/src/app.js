@@ -1,18 +1,19 @@
-const express = require("express");
-const cors = require("cors");
-const dotenv = require("dotenv");
-const connectDB = require("./config/db");
-const userRoutes = require("./routes/userRoutes");
-const authRoutes = require("./routes/authRoutes");
-const adminRoutes = require("./routes/adminRoutes");
-const donation = require("./routes/donation");
-const errorHandler = require("./middleware/errorHandler");
-const AppError = require("./utils/appError");
-const donationRoutes = require("./routes/donationRoutes");
-const path=require("path")
+const express = require('express');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const connectDB = require('./config/db');
+const userRoutes = require('./routes/userRoutes');
+const authRoutes = require('./routes/authRoutes');
+const adminRoutes = require('./routes/adminRoutes'); // <-- Import admin routes
+const donation = require('./routes/donation');
+const errorHandler = require('./middleware/errorHandler');
+const AppError = require('./utils/appError');
+const donationRoutes = require('./routes/donationRoutes');
 dotenv.config();
 
 const app = express();
+
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
 
 // Connect to Database
 connectDB();
@@ -42,18 +43,18 @@ app.use("/uploads", express.static("uploads"));
 app.use("/public", express.static("public")); // Fixed syntax
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // Routes
-app.use("/api/users", userRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/donation", donationRoutes);
-app.use("/api/organization", donation);
-app.use("/api/admin", adminRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/donation', donationRoutes);
 
-// 404 Handler
-app.all("*", (req, res, next) => {
+app.use('/api/organization', donation);
+app.use('/api/admin', adminRoutes);
+app.all('*', (req, res, next) => {
   next(new AppError(`Cannot find ${req.originalUrl} on this server!`, 404));
 });
 
-// Global error Handler Middleware
+app.use('/uploads', express.static('uploads'));
+//Global error Handler Middleware
 app.use(errorHandler);
 
 module.exports = app;
