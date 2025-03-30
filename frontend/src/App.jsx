@@ -14,29 +14,19 @@ import NgoDashboard from "./components/NGO/NgoDashboard";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 
+import Footer from "./components/common/Footer";
+import Header from "./components/common/Header";
+import ScrollToTop from "./components/common/ScrollToTop";
+import AllRoutes from "./routes/AllRoutes";
+import Header_for_indDonor from "../src/pages/Donor/IndividualDonor/Header_for_indDonor";
+import Header_for_Organizationdonor from "./pages/Donor/OrganizationalDonor/Header_for_Organizationdonor";
+
 function App() {
   return (
-    <div className="pb-16">
-      <UserProvider>
-        <Router>
-          <ScrollToTop />
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/verify-email" element={<VerifyEmail />} />
-            <Route path="/verify-otp" element={<VerifyOtp />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route element={<PrivateRoute />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-            </Route>
-            <Route element={<PrivateRoute />}>
-              <Route path="/ngo-dashboard" element={<NgoDashboard />} />
-            </Route>
-          </Routes>
-        </Router>{" "}
-      </UserProvider>
+    <div>
+      <ScrollToTop />
+      <AllRoutes />
+      <Footer />
     </div>
   );
 }

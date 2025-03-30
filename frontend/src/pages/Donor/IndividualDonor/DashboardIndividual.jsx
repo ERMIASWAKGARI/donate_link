@@ -1,8 +1,9 @@
 // Dashboard.js
 import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserContext } from '../context/UserContext';
-import Header_for_indDonor from './Donor/IndividualDonor/Header_for_indDonor';
+import { UserContext } from '../../../context/UserContext';
+import Header_for_indDonor from '../../../pages/Donor/IndividualDonor/Header_for_indDonor';
+import DonationsPage from './DonationPage';
 const Dashboard = () => {
   const { user, logout } = useContext(UserContext);
   const navigate = useNavigate();
@@ -16,7 +17,8 @@ const Dashboard = () => {
   return (
     <div>
      <Header_for_indDonor/>
-      <nav style={{ padding: '10px', backgroundColor: '#333', color: '#fff' }}>
+     <DonationsPage/>
+      {/* <nav style={{ padding: '10px', backgroundColor: '#333', color: '#fff' }}>
         <ul style={{ display: 'flex', listStyle: 'none', margin: 0 }}>
           <li style={{ marginRight: '20px' }}>
             <button
@@ -35,9 +37,9 @@ const Dashboard = () => {
             </button>
           </li>
         </ul>
-      </nav>
+      </nav> */}
 
-      {/* Dashboard Content */}
+      {/* Dashboard Content
       <div style={{ padding: '20px' }}>
         <h1>Welcome, {user ? user.name : 'Guest'}</h1>
         <p>This is your dashboard.</p>
@@ -48,7 +50,7 @@ const Dashboard = () => {
         <p>
           <strong>Phone:</strong> {user ? user.phone : 'N/A'}
         </p>
-      </div>
+      </div> */}
     </div>
   );
 };

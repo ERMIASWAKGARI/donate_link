@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import pic from "../../assets/image.png";
+import pic from "../../../public/Background_image.jpg";
 
 const Hero = () => {
   const containerVariants = {
