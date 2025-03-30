@@ -18,18 +18,9 @@ router.use((req, res, next) => {
 // Material Donation Routes
 router.post(
   "/material",
-  (req, res, next) => {
-    // Set timeout for this specific route (10 seconds)
-    req.setTimeout(10000, () => {
-      console.log("Request timeout occurred");
-      res.status(408).json({ error: "Request timeout" });
-    });
-    next();
-  },
-  upload.array("images", 5),
+  upload, // Now matches frontend field name
   donationController.createMaterialDonation
 );
-
 router.get(
   "/material",
 

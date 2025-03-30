@@ -53,10 +53,8 @@ const donationsSchema = new mongoose.Schema(
     ],
     description: {
       type: String,
-      maxlength: 500,
-    },
-    title:{
-      type:String,
+      enum: ["money", "material", "service", "others"],
+      required: true,
     },
     location: {
       latitude: {
@@ -65,37 +63,21 @@ const donationsSchema = new mongoose.Schema(
         min: -90,
         max: 90,
       },
-      longitude: {
-        type: Number,
-        required: true,
-        min: -180,
-        max: 180,
-      },
-      address: {
-        type: String,
-        required: true,
+    },
+    currency: {
+      type: String,
+      default: "ETB",
+      required: function () {
+        return this.donationType === "money";
       },
     },
-    // donationType: {
-    //   type: String,
-    //   enum: ["money", "material", "service"],
-    //   required: true,
-    // },
 
-    // --- Monetary Donation Fields ---
-    // amount: {
-    //   type: Number,
-    //   required: function () {
-    //     return this.donationType === "money";
-    //   },
-    // },
-    // currency: {
-    //   type: String,
-    //   default: "ETB",
-    //   required: function () {
-    //     return this.donationType === "money";
-    //   },
-    // },
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 150,
+    },
 
     // --- Material Donation Fields ---
     materialDetails: {
