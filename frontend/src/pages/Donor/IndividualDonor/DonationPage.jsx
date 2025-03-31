@@ -14,6 +14,29 @@ const DonationsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
 
+  // Function to get user role from accessToken
+  const getUserRoleFromToken = () => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+      console.error("No access token found");
+      return null;
+    }
+
+    try {
+      const payload = accessToken.split(".")[1];
+      const decodedPayload = JSON.parse(
+        atob(payload.replace(/-/g, "+").replace(/_/g, "/"))
+      );
+      console.log("Decoded token payload:", decodedPayload);
+      return decodedPayload.role; // Assuming role is stored in the token
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      return null;
+    }
+  };
+
+  const currentUserRole = getUserRoleFromToken();
+
   const categories = ["Medical", "Food", "Emergency", "Education", "Clothing"];
 
   const donations = [
@@ -106,29 +129,31 @@ const DonationsPage = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-green-700 to-green-600 rounded-xl p-8 mb-8 text-white">
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">
-          Make a Difference Today
-        </h1>
-        <p className="text-lg mb-6 max-w-2xl">
-          Join thousands of donors supporting critical causes across Ethiopia
-        </p>
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <span className="inline-block bg-yellow-400 text-green-800 px-3 py-1 rounded-full text-sm font-medium mb-2">
-              {donations.length} Active Campaigns
-            </span>
+      {/* Hero Section - Only shown for organization-donor */}
+      {currentUserRole === "organization_donor" && (
+        <div className="bg-gradient-to-r from-green-700 to-green-600 rounded-xl p-8 mb-8 text-white">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">
+            Make a Difference Today
+          </h1>
+          <p className="text-lg mb-6 max-w-2xl">
+            Join thousands of donors supporting critical causes across Ethiopia
+          </p>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <span className="inline-block bg-yellow-400 text-green-800 px-3 py-1 rounded-full text-sm font-medium mb-2">
+                {donations.length} Active Campaigns
+              </span>
+            </div>
+            <Link
+              to="/donation-form"
+              className="flex items-center bg-yellow-400 hover:bg-yellow-500 text-green-700 font-medium py-3 px-6 rounded-full transition-all shadow-md hover:shadow-lg"
+            >
+              <PlusCircle className="mr-2" size={18} />
+              Post Donation
+            </Link>
           </div>
-          <Link
-            to="/donation-form"
-            className="flex items-center bg-yellow-400 hover:bg-yellow-500 text-green-700 font-medium py-3 px-6 rounded-full transition-all shadow-md hover:shadow-lg"
-          >
-            <PlusCircle className="mr-2" size={18} />
-            Post Donation
-          </Link>
         </div>
-      </div>
-
+      )}
       {/* Filter Section */}
       <DonationFilter
         categories={categories}
