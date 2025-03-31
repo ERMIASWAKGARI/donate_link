@@ -13,6 +13,7 @@ import VerifyOtp from "./pages/VerifyOtpPage";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 import DonationForm from "./pages/organization_donor/DonationForm";
+import NgoDashboard from "./components/NGO/NgoDashboard";
 
 function App() {
   return (
@@ -21,6 +22,8 @@ function App() {
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/ngo-dashboard" element={<NgoDashboard />} />
+
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/verify-email" element={<VerifyEmail />} />

@@ -21,11 +21,10 @@ const applicationSchema = new mongoose.Schema(
       ref: "Needs",
       required: true,
     }, // The need being applied for
-    skills: {
-      type: [String],
-    },
-    yearsOfExperience: {
-      type: Number,
+    motivation: {
+      type: String,
+      maxlength: 1000,
+      trim: true,
     },
     status: {
       type: String,
@@ -33,6 +32,25 @@ const applicationSchema = new mongoose.Schema(
     },
     importantDocuments: {
       type: [String],
+    },
+    startDate: {
+      type: Date,
+      required: true,
+    },
+    endDate: Date,
+    hoursPerWeek: Number,
+    status: {
+      type: String,
+      enum: [
+        "Submitted",
+        "Under Review",
+        "Interview Scheduled",
+        "Approved",
+        "Rejected",
+        "On Hold",
+        "Withdrawn",
+      ],
+      default: "Submitted",
     },
   },
   { timestamps: true }

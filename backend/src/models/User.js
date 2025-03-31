@@ -54,9 +54,15 @@ const userSchema = new mongoose.Schema(
     },
     profilePicture: { type: String, default: null },
     bankAccount: {
-      account_number: { type: String },
-      accountName: { type: String },
-      bankName: { type: String },
+      type: {
+        account_number: { type: String, required: true },
+        accountName: { type: String, required: true },
+        bankName: { type: String, required: true },
+        bank_code: { type: String, required: true },
+      },
+      required: function () {
+        return this.role === "ngo"; // Only required for NGOs
+      },
     },
     donorType: {
       type: String,

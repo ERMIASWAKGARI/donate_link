@@ -29,7 +29,6 @@ const fileFilter = (req, file, cb) => {
     );
   }
 };
-
 // Configure Multer
 const uploadProfilePictureMiddleware = multer({
   storage,
