@@ -1,11 +1,11 @@
+import { Eye, EyeOff } from "lucide-react";
 import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
 import AlertMessage from "../components/AlertMessage";
-import RegisterWithGoogle from "../components/RegisterWithGoogle";
-import GoogleAuth from "../components/GoogleAuth";
-import { UserContext } from "../context/UserContext";
 import Header from "../components/common/Header";
+import GoogleAuth from "../components/GoogleAuth";
+import RegisterWithGoogle from "../components/RegisterWithGoogle";
+import { UserContext } from "../context/UserContext";
 
 function LoginPage() {
   const { login, user } = useContext(UserContext);
