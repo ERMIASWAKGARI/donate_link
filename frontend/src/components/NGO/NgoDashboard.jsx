@@ -6,6 +6,8 @@ import {
   FaHandsHelping,
   FaHome,
   FaChevronLeft,
+  FaTimes,
+  FaUser,
 } from "react-icons/fa";
 import PostedNeeds from "./postedNeeds";
 import DonationsList from "./donationsList";
@@ -106,7 +108,7 @@ export default function NgoDashboard() {
         return <VolunteerApplication volunteers={volunteers} />;
       default:
         return (
-          <div className="mt-6">
+          <div className="mt-6 p-3">
             <h1 className="text-2xl font-bold text-blue-700">
               Welcome, {user?.name}
             </h1>
@@ -223,7 +225,7 @@ export default function NgoDashboard() {
                   activeSection === "volunteers" ? "bg-yellow-400" : ""
                 }`}
               >
-                <FaUsers className="text-lg flex-shrink-0" />
+                <FaUser className="text-lg flex-shrink-0" />
                 {(sidebarOpen || mobileSidebarOpen) && (
                   <span className="ml-3 truncate">Applications</span>
                 )}
