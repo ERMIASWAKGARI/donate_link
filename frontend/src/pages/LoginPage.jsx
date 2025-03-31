@@ -60,12 +60,27 @@ function LoginPage() {
       const data = await response.json();
 
       if (data.status === 'success') {
+        console.log(data.data.role);
         login(data.data.accessToken);
         setMessage({
           type: 'success',
           text: 'Login successful! Redirecting...',
         });
-        setTimeout(() => navigate('/dashboard'), 2000);
+        //check if the user role is admin and lead it to admin dashboard
+        if (data.data.role === 'admin') {
+          navigate('/admin/dashboard');
+        } else if (
+          data.data.role === 'individual_donor' ||
+          data.data.role === 'organization_donor'
+        ) {
+          navigate('/donor/dashboard');
+        } else if (data.data.role === 'ngo') {
+          navigate('/ngo/dashboard');
+        } else if (data.data.role === 'volunteer') {
+          navigate('/volunteer/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       } else {
         setMessage({ type: 'error', text: `Login Failed: ${data.message}` });
       }

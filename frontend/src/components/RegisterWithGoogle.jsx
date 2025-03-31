@@ -1,7 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // eslint-disable-next-line react/prop-types
 const RegisterWithGoogle = ({ googleUser }) => {
+  const navigate = useNavigate();
+
   const [role, setRole] = useState('');
   const [phone, setPhone] = useState('');
 
@@ -28,9 +31,23 @@ const RegisterWithGoogle = ({ googleUser }) => {
     console.log('Registration Response:', data);
 
     if (data.status === 'success') {
+      console.log('User Data:', data.data.role);
       localStorage.setItem('accessToken', data.data.accessToken);
       alert('Registration successful!');
-      window.location.href = '/dashboard';
+      if (data.data.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else if (
+        data.data.role === 'individual_donor' ||
+        data.data.role === 'organization_donor'
+      ) {
+        navigate('/donor/dashboard');
+      } else if (data.data.role === 'ngo') {
+        navigate('/ngo/dashboard');
+      } else if (data.data.role === 'volunteer') {
+        navigate('/volunteer/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } else {
       alert('Registration Failed: ' + data.message);
     }
