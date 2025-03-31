@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../../../context/UserContext';
 import Header_for_indDonor from '../../../pages/Donor/IndividualDonor/Header_for_indDonor';
 import DonationsPage from './DonationPage';
-const Dashboard = () => {
+const IndividualDashboard = () => {
   const { user, logout } = useContext(UserContext);
   const navigate = useNavigate();
   // console.log(user);
@@ -16,8 +16,8 @@ const Dashboard = () => {
 
   return (
     <div>
-     <Header_for_indDonor/>
-     <DonationsPage/>
+      <Header_for_indDonor />
+      <DonationsPage />
       {/* <nav style={{ padding: '10px', backgroundColor: '#333', color: '#fff' }}>
         <ul style={{ display: 'flex', listStyle: 'none', margin: 0 }}>
           <li style={{ marginRight: '20px' }}>
@@ -55,4 +55,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default IndividualDashboard;

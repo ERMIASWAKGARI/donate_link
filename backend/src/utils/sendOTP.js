@@ -3,11 +3,16 @@ const AppError = require('../utils/appError');
 
 const sendOTP = async (phone) => {
   console.log('Sending OTP to:', phone);
-  try {
-    if (!phone) {
-      throw new AppError('Phone number is required.', 400);
-    }
 
+  if (!phone) {
+    return {
+      success: false,
+      message: 'Phone number is required.',
+      statusCode: 400,
+    };
+  }
+
+  try {
     await client.verify.v2
       .services(verifySid)
       .verifications.create({ to: phone, channel: 'sms' });
@@ -15,7 +20,12 @@ const sendOTP = async (phone) => {
     return { success: true, message: 'OTP sent successfully.' };
   } catch (error) {
     console.error('Error sending OTP:', error.message);
-    throw new AppError('Failed to send OTP. Please try again.', 500);
+
+    return {
+      success: false,
+      message: 'Failed to send OTP. Please try again.',
+      statusCode: 500,
+    };
   }
 };
 
