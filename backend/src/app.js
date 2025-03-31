@@ -1,14 +1,16 @@
-const express = require("express");
-const cors = require("cors");
-const dotenv = require("dotenv");
-const connectDB = require("./config/db");
-const userRoutes = require("./routes/userRoutes");
-const authRoutes = require("./routes/authRoutes");
-const adminRoutes = require("./routes/adminRoutes"); // <-- Import admin routes
-const donation = require("./routes/donation");
-const errorHandler = require("./middleware/errorHandler");
-const AppError = require("./utils/appError");
-const donationRoutes = require("./routes/donationRoutes");
+const express=require("express")
+const cors = require('cors');
+const dotenv = require('dotenv');
+const connectDB = require('./config/db');
+const userRoutes = require('./routes/userRoutes');
+const authRoutes = require('./routes/authRoutes');
+const adminRoutes = require('./routes/adminRoutes'); // <-- Import admin routes
+const donation = require('./routes/donation');
+const errorHandler = require('./middleware/errorHandler');
+const AppError = require('./utils/appError');
+const donationRoutes = require('./routes/donationRoutes');
+const path=require("path")
+
 dotenv.config();
 
 const app = express();
@@ -30,9 +32,30 @@ app.use(
 // Connect to Database
 connectDB();
 
-// Middleware
-app.use(express.json());
+// CORS Configuration
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
+
+// 1. First set up body parsers with increased limits
+app.use(express.json({ limit: "50mb" }));
+app.use(
+  express.urlencoded({
+    limit: "50mb",
+    extended: true,
+  })
+);
+
+
+
+// 3. Static file serving
+app.use("/uploads", express.static("uploads"));
+app.use("/public", express.static("public")); // Fixed syntax
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);

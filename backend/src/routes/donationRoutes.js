@@ -1,29 +1,20 @@
 const express = require("express");
 const router = express.Router();
-const { protect } = require("../middleware/authMiddleware");
-const { postANeed } = require("../controllers/donationManagement/postANeed");
+const needsController = require("../controllers/donationManagement/needController");
+const uploadNeedPictures = require("../middleware/uploadNeedPictures");
+const authMiddleware = require("../middleware/authenticationMiddleware");
 
-const {
-  getAllNeeds,
-} = require("../controllers/donationManagement/getAllNeeds");
-const {
-  getNeedById,
-} = require("../controllers/donationManagement/getNeedById");
-const {
-  getNeedsByNGO,
-} = require("../controllers/donationManagement/getNeedsByNGO");
-const {
-  initiatePayment,
-  verifyPayment,
-} = require("../controllers/donationManagement/paymentController");
+// Post NGO's Need with file upload support
+router.post(
+  "/postNgosNeed",
+  authMiddleware("ngo"),
+  uploadNeedPictures, // Add the upload middleware
+  needsController.postNgosNeed
+);
 
-// const donationController = require("../controllers/donationController");
-
-router.post("/postANeed", protect, postANeed);
-router.post("/initiatePayment", protect, initiatePayment);
-router.get("/verifyPayment", verifyPayment);
-router.get("/getAllNeeds", getAllNeeds);
-router.get("/getNeedsByNGO", getNeedsByNGO);
-router.get("/getNeedsById", getNeedById);
+// Other routes remain the same
+router.get("/getAllNeeds", needsController.getAllNeeds);
+router.get("/ngo/:ngoId", needsController.getNeedsByNgo);
+router.get("/:id", needsController.getNeedById);
 
 module.exports = router;

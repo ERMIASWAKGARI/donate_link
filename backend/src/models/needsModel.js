@@ -6,103 +6,167 @@ const needsSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-    }, // The NGO requesting the need
+    },
 
     title: {
       type: String,
       required: true,
       trim: true,
-    }, // Title of the need (e.g., "Urgent Food Supplies for 100 Families")
+      maxlength: 100,
+    },
 
-    needType: {
-      type: String,
-      enum: ["money", "material", "service"],
+    needTypes: {
+      type: [
+        {
+          type: String,
+          enum: ["money", "material", "service"],
+        },
+      ],
       required: true,
-    }, // Type of need (money, material, or service)
+      validate: {
+        validator: function (v) {
+          return v.length > 0 && v.length <= 3 && new Set(v).size === v.length;
+        },
+        message: "Must specify 1-3 unique need types",
+      },
+    },
 
     urgencyLevel: {
       type: String,
       enum: ["Low", "Medium", "High"],
       required: true,
-    }, // Urgency level of the need
+    },
 
     description: {
       type: String,
       required: true,
       trim: true,
-    }, // Detailed description of the need
+      maxlength: 2000,
+    },
 
     status: {
       type: String,
       enum: ["Open", "Fulfilled", "Expired"],
       default: "Open",
-    }, // Current status of the need
-endDate:{
-  type:Date,
-  required:true
-},
-  targetMoney: {
-          type: Number,
-          required: function () {
-            return this.parent().needType === "money";
-          }, // Required only for money needs
-          min: 0, // Ensure the amount is non-negative
-        },
-    beneficiaryInfo: {
-      numberOfBeneficiaries: { type: Number, required: true }, // Number of people benefiting
-      pictures: [{ type: String }], // Images of beneficiaries or the situation
-      location: {
-        latitude: { type: Number, required: true },
-        longitude: { type: Number, required: true },
-        address: { type: String }, // Human-readable address
-      }, // Location of the need
     },
 
-    category: [
-      {
-        categoryName: {
-          type: String,
-          required: true,
+    endDate: {
+      type: Date,
+      required: true,
+      validate: {
+        validator: function (v) {
+          return v > new Date(); // Changed to greater than for FUTURE dates
         },
-        subCategoryName: {
-          type: String,
-          required: true,
-        },
-        targetAmountNeeded: {
-          type: String,
-          required: function () {
-            return this.parent().needType === "matterial";
+        message: "End date must be in the future",
+      },
+    },
+
+    targetMoney: {
+      type: Number,
+      required: function () {
+        return this.needTypes.includes("money");
+      },
+      min: 0,
+      default: null,
+    },
+
+    beneficiaryInfo: {
+      numberOfBeneficiaries: {
+        type: Number,
+        required: true,
+        min: 1,
+      },
+      pictures: {
+        type: [String], // Ensure it's an array of strings
+        validate: {
+          validator: function (v) {
+            return v.length <= 10; // Correctly check the total number of images
           },
-          min: 1,
+          message: "Cannot upload more than 10 pictures",
         },
-        vacancy: {
-          type: String,
-          required: function () {
-            return this.parent().needType === "service";
-          },
-          min: 1,
-        },
-        targetMoney: {
+      },
+      location: {
+        latitude: {
           type: Number,
-          required: function () {
-            return this.parent().needType === "money";
-          }, // Required only for money needs
-          min: 0, // Ensure the amount is non-negative
+          required: true,
+          min: -90,
+          max: 90,
         },
+        longitude: {
+          type: Number,
+          required: true,
+          min: -180,
+          max: 180,
+        },
+        address: {
+          type: String,
+          required: true,
+        },
+      },
+    },
+    application: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Application",
       },
     ],
-    donors: [
-      {
-        donor: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Donor who contributed
-      },
-    ], // List of donors and their contributions
+    categories: {
+      material: [
+        {
+          categoryName: {
+            type: String,
+            required: function () {
+              return this.parent().parent().needTypes.includes("material");
+            },
+            maxlength: 50,
+          },
+          subCategoryName: {
+            type: String,
+            required: function () {
+              return this.parent().parent().needTypes.includes("material");
+            },
+            maxlength: 50,
+          },
+          targetAmountNeeded: {
+            type: String,
+            required: function () {
+              return this.parent().parent().needTypes.includes("material");
+            },
+            min: 1,
+          },
+        },
+      ],
 
-    endDate: { type: Date, required: true }, // Deadline for the need
+      service: [
+        {
+          categoryName: {
+            type: String,
+            required: function () {
+              return this.parent().parent().needTypes.includes("service");
+            },
+            maxlength: 50,
+          },
+          subCategoryName: {
+            type: String,
+            required: function () {
+              return this.parent().parent().needTypes.includes("service");
+            },
+            maxlength: 50,
+          },
+          vacancy: {
+            type: String,
+            required: function () {
+              return this.parent().parent().needTypes.includes("service");
+            },
+            min: 1,
+          },
+        },
+      ],
+    },
   },
-  { timestamps: true } // Automatically adds createdAt & updatedAt fields
+  {
+    timestamps: true,
+  }
 );
 
 module.exports = mongoose.model("Needs", needsSchema);
-//allow the updation to description
-
- 

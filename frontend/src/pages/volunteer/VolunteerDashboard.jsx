@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-//create an admin dashboard
 import {
   AppBar,
   Box,
@@ -12,9 +10,8 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material';
-import React from 'react';
 
-const Dashboard = () => {
+const VolunteerDashboard = () => {
   const drawerWidth = 240;
 
   return (
@@ -34,7 +31,7 @@ const Dashboard = () => {
         <Toolbar />
         <Box sx={{ overflow: 'auto' }}>
           <List>
-            {['Dashboard', 'Users', 'Donations', 'Reports', 'Settings'].map(
+            {['Dashboard', 'Tasks', 'Events', 'Reports', 'Profile'].map(
               (text, index) => (
                 <ListItem button key={text}>
                   <ListItemText primary={text} />
@@ -61,7 +58,7 @@ const Dashboard = () => {
         >
           <Toolbar>
             <Typography variant="h6" noWrap component="div">
-              Admin Dashboard
+              Volunteer Dashboard
             </Typography>
           </Toolbar>
         </AppBar>
@@ -71,20 +68,20 @@ const Dashboard = () => {
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6} md={4}>
             <Paper elevation={3} sx={{ padding: 2 }}>
-              <Typography variant="h6">Total Users</Typography>
-              <Typography variant="h4">120</Typography>
+              <Typography variant="h6">Assigned Tasks</Typography>
+              <Typography variant="h4">5</Typography>
             </Paper>
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
             <Paper elevation={3} sx={{ padding: 2 }}>
-              <Typography variant="h6">Total Donations</Typography>
-              <Typography variant="h4">$15,000</Typography>
+              <Typography variant="h6">Upcoming Events</Typography>
+              <Typography variant="h4">3</Typography>
             </Paper>
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
             <Paper elevation={3} sx={{ padding: 2 }}>
-              <Typography variant="h6">Pending Requests</Typography>
-              <Typography variant="h4">8</Typography>
+              <Typography variant="h6">Hours Contributed</Typography>
+              <Typography variant="h4">40</Typography>
             </Paper>
           </Grid>
         </Grid>
@@ -93,4 +90,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default VolunteerDashboard;

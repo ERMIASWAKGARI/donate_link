@@ -152,7 +152,6 @@ const registerUser = asyncWrapper(async (req, res) => {
     }
   );
 });
-
 const uploadProfilePicture = asyncWrapper(async (req, res) => {
   const user = await User.findById(req.user._id);
 

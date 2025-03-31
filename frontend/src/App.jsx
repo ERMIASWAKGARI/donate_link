@@ -11,11 +11,15 @@ import VerifyOtp from './pages/VerifyOtpPage';
 
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
-import DonationForm from './pages/organization_donor/DonationForm';
+import NotFoundPage from './pages/NotFound';
 
 import AdminDashboard from './pages/admin/Dashboard';
 
 import IndividualDashboard from './pages/Donor/IndividualDonor/DashboardIndividual';
+
+import VolunteerDashboard from './pages/volunteer/VolunteerDashboard';
+
+import NgoDashboard from './components/NGO/NgoDashboard';
 
 function App() {
   return (
@@ -36,16 +40,20 @@ function App() {
           </Route>
 
           <Route element={<PrivateRoute />}>
-            <Route path="/ngo/dashboard" element={<DonationForm />} />
+            <Route path="/ngo/dashboard" element={<NgoDashboard />} />
           </Route>
 
           <Route element={<PrivateRoute />}>
-            <Route path="/volunteer/dashboard" element={<DonationForm />} />
+            <Route
+              path="/volunteer/dashboard"
+              element={<VolunteerDashboard />}
+            />
           </Route>
 
           <Route element={<PrivateRoute />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
           </Route>
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </UserProvider>
     </div>
