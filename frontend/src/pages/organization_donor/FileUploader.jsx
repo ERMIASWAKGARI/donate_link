@@ -94,6 +94,58 @@ const FileUploader = ({
     };
   }, [files]);
 
+  const handleDragEnter = useCallback((e) => {
+    console.log("Drag enter");
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    console.log("Drag leave");
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback(
+    (e) => {
+      console.log("Files dropped");
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        const newFiles = Array.from(e.dataTransfer.files);
+        console.log("Dropped files:", newFiles);
+        const validFiles = newFiles.filter(
+          (file) => file.size <= 5 * 1024 * 1024 // 5MB limit
+        );
+
+        if (validFiles.length > 0) {
+          const remainingSlots = 5 - files.length;
+          const filesToAdd = validFiles.slice(0, remainingSlots);
+          console.log("Adding files:", filesToAdd);
+          handleFileChange({ target: { files: filesToAdd } });
+        }
+      }
+    },
+    [files.length, handleFileChange]
+  );
+
+  const handleClick = useCallback(() => {
+    console.log("Upload area clicked");
+    if (files.length === 0) {
+      console.log("Triggering file input click");
+      fileInputRef.current.click();
+    }
+  }, [fileInputRef, files.length]);
+
   // ... (keep all the existing drag/drop handlers the same) ...
 
   return (
