@@ -11,6 +11,7 @@ import {
   FaLessThan,
   FaChevronCircleRight,
   FaChevronRight,
+  FaChevronLeft,
 } from "react-icons/fa";
 import PostedNeeds from "./postedNeeds";
 import DonationsList from "./donationsList";
@@ -159,7 +160,7 @@ export default function NgoDashboard() {
             className="hidden md:block p-1 hover:bg-blue-700  focus:outline-none"
           >
             {sidebarOpen ? (
-              <FaLessThan size={14} />
+              <FaChevronLeft size={14} />
             ) : (
               <FaChevronRight size={14} />
             )}
