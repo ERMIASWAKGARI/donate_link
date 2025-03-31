@@ -241,11 +241,10 @@ export default function NgoDashboard() {
 
       {/* Main content */}
       <div
-        className={`flex-1 overflow-auto transition-all duration-300 ${
-          sidebarOpen ? "md:ml-24 mx-auto" : "md:ml-10"
+        className={`flex-1 overflow-auto transition-all duration-300 
         }`}
       >
-        <div className="p-4 md:p-6">{renderContent()}</div>
+        <div className="relative">{renderContent()}</div>
       </div>
     </div>
   );

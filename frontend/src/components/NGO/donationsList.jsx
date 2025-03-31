@@ -45,7 +45,7 @@ const DonationsList = () => {
   return (
     <div>
       {/* Navbar */}
-      <nav className="bg-blue-600 text-white py-4 px-6 flex justify-center gap-6 shadow-md">
+      <nav className="bg-blue-600 sticky top-0 w-full text-white py-4  flex justify-center gap-6 shadow-md">
         <button
           onClick={() => setSelectedCategory("money")}
           className="font-semibold hover:underline"

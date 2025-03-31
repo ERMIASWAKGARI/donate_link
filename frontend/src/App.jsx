@@ -1,6 +1,5 @@
 import { Route, Routes } from "react-router-dom";
 import { UserProvider } from "./context/UserContext";
-
 import PrivateRoute from "./components/PrivateRoute"; // Import PrivateRoute
 import ScrollToTop from "./components/common/ScrollToTop";
 import Dashboard from "./pages/Dashboard";
@@ -9,12 +8,10 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import VerifyEmail from "./pages/VerifyEmailPage";
 import VerifyOtp from "./pages/VerifyOtpPage";
-
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 import DonationForm from "./pages/organization_donor/DonationForm";
 import NgoDashboard from "./components/NGO/NgoDashboard";
-
 function App() {
   return (
     <div className="pb-16">

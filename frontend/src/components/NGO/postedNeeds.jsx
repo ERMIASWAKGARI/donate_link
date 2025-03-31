@@ -44,9 +44,7 @@ function PostedNeeds() {
       setNeeds(response.data.data || []);
       setTotalItems(response.data.total || 0);
     } catch (err) {
-      setError(
-        err.response?.data?.message || err.message || "Failed to fetch needs"
-      );
+      setError("No posts added yet ");
     } finally {
       setLoading(false);
     }
