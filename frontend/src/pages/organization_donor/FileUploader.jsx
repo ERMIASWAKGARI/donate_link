@@ -13,12 +13,15 @@ const FileUploader = ({
   // Generate preview URLs whenever files change
   useEffect(() => {
     const newPreviewUrls = files.map((file) => {
+      console.log("Processing file:", file); // Debugging log
       if (file.type.startsWith("image/")) {
         return URL.createObjectURL(file);
       }
       return file.name; // For non-image files (like PDFs)
     });
     setLocalPreviewUrls(newPreviewUrls);
+
+    console.log("Generated preview URLs:", newPreviewUrls);
 
     // Clean up object URLs when component unmounts
     return () => {
@@ -76,7 +79,7 @@ const FileUploader = ({
   }, [fileInputRef, files.length]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {/* Combined Drag and Drop Zone & Preview Area */}
       <div
         className={`relative border-2 border-dashed rounded-lg p-4 transition-colors min-h-[130px] ${
@@ -127,9 +130,8 @@ const FileUploader = ({
                       <img
                         src={localPreviewUrls[index]}
                         alt={`Preview ${file.name}`}
-                        className="h-full w-full object-cover"
+                        className="h-[100px] w-[100px] object-contain"
                       />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200" />
                     </>
                   ) : (
                     <div className="h-full flex flex-col items-center justify-center bg-red-50 p-2">

@@ -158,7 +158,7 @@ const MaterialDonation = ({
 
             {/* Description */}
             <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 ">
                 Description
               </label>
               <textarea
@@ -177,7 +177,7 @@ const MaterialDonation = ({
           </div>
 
           {/* File Upload Section */}
-          <div className="bg-gray-50 p-6 rounded-lg">
+          <div className="bg-gray-50 pt-1 p-6 rounded-lg">
             <h2 className="text-lg font-semibold text-gray-700 mb-4">
               Upload Images
             </h2>
