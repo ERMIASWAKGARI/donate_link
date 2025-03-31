@@ -1,25 +1,25 @@
-import { useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
-import AlertMessage from "../components/AlertMessage";
-import RegisterWithGoogle from "../components/RegisterWithGoogle";
-import GoogleAuth from "../components/GoogleAuth";
-import { UserContext } from "../context/UserContext";
-import Header from "../components/common/Header";
+import { Eye, EyeOff } from 'lucide-react';
+import { useContext, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import AlertMessage from '../components/AlertMessage';
+import Header from '../components/common/Header';
+import GoogleAuth from '../components/GoogleAuth';
+import RegisterWithGoogle from '../components/RegisterWithGoogle';
+import { UserContext } from '../context/UserContext';
 
 function LoginPage() {
   const { login } = useContext(UserContext);
   const navigate = useNavigate();
 
   // State management
-  const [loginMethod, setLoginMethod] = useState("email"); // 'email' or 'phone'
+  const [loginMethod, setLoginMethod] = useState('email'); // 'email' or 'phone'
   const [formData, setFormData] = useState({
-    email: "",
-    phone: "",
-    countryCode: "+251",
-    password: "",
+    email: '',
+    phone: '',
+    countryCode: '+251',
+    password: '',
   });
-  const [message, setMessage] = useState({ type: "", text: "" });
+  const [message, setMessage] = useState({ type: '', text: '' });
   const [googleUser, setGoogleUser] = useState(null);
   const [isRegisteringWithGoogle, setIsRegisteringWithGoogle] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -36,44 +36,44 @@ function LoginPage() {
     const loginData = { password: formData.password };
 
     // Validate based on selected method
-    if (loginMethod === "email") {
+    if (loginMethod === 'email') {
       if (!formData.email) {
-        setMessage({ type: "error", text: "Please enter your email" });
+        setMessage({ type: 'error', text: 'Please enter your email' });
         return;
       }
       loginData.email = formData.email;
     } else {
       if (!formData.phone) {
-        setMessage({ type: "error", text: "Please enter your phone number" });
+        setMessage({ type: 'error', text: 'Please enter your phone number' });
         return;
       }
       loginData.phone = `${formData.countryCode}${formData.phone}`;
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(loginData),
       });
 
       const data = await response.json();
 
-      if (data.status === "success") {
+      if (data.status === 'success') {
         login(data.data.accessToken);
         setMessage({
-          type: "success",
-          text: "Login successful! Redirecting...",
+          type: 'success',
+          text: 'Login successful! Redirecting...',
         });
-        setTimeout(() => navigate("/dashboard"), 2000);
+        setTimeout(() => navigate('/dashboard'), 2000);
       } else {
-        setMessage({ type: "error", text: `Login Failed: ${data.message}` });
+        setMessage({ type: 'error', text: `Login Failed: ${data.message}` });
       }
     } catch (error) {
-      console.error("Login Error:", error);
+      console.error('Login Error:', error);
       setMessage({
-        type: "error",
-        text: "An error occurred. Please try again.",
+        type: 'error',
+        text: 'An error occurred. Please try again.',
       });
     }
   };
@@ -92,28 +92,28 @@ function LoginPage() {
           <div className="flex mb-6 border-b">
             <button
               className={`flex-1 py-3 font-medium text-sm ${
-                loginMethod === "email"
-                  ? "text-green-600 border-b-2 border-green-600"
-                  : "text-gray-500 hover:text-gray-700"
+                loginMethod === 'email'
+                  ? 'text-green-600 border-b-2 border-green-600'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
-              onClick={() => setLoginMethod("email")}
+              onClick={() => setLoginMethod('email')}
             >
               Email Login
             </button>
             <button
               className={`flex-1 py-3 font-medium text-sm ${
-                loginMethod === "phone"
-                  ? "text-green-600 border-b-2 border-green-600"
-                  : "text-gray-500 hover:text-gray-700"
+                loginMethod === 'phone'
+                  ? 'text-green-600 border-b-2 border-green-600'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
-              onClick={() => setLoginMethod("phone")}
+              onClick={() => setLoginMethod('phone')}
             >
               Phone Login
             </button>
           </div>
 
           {/* Email or Phone Input */}
-          {loginMethod === "email" ? (
+          {loginMethod === 'email' ? (
             <div className="mb-4">
               <label
                 htmlFor="email"
@@ -174,7 +174,7 @@ function LoginPage() {
             </label>
             <div className="relative">
               <input
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 id="password"
                 name="password"
                 placeholder="••••••••"
@@ -186,7 +186,7 @@ function LoginPage() {
                 type="button"
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
                 onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? (
                   <EyeOff size={18} className="text-gray-400" />
@@ -245,7 +245,7 @@ function LoginPage() {
           {/* Register Link */}
           <div className="text-center mt-6">
             <p className="text-sm text-gray-600">
-              Dont have an account?{" "}
+              Dont have an account?{' '}
               <a
                 href="/register"
                 className="font-medium text-green-600 hover:text-green-800 hover:underline"
