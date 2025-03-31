@@ -60,9 +60,6 @@ const userSchema = new mongoose.Schema(
         bankName: { type: String, required: true },
         bank_code: { type: String, required: true },
       },
-      required: function () {
-        return this.role === "ngo"; // Only required for NGOs
-      },
     },
     donorType: {
       type: String,

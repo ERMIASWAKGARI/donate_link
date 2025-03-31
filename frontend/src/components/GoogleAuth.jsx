@@ -24,12 +24,11 @@ function GoogleAuth({ setGoogleUser, setIsRegisteringWithGoogle }) {
       });
 
       const data = await response.json();
+      console.log('Backend Response:', data);
 
       if (!response.ok) {
         throw new Error(data.message || 'Google sign-in failed.');
       }
-
-      console.log('Backend Response:', data);
 
       if (data.data.accountRecoveryTokenRequired) {
         setMessage({
@@ -47,13 +46,26 @@ function GoogleAuth({ setGoogleUser, setIsRegisteringWithGoogle }) {
         setIsRegisteringWithGoogle(true);
         setGoogleUser(data.data);
       } else {
-        console.log(data.data.accessToken);
+        console.log('User Data:', data.data.user.role);
         login(data.data.accessToken);
         setMessage({
           type: 'success',
           text: 'Google Sign-in Successful!',
         });
-        navigate('/dashboard');
+        if (data.data.user.role === 'admin') {
+          navigate('/admin/dashboard');
+        } else if (
+          data.data.user.role === 'individual_donor' ||
+          data.data.user.role === 'organization_donor'
+        ) {
+          navigate('/donor/dashboard');
+        } else if (data.data.user.role === 'ngo') {
+          navigate('/ngo/dashboard');
+        } else if (data.data.user.role === 'volunteer') {
+          navigate('/volunteer/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       }
     } catch (error) {
       console.error('Error authenticating with backend:', error.message);

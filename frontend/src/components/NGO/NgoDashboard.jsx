@@ -1,65 +1,62 @@
-import React, { useState, useContext } from "react";
-import PostNeedForm from "./PostNeedsForm";
+import { useContext, useState } from 'react';
 import {
-  FaHome,
+  FaBars,
+  FaChevronRight,
   FaHandHoldingHeart,
   FaHandsHelping,
-  FaUsers,
-  FaBars,
-  FaTimes,
-  FaGreaterThan,
+  FaHome,
   FaLessThan,
-  FaChevronCircleRight,
-  FaChevronRight,
-} from "react-icons/fa";
-import PostedNeeds from "./postedNeeds";
-import DonationsList from "./donationsList";
-import VolunteerApplication from "./VolunteerApplication";
-import { UserContext } from "../../context/UserContext";
+  FaTimes,
+  FaUsers,
+} from 'react-icons/fa';
+import { UserContext } from '../../context/UserContext';
+import DonationsList from './donationsList';
+import PostedNeeds from './postedNeeds';
+import VolunteerApplication from './VolunteerApplication';
 
 const ngoData = {
-  name: "Helping Hands NGO",
-  email: "contact@helpinghands.org",
+  name: 'Helping Hands NGO',
+  email: 'contact@helpinghands.org',
   needs: [
     {
       id: 1,
-      type: "money",
-      description: "Emergency relief fund",
-      amount: "50,000 ETB",
-      status: "Pending",
+      type: 'money',
+      description: 'Emergency relief fund',
+      amount: '50,000 ETB',
+      status: 'Pending',
     },
     {
       id: 2,
-      type: "items",
-      description: "Winter Clothes for 100 people",
-      status: "Pending",
+      type: 'items',
+      description: 'Winter Clothes for 100 people',
+      status: 'Pending',
     },
     {
       id: 3,
-      type: "volunteer",
-      description: "Teaching volunteers for kids",
-      status: "Open",
+      type: 'volunteer',
+      description: 'Teaching volunteers for kids',
+      status: 'Open',
     },
   ],
   donations: [
     {
       id: 1,
-      donor: "John Doe",
-      amount: "5000 ETB",
-      type: "money",
-      status: "Completed",
+      donor: 'John Doe',
+      amount: '5000 ETB',
+      type: 'money',
+      status: 'Completed',
     },
     {
       id: 2,
-      donor: "Jane Smith",
-      item: "50 Jackets",
-      type: "items",
-      status: "Pending",
+      donor: 'Jane Smith',
+      item: '50 Jackets',
+      type: 'items',
+      status: 'Pending',
     },
   ],
   volunteers: [
-    { id: 1, name: "Samuel Tesfaye", role: "Teaching" },
-    { id: 2, name: "Martha Tadesse", role: "Medical Aid" },
+    { id: 1, name: 'Samuel Tesfaye', role: 'Teaching' },
+    { id: 2, name: 'Martha Tadesse', role: 'Medical Aid' },
   ],
 };
 
@@ -67,7 +64,7 @@ export default function NgoDashboard() {
   const [needs, setNeeds] = useState(ngoData.needs);
   const [donations, setDonations] = useState(ngoData.donations);
   const [volunteers, setVolunteers] = useState(ngoData.volunteers);
-  const [activeSection, setActiveSection] = useState("home");
+  const [activeSection, setActiveSection] = useState('home');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [showNeedForm, setShowNeedForm] = useState(false);
@@ -96,7 +93,7 @@ export default function NgoDashboard() {
 
   const renderContent = () => {
     switch (activeSection) {
-      case "needs":
+      case 'needs':
         return (
           <PostedNeeds
             needs={needs}
@@ -105,9 +102,9 @@ export default function NgoDashboard() {
             setShowNeedForm={setShowNeedForm}
           />
         );
-      case "donations":
+      case 'donations':
         return <DonationsList donations={donations} />;
-      case "volunteers":
+      case 'volunteers':
         return <VolunteerApplication volunteers={volunteers} />;
       default:
         return (
@@ -143,9 +140,9 @@ export default function NgoDashboard() {
       {/* Sidebar */}
       <div
         className={`${
-          mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } md:translate-x-0 transform fixed md:relative z-40 ${
-          sidebarOpen ? "w-64" : "w-20"
+          sidebarOpen ? 'w-64' : 'w-20'
         } bg-[#006400] text-white h-full transition-all duration-300 ease-in-out flex-shrink-0`}
       >
         <div className="p-4 flex items-center justify-between border-b border-blue-700">
@@ -170,11 +167,11 @@ export default function NgoDashboard() {
             <li>
               <button
                 onClick={() => {
-                  setActiveSection("home");
+                  setActiveSection('home');
                   setMobileSidebarOpen(false);
                 }}
                 className={`flex items-center p-2 w-full rounded  transition-colors ${
-                  activeSection === "home" ? "bg-yellow-400" : ""
+                  activeSection === 'home' ? 'bg-yellow-400' : ''
                 }`}
               >
                 <FaHome className="text-lg flex-shrink-0" />
@@ -186,12 +183,12 @@ export default function NgoDashboard() {
             <li>
               <button
                 onClick={() => {
-                  setActiveSection("needs");
+                  setActiveSection('needs');
                   setMobileSidebarOpen(false);
                   setShowNeedForm(false);
                 }}
                 className={`flex items-center p-2 w-full rounded  transition-colors ${
-                  activeSection === "needs" ? "bg-[#006466] bg-yellow-400" : ""
+                  activeSection === 'needs' ? 'bg-[#006466] bg-yellow-400' : ''
                 }`}
               >
                 <FaHandHoldingHeart className="text-lg flex-shrink-0" />
@@ -203,13 +200,13 @@ export default function NgoDashboard() {
             <li>
               <button
                 onClick={() => {
-                  setActiveSection("donations");
+                  setActiveSection('donations');
                   setMobileSidebarOpen(false);
                 }}
                 className={`flex items-center p-2 w-full rounded  transition-colors ${
-                  activeSection === "donations"
-                    ? "bg-blue-600 bg-yellow-400"
-                    : ""
+                  activeSection === 'donations'
+                    ? 'bg-blue-600 bg-yellow-400'
+                    : ''
                 }`}
               >
                 <FaHandsHelping className="text-lg flex-shrink-0" />
@@ -221,11 +218,11 @@ export default function NgoDashboard() {
             <li>
               <button
                 onClick={() => {
-                  setActiveSection("volunteers");
+                  setActiveSection('volunteers');
                   setMobileSidebarOpen(false);
                 }}
                 className={`flex items-center p-2 w-full rounded  transition-colors ${
-                  activeSection === "volunteers" ? "bg-yellow-400" : ""
+                  activeSection === 'volunteers' ? 'bg-yellow-400' : ''
                 }`}
               >
                 <FaUsers className="text-lg flex-shrink-0" />
@@ -241,7 +238,7 @@ export default function NgoDashboard() {
       {/* Main content */}
       <div
         className={`flex-1 overflow-auto transition-all duration-300 ${
-          sidebarOpen ? "md:ml-24 mx-auto" : "md:ml-10"
+          sidebarOpen ? 'md:ml-24 mx-auto' : 'md:ml-10'
         }`}
       >
         <div className="p-4 md:p-6">{renderContent()}</div>
