@@ -1,25 +1,26 @@
-import { Route, Routes } from 'react-router-dom';
-import { UserProvider } from './context/UserContext';
+import { Route, Routes } from "react-router-dom";
+import { UserProvider } from "./context/UserContext";
 
-import PrivateRoute from './components/PrivateRoute'; // Import PrivateRoute
-import ScrollToTop from './components/common/ScrollToTop';
-import LandingPage from './pages/LandingPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import VerifyEmail from './pages/VerifyEmailPage';
-import VerifyOtp from './pages/VerifyOtpPage';
+import PrivateRoute from "./components/PrivateRoute"; // Import PrivateRoute
+import ScrollToTop from "./components/common/ScrollToTop";
+import LandingPage from "./pages/LandingPage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import VerifyEmail from "./pages/VerifyEmailPage";
+import VerifyOtp from "./pages/VerifyOtpPage";
 
-import ForgotPassword from './components/ForgotPassword';
-import ResetPassword from './components/ResetPassword';
-import NotFoundPage from './pages/NotFound';
+import ForgotPassword from "./components/ForgotPassword";
+import ResetPassword from "./components/ResetPassword";
+import NotFoundPage from "./pages/NotFound";
 
-import AdminDashboard from './pages/admin/Dashboard';
+import AdminDashboard from "./pages/admin/Dashboard";
 
-import IndividualDashboard from './pages/Donor/IndividualDonor/DashboardIndividual';
+import IndividualDashboard from "./pages/Donor/IndividualDonor/DashboardIndividual";
 
-import VolunteerDashboard from './pages/volunteer/VolunteerDashboard';
+import VolunteerDashboard from "./pages/volunteer/VolunteerDashboard";
 
-import NgoDashboard from './components/NGO/NgoDashboard';
+import NgoDashboard from "./components/NGO/NgoDashboard";
+import DonationForm from "./pages/organization_donor/DonationForm";
 
 function App() {
   return (
@@ -52,6 +53,7 @@ function App() {
 
           <Route element={<PrivateRoute />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/donation-form" element={<DonationForm />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
