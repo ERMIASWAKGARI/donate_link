@@ -51,6 +51,7 @@ const DonationForm = () => {
   // Function to get donorId from accessToken
   const getDonorIdFromToken = () => {
     const accessToken = localStorage.getItem("accessToken");
+    console.log("Token:", accessToken);
     if (!accessToken) {
       console.error("No access token found");
       return null;
