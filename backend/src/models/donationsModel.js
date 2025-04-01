@@ -36,6 +36,11 @@ const donationsSchema = new mongoose.Schema(
       },
     },
 
+    description: {
+      type: String,
+      maxlength: 500,
+    },
+
     // --- Material Donation Fields ---
     materialDetails: {
       category: {
@@ -79,10 +84,6 @@ const donationsSchema = new mongoose.Schema(
               this.materialDetails.category === "medical")
           );
         },
-      },
-      description: {
-        type: String,
-        maxlength: 500,
       },
     },
 

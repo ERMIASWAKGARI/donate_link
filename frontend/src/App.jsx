@@ -20,7 +20,7 @@ import IndividualDashboard from "./pages/Donor/IndividualDonor/DashboardIndividu
 import VolunteerDashboard from "./pages/volunteer/VolunteerDashboard";
 
 import NgoDashboard from "./components/NGO/NgoDashboard";
-import DonationForm from "./pages/organization_donor/DonationForm";
+import DonationForm from "./pages/Donor/OrganizationalDonor/DonationForm";
 
 function App() {
   return (
@@ -53,7 +53,7 @@ function App() {
 
           <Route element={<PrivateRoute />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/donation-form" element={<DonationForm />} />
+            <Route path="/post-donation" element={<DonationForm />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

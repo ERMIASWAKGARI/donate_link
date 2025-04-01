@@ -145,7 +145,7 @@ const DonationsPage = () => {
               </span>
             </div>
             <Link
-              to="/donation-form"
+              to="/post-donation"
               className="flex items-center bg-yellow-400 hover:bg-yellow-500 text-green-700 font-medium py-3 px-6 rounded-full transition-all shadow-md hover:shadow-lg"
             >
               <PlusCircle className="mr-2" size={18} />
