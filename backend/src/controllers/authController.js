@@ -263,14 +263,20 @@ const login = asyncWrapper(async (req, res) => {
   if (email) {
     user = await User.findOne({ email });
     if (!user) {
-      throw new AppError('User with this email not found.', 401);
+      throw new AppError(
+        'No account found with this email address. Please check your email or sign up.',
+        401
+      );
     }
   }
 
   if (phone) {
     user = await User.findOne({ phone });
     if (!user) {
-      throw new AppError('User with this phone not found', 401);
+      throw new AppError(
+        'No account found with this phone number. Please check your number or sign up.',
+        401
+      );
     }
   }
 
@@ -331,8 +337,17 @@ const login = asyncWrapper(async (req, res) => {
 
   // Compare the hashed password
   const isMatch = await bcrypt.compare(password, user.password);
+  if (user.password === 'GoogleAuthUser') {
+    throw new AppError(
+      'This account requires Google Sign-In. Please use the "Continue with Google" option.',
+      401
+    );
+  }
   if (!isMatch) {
-    throw new AppError('Invalid password.', 401);
+    throw new AppError(
+      'The password you entered is incorrect. Please try again.',
+      401
+    );
   }
 
   // 🔹 If account is deactivated, request reactivation

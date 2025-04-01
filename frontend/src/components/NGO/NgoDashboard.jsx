@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useContext, useState } from 'react';
 import {
   FaBars,
@@ -13,6 +14,8 @@ import { UserContext } from '../../context/UserContext';
 import DonationsList from './donationsList';
 import PostedNeeds from './postedNeeds';
 import VolunteerApplication from './VolunteerApplication';
+
+import Header from '../../components/header/Header';
 
 const ngoData = {
   name: 'Helping Hands NGO',
@@ -126,123 +129,128 @@ export default function NgoDashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100 overflow-hidden">
-      {/* Mobile sidebar toggle button */}
-      <div className="md:hidden fixed top-4 left-4 z-50">
-        <button
-          onClick={toggleMobileSidebar}
-          className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          {mobileSidebarOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
-        </button>
-      </div>
-
-      {/* Sidebar */}
-      <div
-        className={`${
-          mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:translate-x-0 transform fixed md:relative z-40 ${
-          sidebarOpen ? 'w-64' : 'w-20'
-        } bg-[#006400] text-white h-full transition-all duration-300 ease-in-out flex-shrink-0`}
-      >
-        <div className="p-4 flex items-center justify-between border-b border-blue-700">
-          <h1 className="text-xl font-bold truncate">
-            {sidebarOpen || mobileSidebarOpen
-              ? `${user?.name}`
-              : `${user?.name.slice(0, 1)}`}
-          </h1>
+    <>
+      <Header />
+      <div className="flex h-screen bg-gray-100 overflow-hidden">
+        {/* Mobile sidebar toggle button */}
+        <div className="md:hidden fixed top-4 left-4 z-50">
           <button
-            onClick={toggleSidebar}
-            className="hidden md:block p-1 hover:bg-blue-700  focus:outline-none"
+            onClick={toggleMobileSidebar}
+            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            {sidebarOpen ? (
-              <FaLessThan size={14} />
-            ) : (
-              <FaChevronRight size={14} />
-            )}
+            {mobileSidebarOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
           </button>
         </div>
-        <nav className="p-4">
-          <ul className="space-y-2">
-            <li>
-              <button
-                onClick={() => {
-                  setActiveSection('home');
-                  setMobileSidebarOpen(false);
-                }}
-                className={`flex items-center p-2 w-full rounded  transition-colors ${
-                  activeSection === 'home' ? 'bg-yellow-400' : ''
-                }`}
-              >
-                <FaHome className="text-lg flex-shrink-0" />
-                {(sidebarOpen || mobileSidebarOpen) && (
-                  <span className="ml-3 truncate">Dashboard</span>
-                )}
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => {
-                  setActiveSection('needs');
-                  setMobileSidebarOpen(false);
-                  setShowNeedForm(false);
-                }}
-                className={`flex items-center p-2 w-full rounded  transition-colors ${
-                  activeSection === 'needs' ? 'bg-[#006466] bg-yellow-400' : ''
-                }`}
-              >
-                <FaHandHoldingHeart className="text-lg flex-shrink-0" />
-                {(sidebarOpen || mobileSidebarOpen) && (
-                  <span className="ml-3 truncate">Posted Needs</span>
-                )}
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => {
-                  setActiveSection('donations');
-                  setMobileSidebarOpen(false);
-                }}
-                className={`flex items-center p-2 w-full rounded  transition-colors ${
-                  activeSection === 'donations'
-                    ? 'bg-blue-600 bg-yellow-400'
-                    : ''
-                }`}
-              >
-                <FaHandsHelping className="text-lg flex-shrink-0" />
-                {(sidebarOpen || mobileSidebarOpen) && (
-                  <span className="ml-3 truncate">Received Donations</span>
-                )}
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => {
-                  setActiveSection('volunteers');
-                  setMobileSidebarOpen(false);
-                }}
-                className={`flex items-center p-2 w-full rounded  transition-colors ${
-                  activeSection === 'volunteers' ? 'bg-yellow-400' : ''
-                }`}
-              >
-                <FaUsers className="text-lg flex-shrink-0" />
-                {(sidebarOpen || mobileSidebarOpen) && (
-                  <span className="ml-3 truncate">Applications</span>
-                )}
-              </button>
-            </li>
-          </ul>
-        </nav>
-      </div>
 
-      {/* Main content */}
-      <div
-        className={`flex-1 overflow-auto transition-all duration-300 ${
-          sidebarOpen ? 'md:ml-24 mx-auto' : 'md:ml-10'
-        }`}
-      >
-        <div className="p-4 md:p-6">{renderContent()}</div>
+        {/* Sidebar */}
+        <div
+          className={`${
+            mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          } md:translate-x-0 transform fixed md:relative z-40 ${
+            sidebarOpen ? 'w-64' : 'w-20'
+          } bg-[#006400] text-white h-full transition-all duration-300 ease-in-out flex-shrink-0`}
+        >
+          <div className="p-4 flex items-center justify-between border-b border-blue-700">
+            <h1 className="text-xl font-bold truncate">
+              {sidebarOpen || mobileSidebarOpen
+                ? `${user?.name}`
+                : `${user?.name.slice(0, 1)}`}
+            </h1>
+            <button
+              onClick={toggleSidebar}
+              className="hidden md:block p-1 hover:bg-blue-700  focus:outline-none"
+            >
+              {sidebarOpen ? (
+                <FaLessThan size={14} />
+              ) : (
+                <FaChevronRight size={14} />
+              )}
+            </button>
+          </div>
+          <nav className="p-4">
+            <ul className="space-y-2">
+              <li>
+                <button
+                  onClick={() => {
+                    setActiveSection('home');
+                    setMobileSidebarOpen(false);
+                  }}
+                  className={`flex items-center p-2 w-full rounded  transition-colors ${
+                    activeSection === 'home' ? 'bg-yellow-400' : ''
+                  }`}
+                >
+                  <FaHome className="text-lg flex-shrink-0" />
+                  {(sidebarOpen || mobileSidebarOpen) && (
+                    <span className="ml-3 truncate">Dashboard</span>
+                  )}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => {
+                    setActiveSection('needs');
+                    setMobileSidebarOpen(false);
+                    setShowNeedForm(false);
+                  }}
+                  className={`flex items-center p-2 w-full rounded  transition-colors ${
+                    activeSection === 'needs'
+                      ? 'bg-[#006466] bg-yellow-400'
+                      : ''
+                  }`}
+                >
+                  <FaHandHoldingHeart className="text-lg flex-shrink-0" />
+                  {(sidebarOpen || mobileSidebarOpen) && (
+                    <span className="ml-3 truncate">Posted Needs</span>
+                  )}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => {
+                    setActiveSection('donations');
+                    setMobileSidebarOpen(false);
+                  }}
+                  className={`flex items-center p-2 w-full rounded  transition-colors ${
+                    activeSection === 'donations'
+                      ? 'bg-blue-600 bg-yellow-400'
+                      : ''
+                  }`}
+                >
+                  <FaHandsHelping className="text-lg flex-shrink-0" />
+                  {(sidebarOpen || mobileSidebarOpen) && (
+                    <span className="ml-3 truncate">Received Donations</span>
+                  )}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => {
+                    setActiveSection('volunteers');
+                    setMobileSidebarOpen(false);
+                  }}
+                  className={`flex items-center p-2 w-full rounded  transition-colors ${
+                    activeSection === 'volunteers' ? 'bg-yellow-400' : ''
+                  }`}
+                >
+                  <FaUsers className="text-lg flex-shrink-0" />
+                  {(sidebarOpen || mobileSidebarOpen) && (
+                    <span className="ml-3 truncate">Applications</span>
+                  )}
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </div>
+
+        {/* Main content */}
+        <div
+          className={`flex-1 overflow-auto transition-all duration-300 ${
+            sidebarOpen ? 'md:ml-24 mx-auto' : 'md:ml-10'
+          }`}
+        >
+          <div className="p-4 md:p-6">{renderContent()}</div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
