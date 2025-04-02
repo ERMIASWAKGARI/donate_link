@@ -1,96 +1,73 @@
-/* eslint-disable no-unused-vars */
-//create an admin dashboard
-import {
-  AppBar,
-  Box,
-  Drawer,
-  Grid,
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
-  Toolbar,
-  Typography,
-} from '@mui/material';
-import React from 'react';
+import AdminLayout from './AdminLayout/index';
+import useUsers from './hooks/useUsers';
 
-const Dashboard = () => {
-  const drawerWidth = 240;
+const AdminDashboard = () => {
+  const { users, pagination, loading, error } = useUsers();
+
+  // Calculate statistics from users data
+  const totalUsers = pagination?.totalItems || 0;
+  const verifiedUsers = users?.filter((user) => user.isVerified).length || 0;
+  const bannedUsers = users?.filter((user) => user.isBanned).length || 0;
+  const pendingVerification =
+    users?.filter((user) => !user.isVerified && !user.isBanned).length || 0;
+
+  if (loading)
+    return (
+      <AdminLayout>
+        <div className="p-6">Loading dashboard data...</div>
+      </AdminLayout>
+    );
+
+  if (error)
+    return (
+      <AdminLayout>
+        <div className="p-6 text-red-500">
+          Error loading user data: {error.message}
+        </div>
+      </AdminLayout>
+    );
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      {/* Sidebar */}
-      <Drawer
-        variant="permanent"
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          [`& .MuiDrawer-paper`]: {
-            width: drawerWidth,
-            boxSizing: 'border-box',
-          },
-        }}
-      >
-        <Toolbar />
-        <Box sx={{ overflow: 'auto' }}>
-          <List>
-            {['Dashboard', 'Users', 'Donations', 'Reports', 'Settings'].map(
-              (text, index) => (
-                <ListItem button key={text}>
-                  <ListItemText primary={text} />
-                </ListItem>
-              )
-            )}
-          </List>
-        </Box>
-      </Drawer>
+    <AdminLayout>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        {/* Stats Cards */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-gray-500 text-sm font-medium">Total Users</h3>
+          <p className="text-2xl font-semibold">
+            {totalUsers.toLocaleString()}
+          </p>
+        </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-gray-500 text-sm font-medium">Verified Users</h3>
+          <p className="text-2xl font-semibold">
+            {verifiedUsers.toLocaleString()}
+          </p>
+        </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-gray-500 text-sm font-medium">Banned Users</h3>
+          <p className="text-2xl font-semibold">
+            {bannedUsers.toLocaleString()}
+          </p>
+        </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-gray-500 text-sm font-medium">
+            Pending Verification
+          </h3>
+          <p className="text-2xl font-semibold">
+            {pendingVerification.toLocaleString()}
+          </p>
+        </div>
+      </div>
 
-      {/* Main Content */}
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          bgcolor: 'background.default',
-          p: 3,
-          marginLeft: `${drawerWidth}px`,
-        }}
-      >
-        <AppBar
-          position="fixed"
-          sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        >
-          <Toolbar>
-            <Typography variant="h6" noWrap component="div">
-              Admin Dashboard
-            </Typography>
-          </Toolbar>
-        </AppBar>
-        <Toolbar />
-
-        {/* Dashboard Content */}
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={4}>
-            <Paper elevation={3} sx={{ padding: 2 }}>
-              <Typography variant="h6">Total Users</Typography>
-              <Typography variant="h4">120</Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <Paper elevation={3} sx={{ padding: 2 }}>
-              <Typography variant="h6">Total Donations</Typography>
-              <Typography variant="h4">$15,000</Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <Paper elevation={3} sx={{ padding: 2 }}>
-              <Typography variant="h6">Pending Requests</Typography>
-              <Typography variant="h4">8</Typography>
-            </Paper>
-          </Grid>
-        </Grid>
-      </Box>
-    </Box>
+      {/* Recent Activity */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          Recent Activity
+        </h2>
+        {/* Activity list would go here */}
+      </div>
+    </AdminLayout>
   );
 };
 
-export default Dashboard;
+export default AdminDashboard;

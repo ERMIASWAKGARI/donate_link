@@ -7,26 +7,49 @@ const { sendNotification } = require('../utils/notificationService');
 
 // Get all users
 const getAllUsers = asyncWrapper(async (req, res) => {
-  // Apply filtering, sorting, pagination, and search
-  // console.log(req.query);
+  console.log('Query:', req.query); // Log the query parameters for debugging
+  // Count total documents before applying pagination
+  const totalCount = await User.countDocuments();
+
   const features = new APIFeatures(User.find(), req.query)
     .filter()
     .search()
     .sort()
     .limit()
     .paginate();
-  // console.log(features);
 
   const users = await features.executeQuery();
-  // console.log(users);
-  const totalUsers = users.length;
-  if (!totalUsers) {
-    throw new AppError('No users found', 404);
-  }
+
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 9;
+  const totalPages = Math.ceil(totalCount / limit);
 
   sendSuccessResponse(res, 200, 'Users retrieved successfully', {
-    totalUsers,
     users,
+    pagination: {
+      currentPage: page,
+      totalPages,
+      totalItems: totalCount,
+      itemsPerPage: limit,
+    },
+  });
+});
+
+// controllers/adminController.js
+const getUsersStats = asyncWrapper(async (req, res) => {
+  const totalUsers = await User.countDocuments();
+  const verifiedUsers = await User.countDocuments({ isVerified: true });
+  const bannedUsers = await User.countDocuments({ isBanned: true });
+  const pendingVerification = await User.countDocuments({
+    isVerified: false,
+    isBanned: false,
+  });
+
+  sendSuccessResponse(res, 200, 'Users statistics retrieved', {
+    totalUsers,
+    verifiedUsers,
+    bannedUsers,
+    pendingVerification,
   });
 });
 
