@@ -15,6 +15,22 @@ const getAllUsers = async (page = 1) => {
   };
 };
 
+const getUsersByRole = async (role, page = 1) => {
+  const response = await axios.get(
+    `${API_BASE_URL}/users?role=${role}&page=${page}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  console.log('Response from getUsersByRole:', response.data); // Debugging line
+  return {
+    users: response.data.data.users,
+    pagination: response.data.data.pagination,
+  };
+};
+
 const getUserById = async (id) => {
   const response = await axios.get(`${API_BASE_URL}/users/${id}`, {
     headers: {
@@ -90,6 +106,7 @@ export {
   deleteUser,
   getAllUsers,
   getUserById,
+  getUsersByRole,
   rejectUser,
   searchUsers,
   unbanUser,

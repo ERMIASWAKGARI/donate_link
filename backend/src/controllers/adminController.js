@@ -21,7 +21,7 @@ const getAllUsers = asyncWrapper(async (req, res) => {
   const users = await features.executeQuery();
 
   const page = parseInt(req.query.page, 10) || 1;
-  const limit = parseInt(req.query.limit, 10) || 9;
+  const limit = parseInt(req.query.limit, 10) || 10;
   const totalPages = Math.ceil(totalCount / limit);
 
   sendSuccessResponse(res, 200, 'Users retrieved successfully', {

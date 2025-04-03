@@ -7,10 +7,27 @@ import StatusBadge from '../common/StatusBadge';
 import useUsers from '../hooks/useUsers';
 import BulkActions from './BulkActions';
 
+const roleOptions = [
+  { value: '', label: 'All Roles' },
+  { value: 'individual_donor', label: 'Individual Donors' },
+  { value: 'organization_donor', label: 'Organization Donors' },
+  { value: 'volunteer', label: 'Volunteers' },
+  { value: 'ngo', label: 'NGOs' },
+  { value: 'admin', label: 'Admins' },
+];
+
 const UserList = () => {
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const { users, loading, error, pagination, searchUsers, changePage } =
-    useUsers();
+  const {
+    users,
+    loading,
+    error,
+    pagination,
+    selectedRole,
+    handleSearch,
+    changeRole,
+    changePage,
+  } = useUsers();
 
   const columns = [
     {
@@ -82,9 +99,9 @@ const UserList = () => {
     },
   ];
 
-  const handleSearch = (query) => {
-    searchUsers(query);
-  };
+  // const handleSearch = (query) => {
+  //   handleSearch(query);
+  // };
 
   const handlePageChange = (page) => {
     changePage(page);
@@ -139,43 +156,111 @@ const UserList = () => {
     );
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-800">User Management</h2>
-        {pagination && (
-          <p className="ml-3 px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-            Total Users: {pagination.totalItems || 0}
-            {pagination.totalItems > 0 && (
-              <span className="ml-2">
-                (Showing {users.length} on this page)
-              </span>
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-indigo-600 to-blue-500 px-6 py-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+          <h2 className="text-2xl font-bold text-white">
+            User Management Dashboard
+          </h2>
+
+          {/* Stats Cards */}
+          <div className="flex flex-wrap gap-3 mt-3 md:mt-0">
+            {pagination && (
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
+                <span className="text-sm font-medium text-white/80">
+                  Total Users
+                </span>
+                <p className="text-xl font-bold text-white">
+                  {pagination.totalItems?.toLocaleString() || 0}
+                </p>
+              </div>
             )}
-          </p>
-        )}
-        <SearchBar onSearch={handleSearch} />
+            {selectedRole && (
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
+                <span className="text-sm font-medium text-white/80">
+                  Filtered
+                </span>
+                <p className="text-xl font-bold text-white">
+                  {users.length}{' '}
+                  {roleOptions.find((r) => r.value === selectedRole)?.label}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
+      {/* Controls Section */}
+      <div className="px-6 py-4 border-b border-gray-100">
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* Role Filter */}
+          <div className="relative flex-1 md:max-w-xs">
+            <label
+              htmlFor="role-filter"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Filter by Role
+            </label>
+            <select
+              id="role-filter"
+              value={selectedRole}
+              onChange={(e) => changeRole(e.target.value)}
+              className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm"
+            >
+              {roleOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Search Bar */}
+          <div className="flex-1">
+            <label
+              htmlFor="search"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Search Users
+            </label>
+            <SearchBar onSearch={handleSearch} />
+          </div>
+        </div>
+      </div>
+
+      {/* Bulk Actions */}
       {selectedUsers.length > 0 && (
-        <BulkActions
-          onBulkBan={handleBulkBan}
-          onBulkUnban={handleBulkUnban}
-          selectedCount={selectedUsers.length}
-        />
+        <div className="bg-blue-50 px-6 py-3 border-b border-blue-100">
+          <BulkActions
+            onBulkBan={handleBulkBan}
+            onBulkUnban={handleBulkUnban}
+            selectedCount={selectedUsers.length}
+          />
+        </div>
       )}
 
-      <DataTable
-        columns={columns}
-        data={users || []}
-        onSelect={handleSelectUser}
-        selectedItems={selectedUsers}
-      />
+      {/* Data Table */}
+      <div className="px-6 py-4">
+        <div className="rounded-lg border border-gray-200 overflow-hidden">
+          <DataTable
+            columns={columns}
+            data={users || []}
+            onSelect={handleSelectUser}
+            selectedItems={selectedUsers}
+          />
+        </div>
+      </div>
 
+      {/* Pagination */}
       {pagination && pagination.totalPages > 1 && (
-        <Pagination
-          currentPage={pagination.currentPage}
-          totalPages={pagination.totalPages}
-          onPageChange={handlePageChange}
-        />
+        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50">
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            onPageChange={handlePageChange}
+          />
+        </div>
       )}
     </div>
   );
