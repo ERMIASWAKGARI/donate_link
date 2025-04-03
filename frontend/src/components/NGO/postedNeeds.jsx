@@ -112,14 +112,14 @@ function PostedNeeds() {
   if (error) {
     return (
       <div className="text-center py-4 text-red-500">
-        Error: {typeof error === "object" ? JSON.stringify(error) : error}
+        {typeof error === "object" ? JSON.stringify(error) : error}
       </div>
     );
   }
 
   return (
     <div className="mt-6">
-      <div className="flex justify-between items-center">
+      <div className="flex p-2 justify-between items-center">
         <h2 className="text-xl font-semibold text-gray-800">Posted Needs</h2>
         <button
           onClick={() => setShowNeedForm(!showNeedForm)}
