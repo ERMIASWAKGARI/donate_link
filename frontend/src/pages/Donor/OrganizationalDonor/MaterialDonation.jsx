@@ -1,4 +1,5 @@
 import PropTypes from "prop-types";
+import { useState } from "react";
 import FileUploader from "./FileUploader";
 import LocationMap from "./LocationMap";
 
@@ -16,6 +17,52 @@ const MaterialDonation = ({
   setMapCenter,
   materialCategories,
 }) => {
+  const [showCustomCategory, setShowCustomCategory] = useState(false);
+  const [showCustomSubCategory, setShowCustomSubCategory] = useState(false);
+
+  const handleCategoryChange = (e) => {
+    const { value } = e.target;
+
+    if (value === "other") {
+      setShowCustomCategory(true);
+      setFormData((prev) => ({
+        ...prev,
+        materialDetails: {
+          ...prev.materialDetails,
+          category: "",
+          subCategory: "",
+        },
+      }));
+      setShowCustomSubCategory(false);
+    } else {
+      setShowCustomCategory(false);
+      setShowCustomSubCategory(false);
+      handleInputChange(e);
+    }
+  };
+
+  const handleSubCategoryChange = (e) => {
+    const { value } = e.target;
+
+    if (value === "other") {
+      setShowCustomSubCategory(true);
+      setFormData((prev) => ({
+        ...prev,
+        materialDetails: {
+          ...prev.materialDetails,
+          subCategory: "",
+        },
+      }));
+    } else {
+      setShowCustomSubCategory(false);
+      handleInputChange(e);
+    }
+  };
+
+  const handleCustomInputChange = (e) => {
+    handleInputChange(e);
+  };
+
   return (
     <form onSubmit={handleSubmit} className="flex flex-col">
       <div className="flex flex-col lg:flex-row gap-8">
@@ -42,51 +89,98 @@ const MaterialDonation = ({
               />
             </div>
 
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description
+              </label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                rows={4}
+                maxLength={500}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Provide additional details about your donation..."
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {formData.description.length}/500 characters
+              </p>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Category */}
+              {/* Category Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Category
                 </label>
-                <select
-                  name="materialDetails.category"
-                  value={formData.materialDetails.category}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  required
-                >
-                  <option value="">Select a category</option>
-                  {Object.keys(materialCategories).map((category) => (
-                    <option key={category} value={category}>
-                      {category.charAt(0).toUpperCase() + category.slice(1)}
-                    </option>
-                  ))}
-                </select>
+                {showCustomCategory ? (
+                  <input
+                    type="text"
+                    name="materialDetails.category"
+                    value={formData.materialDetails.category}
+                    onChange={handleCustomInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    required
+                    placeholder="Specify your category"
+                    autoFocus
+                  />
+                ) : (
+                  <select
+                    name="materialDetails.category"
+                    value={formData.materialDetails.category}
+                    onChange={handleCategoryChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    <option value="">Select a category</option>
+                    {Object.keys(materialCategories).map((category) => (
+                      <option key={category} value={category}>
+                        {category.charAt(0).toUpperCase() + category.slice(1)}
+                      </option>
+                    ))}
+                    <option value="other">Other (specify)</option>
+                  </select>
+                )}
               </div>
 
-              {/* Subcategory */}
+              {/* Subcategory Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Subcategory
                 </label>
-                <select
-                  name="materialDetails.subCategory"
-                  value={formData.materialDetails.subCategory}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  required
-                  disabled={!formData.materialDetails.category}
-                >
-                  <option value="">Select a subcategory</option>
-                  {formData.materialDetails.category &&
-                    materialCategories[formData.materialDetails.category].map(
-                      (subCat) => (
+                {showCustomSubCategory ? (
+                  <input
+                    type="text"
+                    name="materialDetails.subCategory"
+                    value={formData.materialDetails.subCategory}
+                    onChange={handleCustomInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    required
+                    placeholder="Specify your subcategory"
+                    disabled={!formData.materialDetails.category}
+                    autoFocus
+                  />
+                ) : (
+                  <select
+                    name="materialDetails.subCategory"
+                    value={formData.materialDetails.subCategory}
+                    onChange={handleSubCategoryChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    required
+                    disabled={!formData.materialDetails.category}
+                  >
+                    <option value="">Select a subcategory</option>
+                    {formData.materialDetails.category &&
+                      materialCategories[
+                        formData.materialDetails.category
+                      ]?.map((subCat) => (
                         <option key={subCat} value={subCat}>
                           {subCat}
                         </option>
-                      )
-                    )}
-                </select>
+                      ))}
+                    <option value="other">Other (specify)</option>
+                  </select>
+                )}
               </div>
 
               {/* Quantity */}
@@ -155,29 +249,10 @@ const MaterialDonation = ({
                 </div>
               )}
             </div>
-
-            {/* Description */}
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <textarea
-                name="materialDetails.description"
-                value={formData.materialDetails.description}
-                onChange={handleInputChange}
-                rows={4}
-                maxLength={500}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Provide additional details about your donation..."
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                {formData.materialDetails.description.length}/500 characters
-              </p>
-            </div>
           </div>
 
           {/* File Upload Section */}
-          <div className="bg-gray-50 p-6 rounded-lg">
+          <div className="bg-gray-50 pt-1 p-6 rounded-lg">
             <h2 className="text-lg font-semibold text-gray-700 mb-4">
               Upload Images
             </h2>
@@ -222,11 +297,11 @@ const MaterialDonation = ({
         </div>
       </div>
 
-      {/* Single Submit Button at the bottom */}
+      {/* Submit Button */}
       <div className="flex justify-end mt-6">
         <button
           type="submit"
-          className="px-6 py-3 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          className="px-6 py-3 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200"
         >
           Submit Donation
         </button>

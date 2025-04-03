@@ -27,6 +27,7 @@ const materialCategories = {
 const DonationForm = () => {
   const [donationType, setDonationType] = useState("material");
   const [formData, setFormData] = useState({
+    description: "", // Moved to root level
     materialDetails: {
       category: "",
       subCategory: "",
@@ -34,7 +35,6 @@ const DonationForm = () => {
       unit: "pieces",
       condition: "new",
       expirationDate: "",
-      description: "",
     },
     address: "",
     title: "",
@@ -51,19 +51,19 @@ const DonationForm = () => {
   // Function to get donorId from accessToken
   const getDonorIdFromToken = () => {
     const accessToken = localStorage.getItem("accessToken");
+    console.log("Token:", accessToken);
     if (!accessToken) {
       console.error("No access token found");
       return null;
     }
 
     try {
-      // The payload is base64url encoded, not regular base64
       const payload = accessToken.split(".")[1];
       const decodedPayload = JSON.parse(
         atob(payload.replace(/-/g, "+").replace(/_/g, "/"))
       );
       console.log("Decoded token payload:", decodedPayload);
-      return decodedPayload.id; // Standard JWT uses 'id' not 'donorId'
+      return decodedPayload.id;
     } catch (error) {
       console.error("Error decoding token:", error);
       return null;
@@ -74,6 +74,7 @@ const DonationForm = () => {
     setDonationType(type);
     if (type !== "material") {
       setFormData({
+        description: "",
         materialDetails: {
           category: "",
           subCategory: "",
@@ -81,7 +82,6 @@ const DonationForm = () => {
           unit: "pieces",
           condition: "new",
           expirationDate: "",
-          description: "",
         },
         address: "",
         title: "",
@@ -95,6 +95,8 @@ const DonationForm = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
+    // Handle nested fields
     if (name.includes(".")) {
       const [parent, child] = name.split(".");
       setFormData((prev) => ({
@@ -104,7 +106,9 @@ const DonationForm = () => {
           [child]: value,
         },
       }));
-    } else {
+    }
+    // Handle root-level fields
+    else {
       setFormData((prev) => ({
         ...prev,
         [name]: value,
@@ -144,25 +148,21 @@ const DonationForm = () => {
         formDataToSend.append("files", file);
       });
 
-      // Stringify and append ALL form data including location
+      // Prepare payload with description at root level
       const payload = {
         ...formData,
-        donorId, // Include donorId in the payload
+        donorId,
         donationType: "material",
       };
 
-      // Append each top-level field individually
+      // Stringify and append the payload
       formDataToSend.append("data", JSON.stringify(payload));
 
-      // Also append location coordinates separately for the server
+      // Append location coordinates separately
       formDataToSend.append("longitude", formData.location.coordinates[0]);
       formDataToSend.append("latitude", formData.location.coordinates[1]);
 
       console.log("Full payload being sent:", payload);
-      console.log("Raw coordinates:", {
-        longitude: formData.location.coordinates[0],
-        latitude: formData.location.coordinates[1],
-      });
 
       const response = await fetch(
         "http://localhost:5000/api/organization/material",
@@ -175,6 +175,7 @@ const DonationForm = () => {
           },
         }
       );
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to submit donation");
@@ -186,6 +187,7 @@ const DonationForm = () => {
 
       // Reset form
       setFormData({
+        description: "",
         materialDetails: {
           category: "",
           subCategory: "",
@@ -193,13 +195,12 @@ const DonationForm = () => {
           unit: "pieces",
           condition: "new",
           expirationDate: "",
-          description: "",
         },
         address: "",
         title: "",
         location: {
           type: "Point",
-          coordinates: [38.7636, 8.9806], // Default coordinates
+          coordinates: [38.7636, 8.9806],
         },
       });
       setFiles([]);
@@ -209,6 +210,7 @@ const DonationForm = () => {
       alert(error.message || "Error submitting donation. Please try again.");
     }
   };
+
   useEffect(() => {
     return () => {
       previewUrls.forEach((url) => URL.revokeObjectURL(url));

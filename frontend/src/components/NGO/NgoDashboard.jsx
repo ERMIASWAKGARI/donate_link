@@ -126,16 +126,18 @@ export default function NgoDashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100 overflow-hidden">
-      {/* Mobile sidebar toggle button */}
-      <div className="md:hidden fixed top-4 left-4 z-50">
-        <button
-          onClick={toggleMobileSidebar}
-          className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          {mobileSidebarOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
-        </button>
-      </div>
+    <>
+      <Header />
+      <div className="flex h-screen bg-gray-100 overflow-hidden">
+        {/* Mobile sidebar toggle button */}
+        <div className="md:hidden fixed top-4 left-4 z-50">
+          <button
+            onClick={toggleMobileSidebar}
+            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {mobileSidebarOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
+          </button>
+        </div>
 
       {/* Sidebar */}
       <div

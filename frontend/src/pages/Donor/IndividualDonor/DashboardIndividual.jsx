@@ -1,9 +1,13 @@
+/* eslint-disable no-unused-vars */
 // Dashboard.js
 import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../../../context/UserContext';
-import Header_for_indDonor from '../../../pages/Donor/IndividualDonor/Header_for_indDonor';
+// import Header_for_indDonor from '../../../pages/Donor/IndividualDonor/Header_for_indDonor';
 import DonationsPage from './DonationPage';
+
+import Header from '../../../components/header/Header';
+
 const IndividualDashboard = () => {
   const { user, logout } = useContext(UserContext);
   const navigate = useNavigate();
@@ -16,7 +20,8 @@ const IndividualDashboard = () => {
 
   return (
     <div>
-      <Header_for_indDonor />
+      {/* <Header_for_indDonor /> */}
+      <Header />
       <DonationsPage />
       {/* <nav style={{ padding: '10px', backgroundColor: '#333', color: '#fff' }}>
         <ul style={{ display: 'flex', listStyle: 'none', margin: 0 }}>

@@ -127,11 +127,15 @@ const createMaterialDonation = asyncWrapper(async (req, res, next) => {
 
     console.log("7.7 Formatted location:", location);
 
+    // Prepare materialDetails without description (since it's now at root level)
+    const { description, ...materialData } = donationData;
+
     // Create donation using combined data sources
     const donation = await Donations.create({
       donor: donorId,
-      ...donationData, // Use the parsed data first
+      ...materialData, // Use the parsed data (without description)
       ...req.body, // Then override with any direct body fields
+      description, // Add description at root level
       location, // Use our properly formatted location
       images: fileUrls,
       trackingId: generateTrackingId(),
