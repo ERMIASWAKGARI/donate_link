@@ -8,6 +8,12 @@ a.active hr {
 ::-webkit-scrollbar {
   display: none;
 }
+.bg-primary {
+  background-color: #008080;
+}
+.bg-primary-button {
+  background-color: #facc15;
+}
 
 /* @media (max-width:640px){
     a.active{

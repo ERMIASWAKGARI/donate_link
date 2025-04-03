@@ -32,19 +32,6 @@ const Footer = () => {
     },
   };
 
-  // const socialIconVariants = {
-  //   hover: {
-  //     y: -5,
-  //     scale: 1.2,
-  //     color: "#facc15", // yellow-400
-  //     transition: {
-  //       type: "spring",
-  //       stiffness: 400,
-  //       damping: 10,
-  //     },
-  //   },
-  // };
-
   const quickLinks = [
     { href: "#header", text: "Home" },
     { href: "#featured", text: "Featured Causes" },
@@ -67,7 +54,7 @@ const Footer = () => {
 
   return (
     <motion.footer
-      className="bg-green-800 text-white py-12  relative z-20"
+      className="bg-primary text-white py-12 relative z-20"
       initial="hidden"
       whileInView="visible"
       variants={containerVariants}
@@ -109,7 +96,6 @@ const Footer = () => {
                 className="text-xl"
                 variants={itemVariants}
                 whileHover="hover"
-                // variants={socialIconVariants}
               >
                 {social.icon}
               </motion.a>
@@ -142,7 +128,7 @@ const Footer = () => {
 
         {/* Divider */}
         <motion.div
-          className="w-full h-px bg-green-700 my-6"
+          className="w-full h-px bg-primary my-6"
           initial={{ scaleX: 0 }}
           whileInView={{ scaleX: 1 }}
           transition={{ duration: 0.8 }}
