@@ -37,7 +37,9 @@ const getUserById = async (id) => {
       Authorization: `Bearer ${token}`,
     },
   });
-  return response.data;
+
+  console.log('Response from getUserById:', response.data.data[0]); // Debugging line
+  return response.data.data[0];
 };
 
 const searchUsers = async (query, page = 1) => {

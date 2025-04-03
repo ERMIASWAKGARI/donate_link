@@ -1,4 +1,6 @@
 /* eslint-disable react/prop-types */
+import { useNavigate } from 'react-router-dom';
+
 import { useState } from 'react';
 import DataTable from '../common/DataTable';
 import Pagination from '../common/Pagination';
@@ -17,6 +19,8 @@ const roleOptions = [
 ];
 
 const UserList = () => {
+  const navigate = useNavigate(); // Add this line
+
   const [selectedUsers, setSelectedUsers] = useState([]);
   const {
     users,
@@ -66,31 +70,59 @@ const UserList = () => {
       Header: 'Actions',
       accessor: 'actions',
       Cell: ({ row }) => {
-        const user = row.original || {};
+        const user = row || {};
+        const userId = user._id; // Get the ID first
+
+        if (!userId) {
+          console.error('Missing user ID for row:', row);
+          return <span className="text-gray-400">N/A</span>;
+        }
+
         return (
           <div className="flex space-x-2">
             <button
-              onClick={() => handleView(user._id)}
-              className="text-indigo-600 hover:text-indigo-900"
-              disabled={!user._id}
+              onClick={() => handleView(userId)}
+              className="px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm flex items-center"
+              disabled={!userId}
             >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                />
+              </svg>
               View
             </button>
-            {!user.isBanned ? (
+
+            {user.isBanned ? (
               <button
-                onClick={() => handleBan(user._id)}
-                className="text-red-600 hover:text-red-900"
-                disabled={!user._id}
+                onClick={() => handleUnban(userId)}
+                className="px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm"
+                disabled={!userId}
               >
-                Ban
+                Unban
               </button>
             ) : (
               <button
-                onClick={() => handleUnban(user._id)}
-                className="text-green-600 hover:text-green-900"
-                disabled={!user._id}
+                onClick={() => handleBan(userId)}
+                className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
+                disabled={!userId}
               >
-                Unban
+                Ban
               </button>
             )}
           </div>
@@ -130,9 +162,8 @@ const UserList = () => {
   };
 
   const handleView = (userId) => {
-    if (!userId) return;
     console.log('Viewing user:', userId);
-    // Implement view logic
+    navigate(`/admin/users/${userId}`); // Navigate to user detail page
   };
 
   const handleBan = (userId) => {

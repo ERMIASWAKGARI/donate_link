@@ -14,6 +14,7 @@ import ResetPassword from './components/ResetPassword';
 import NotFoundPage from './pages/NotFound';
 
 import AdminDashboard from './pages/admin/Dashboard';
+import UserDetail from './pages/admin/UserDetail/UserDetail';
 import Users from './pages/admin/Users';
 
 import IndividualDashboard from './pages/Donor/IndividualDonor/DashboardIndividual';
@@ -55,6 +56,7 @@ function App() {
           <Route element={<PrivateRoute />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/users" element={<Users />} />
+            <Route path="/admin/users/:id" element={<UserDetail />} />
             <Route path="/post-donation" element={<DonationForm />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />
