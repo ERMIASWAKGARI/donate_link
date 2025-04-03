@@ -59,6 +59,10 @@ const LocationMap = ({ setFormData, mapCenter, setMapCenter }) => {
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState(null);
 
+  // Convert between [longitude, latitude] and [latitude, longitude]
+  const toLeafletCoords = (coords) => [coords[1], coords[0]];
+  const fromLeafletCoords = (coords) => [coords[1], coords[0]];
+
   // Get user's current location on component mount
   useEffect(() => {
     const getCurrentLocation = () => {
@@ -69,7 +73,7 @@ const LocationMap = ({ setFormData, mapCenter, setMapCenter }) => {
             const { latitude, longitude } = position.coords;
             const newPosition = [latitude, longitude];
             setMarkerPosition(newPosition);
-            setMapCenter(newPosition);
+            setMapCenter([longitude, latitude]); // Store as [longitude, latitude]
             setFormData((prev) => ({
               ...prev,
               location: {
@@ -102,25 +106,26 @@ const LocationMap = ({ setFormData, mapCenter, setMapCenter }) => {
 
   // Update marker position when mapCenter changes from parent
   useEffect(() => {
-    setMarkerPosition(mapCenter);
+    setMarkerPosition(toLeafletCoords(mapCenter));
   }, [mapCenter]);
 
   const handleConfirmLocation = () => {
-    // Convert back to [longitude, latitude] for the form data
-    const [latitude, longitude] = markerPosition;
+    const newCoords = fromLeafletCoords(markerPosition);
     setFormData((prev) => ({
       ...prev,
       location: {
         type: "Point",
-        coordinates: [longitude, latitude], // [longitude, latitude]
+        coordinates: newCoords,
       },
     }));
-    setMapCenter([longitude, latitude]);
+    setMapCenter(newCoords);
     setShowLocationCard(false);
   };
 
   const handleCancelLocation = () => {
     setShowLocationCard(false);
+    // Reset to previous position
+    setMarkerPosition(toLeafletCoords(mapCenter));
   };
 
   return (
@@ -148,7 +153,11 @@ const LocationMap = ({ setFormData, mapCenter, setMapCenter }) => {
                 current position. Otherwise you will need to manually select
                 your location on the map.
               </p>
-              <div>{locationError && <p>Error: {locationError}</p>}</div>
+              {locationError && (
+                <p className="text-sm text-red-500 mt-1">
+                  Error: {locationError}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -162,8 +171,6 @@ const LocationMap = ({ setFormData, mapCenter, setMapCenter }) => {
       />
 
       <div className="relative w-full pb-4 h-[500px] z-0">
-        {" "}
-        {/* Increased height */}
         <MapContainer
           center={markerPosition}
           zoom={13}
@@ -200,14 +207,14 @@ const LocationMap = ({ setFormData, mapCenter, setMapCenter }) => {
                 <button
                   type="button"
                   onClick={handleCancelLocation}
-                  className="bg-gray-400 px-4 py-2 rounded text-white hover:bg-gray-500 transition"
+                  className="px-4 py-2 rounded text-gray-700 hover:bg-gray-100 transition border border-gray-300"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={handleConfirmLocation}
-                  className="bg-red-600 px-4 py-2 rounded text-white hover:bg-red-700 transition"
+                  className="px-4 py-2 rounded text-white bg-blue-600 hover:bg-blue-700 transition"
                 >
                   Confirm
                 </button>

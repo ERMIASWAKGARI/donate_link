@@ -14,7 +14,7 @@ const DonationTypeSelector = ({ donationType, handleDonationTypeChange }) => {
       >
         Material Donation
       </button>
-      <button
+      {/* <button
         onClick={() => handleDonationTypeChange("money")}
         className={`px-4 py-2 rounded-full font-medium transition-colors ${
           donationType === "money"
@@ -34,7 +34,7 @@ const DonationTypeSelector = ({ donationType, handleDonationTypeChange }) => {
         }`}
       >
         Service Donation
-      </button>
+      </button> */}
       <button
         onClick={() => handleDonationTypeChange("others")}
         className={`px-4 py-2 rounded-full font-medium transition-colors ${

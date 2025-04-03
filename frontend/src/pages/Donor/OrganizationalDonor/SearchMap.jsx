@@ -6,7 +6,7 @@ const geocodeLocation = async (query) => {
   const response = await fetch(
     `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
       query
-    )}`
+    )}&addressdetails=1`
   );
   const data = await response.json();
   return data.map((item) => ({
@@ -27,25 +27,41 @@ const SearchMap = ({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  // Convert between [longitude, latitude] and [latitude, longitude]
+  // const toLeafletCoords = (coords) => [coords[1], coords[0]];
+  // const fromLeafletCoords = (coords) => [coords[1], coords[0]];
+
   const handleSearch = async (e) => {
     e.preventDefault();
-    const locations = await geocodeLocation(searchQuery);
-    setSuggestions(locations);
-    setIsDropdownOpen(true);
+    if (!searchQuery.trim()) return;
+
+    try {
+      const locations = await geocodeLocation(searchQuery);
+      setSuggestions(locations);
+      setIsDropdownOpen(true);
+    } catch (error) {
+      console.error("Search error:", error);
+      setSuggestions([]);
+    }
   };
 
   const handleSuggestionClick = (location) => {
-    setMarkerPosition([location.lat, location.lng]);
-    setMapCenter([location.lat, location.lng]);
+    const leafletCoords = [location.lat, location.lng]; // [lat, lng] for Leaflet
+    const formCoords = [location.lng, location.lat]; // [lng, lat] for form
+
+    setMarkerPosition(leafletCoords);
+    setMapCenter(formCoords); // Parent expects [lng, lat]
     setSearchQuery(location.name);
     setSuggestions([]);
     setIsDropdownOpen(false);
+
     setFormData((prev) => ({
       ...prev,
       location: {
-        ...prev.location,
-        coordinates: [location.lng, location.lat], // [longitude, latitude]
+        type: "Point",
+        coordinates: formCoords,
       },
+      address: location.name, // Update address with the full location name
     }));
   };
 
@@ -56,17 +72,24 @@ const SearchMap = ({
   };
 
   useEffect(() => {
-    if (searchQuery) {
-      const fetchSuggestions = async () => {
+    if (!searchQuery.trim()) {
+      setSuggestions([]);
+      setIsDropdownOpen(false);
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(async () => {
+      try {
         const locations = await geocodeLocation(searchQuery);
         setSuggestions(locations);
         setIsDropdownOpen(true);
-      };
-      fetchSuggestions();
-    } else {
-      setSuggestions([]);
-      setIsDropdownOpen(false);
-    }
+      } catch (error) {
+        console.error("Search error:", error);
+        setSuggestions([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
 
   useEffect(() => {
@@ -83,7 +106,7 @@ const SearchMap = ({
   }, []);
 
   return (
-    <div className="w-full">
+    <div className="w-full relative">
       <form onSubmit={handleSearch} className="w-full">
         <div className="relative pb-1">
           <input
@@ -91,7 +114,7 @@ const SearchMap = ({
             placeholder="Search for a location..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-red-600 pl-10 pr-10"
+            className="w-full px-3 py-2 border rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-600 pl-10 pr-10"
           />
           <button
             type="submit"
@@ -115,16 +138,16 @@ const SearchMap = ({
       {isDropdownOpen && suggestions.length > 0 && (
         <div
           ref={dropdownRef}
-          className="absolute z-50 w-full bg-white border border-gray-300 rounded-lg shadow-lg mt-1"
+          className="absolute z-50 w-full bg-white border border-gray-300 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto"
         >
           {suggestions.map((location) => (
             <button
               key={`${location.lat}-${location.lng}`}
               type="button"
               onClick={() => handleSuggestionClick(location)}
-              className="w-full text-left p-2 hover:bg-red-500 hover:text-white cursor-pointer"
+              className="w-full text-left p-2 hover:bg-blue-100 hover:text-blue-800 cursor-pointer transition-colors"
             >
-              {location.name}
+              <div className="truncate">{location.name}</div>
             </button>
           ))}
         </div>

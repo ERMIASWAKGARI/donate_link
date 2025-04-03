@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { FiChevronDown, FiX, FiCheck, FiEdit } from "react-icons/fi";
 import FileUploader from "./FileUploader";
 import LocationMap from "./LocationMap";
 
@@ -22,45 +23,64 @@ const MaterialDonation = ({
 
   const handleCategoryChange = (e) => {
     const { value } = e.target;
-
-    if (value === "other") {
-      setShowCustomCategory(true);
-      setFormData((prev) => ({
-        ...prev,
-        materialDetails: {
-          ...prev.materialDetails,
-          category: "",
-          subCategory: "",
-        },
-      }));
-      setShowCustomSubCategory(false);
-    } else {
-      setShowCustomCategory(false);
-      setShowCustomSubCategory(false);
-      handleInputChange(e);
-    }
+    setFormData((prev) => ({
+      ...prev,
+      materialDetails: {
+        ...prev.materialDetails,
+        category: value,
+        subCategory: "",
+        customCategory:
+          value === "other" ? prev.materialDetails.customCategory : "",
+        customSubCategory: "",
+      },
+    }));
+    setShowCustomCategory(value === "other");
+    setShowCustomSubCategory(false);
   };
 
   const handleSubCategoryChange = (e) => {
     const { value } = e.target;
-
-    if (value === "other") {
-      setShowCustomSubCategory(true);
-      setFormData((prev) => ({
-        ...prev,
-        materialDetails: {
-          ...prev.materialDetails,
-          subCategory: "",
-        },
-      }));
-    } else {
-      setShowCustomSubCategory(false);
-      handleInputChange(e);
-    }
+    setFormData((prev) => ({
+      ...prev,
+      materialDetails: {
+        ...prev.materialDetails,
+        subCategory: value,
+        customSubCategory:
+          value === "Other" ? prev.materialDetails.customSubCategory : "",
+      },
+    }));
+    setShowCustomSubCategory(value === "Other");
   };
 
-  const handleCustomInputChange = (e) => {
-    handleInputChange(e);
+  const handleCustomCategorySubmit = () => {
+    if (!formData.materialDetails.customCategory.trim()) return;
+    setShowCustomCategory(false);
+  };
+
+  const resetCategorySelection = () => {
+    setShowCustomCategory(false);
+    setFormData((prev) => ({
+      ...prev,
+      materialDetails: {
+        ...prev.materialDetails,
+        category: "",
+        customCategory: "",
+        subCategory: "",
+        customSubCategory: "",
+      },
+    }));
+  };
+
+  const resetSubCategorySelection = () => {
+    setShowCustomSubCategory(false);
+    setFormData((prev) => ({
+      ...prev,
+      materialDetails: {
+        ...prev.materialDetails,
+        subCategory: "",
+        customSubCategory: "",
+      },
+    }));
   };
 
   return (
@@ -69,7 +89,7 @@ const MaterialDonation = ({
         {/* Left Column - Form Fields */}
         <div className="w-full lg:w-1/2">
           {/* Material Details Section */}
-          <div className="bg-gray-50 p-6 rounded-lg">
+          <div className=" p-6 rounded-lg">
             <h2 className="text-lg font-semibold text-gray-700 mb-4">
               Material Details
             </h2>
@@ -89,24 +109,6 @@ const MaterialDonation = ({
               />
             </div>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description
-              </label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                rows={4}
-                maxLength={500}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Provide additional details about your donation..."
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                {formData.description.length}/500 characters
-              </p>
-            </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Category Field */}
               <div>
@@ -114,32 +116,55 @@ const MaterialDonation = ({
                   Category
                 </label>
                 {showCustomCategory ? (
-                  <input
-                    type="text"
-                    name="materialDetails.category"
-                    value={formData.materialDetails.category}
-                    onChange={handleCustomInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    required
-                    placeholder="Specify your category"
-                    autoFocus
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="materialDetails.customCategory"
+                      value={formData.materialDetails.customCategory}
+                      onChange={handleInputChange}
+                      className="w-full pl-3 pr-16 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      required
+                      placeholder="Specify your category"
+                      autoFocus
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-1">
+                      <button
+                        type="button"
+                        onClick={handleCustomCategorySubmit}
+                        className="p-1.5 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors"
+                        title="Confirm"
+                      >
+                        <FiCheck size={18} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={resetCategorySelection}
+                        className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                        title="Cancel"
+                      >
+                        <FiX size={18} />
+                      </button>
+                    </div>
+                  </div>
                 ) : (
-                  <select
-                    name="materialDetails.category"
-                    value={formData.materialDetails.category}
-                    onChange={handleCategoryChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  >
-                    <option value="">Select a category</option>
-                    {Object.keys(materialCategories).map((category) => (
-                      <option key={category} value={category}>
-                        {category.charAt(0).toUpperCase() + category.slice(1)}
-                      </option>
-                    ))}
-                    <option value="other">Other (specify)</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                      name="materialDetails.category"
+                      value={formData.materialDetails.category}
+                      onChange={handleCategoryChange}
+                      className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                      required
+                    >
+                      <option value="">Select a category</option>
+                      {Object.keys(materialCategories).map((category) => (
+                        <option key={category} value={category}>
+                          {category.charAt(0).toUpperCase() + category.slice(1)}
+                        </option>
+                      ))}
+                      <option value="other">Other (specify)</option>
+                    </select>
+                    <FiChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+                  </div>
                 )}
               </div>
 
@@ -149,37 +174,70 @@ const MaterialDonation = ({
                   Subcategory
                 </label>
                 {showCustomSubCategory ? (
-                  <input
-                    type="text"
-                    name="materialDetails.subCategory"
-                    value={formData.materialDetails.subCategory}
-                    onChange={handleCustomInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    required
-                    placeholder="Specify your subcategory"
-                    disabled={!formData.materialDetails.category}
-                    autoFocus
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="materialDetails.customSubCategory"
+                      value={formData.materialDetails.customSubCategory}
+                      onChange={handleInputChange}
+                      className="w-full pl-3 pr-16 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      required
+                      placeholder="Specify your subcategory"
+                      disabled={!formData.materialDetails.category}
+                      autoFocus
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-1">
+                      <button
+                        type="button"
+                        onClick={() => setShowCustomSubCategory(false)}
+                        className="p-1.5 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors"
+                        title="Confirm"
+                      >
+                        <FiCheck size={18} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={resetSubCategorySelection}
+                        className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                        title="Cancel"
+                      >
+                        <FiX size={18} />
+                      </button>
+                    </div>
+                  </div>
                 ) : (
-                  <select
-                    name="materialDetails.subCategory"
-                    value={formData.materialDetails.subCategory}
-                    onChange={handleSubCategoryChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    required
-                    disabled={!formData.materialDetails.category}
-                  >
-                    <option value="">Select a subcategory</option>
-                    {formData.materialDetails.category &&
-                      materialCategories[
-                        formData.materialDetails.category
-                      ]?.map((subCat) => (
-                        <option key={subCat} value={subCat}>
-                          {subCat}
-                        </option>
-                      ))}
-                    <option value="other">Other (specify)</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                      name="materialDetails.subCategory"
+                      value={formData.materialDetails.subCategory}
+                      onChange={handleSubCategoryChange}
+                      className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                      required
+                      disabled={!formData.materialDetails.category}
+                    >
+                      <option value="">Select a subcategory</option>
+                      {formData.materialDetails.category &&
+                        materialCategories[
+                          formData.materialDetails.category
+                        ]?.map((subCat) => (
+                          <option key={subCat} value={subCat}>
+                            {subCat}
+                          </option>
+                        ))}
+                      <option value="Other">Other (specify)</option>
+                    </select>
+                    {formData.materialDetails.subCategory === "Other" && (
+                      <button
+                        type="button"
+                        onClick={() => setShowCustomSubCategory(true)}
+                        className="absolute right-8 top-1/2 transform -translate-y-1/2 p-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
+                        title="Edit custom subcategory"
+                      >
+                        <FiEdit size={16} />
+                      </button>
+                    )}
+                    <FiChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+                  </div>
                 )}
               </div>
 
@@ -251,11 +309,30 @@ const MaterialDonation = ({
             </div>
           </div>
 
+          {/* ... rest of the component remains the same ... */}
+          <div className="px-6 mb-2">
+            <label className="block  text-sm font-medium text-gray-700 mb-2">
+              Description
+            </label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+              rows={4}
+              maxLength={500}
+              className="w-full  px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Provide additional details about your donation..."
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              {formData.description.length}/500 characters
+            </p>
+          </div>
+
           {/* File Upload Section */}
-          <div className="bg-gray-50 pt-1 p-6 rounded-lg">
-            <h2 className="text-lg font-semibold text-gray-700 mb-4">
+          <div className=" pt-1 p-6 rounded-lg">
+            <label className="block  text-sm font-medium  mb-2">
               Upload Images
-            </h2>
+            </label>
             <FileUploader
               files={files}
               previewUrls={previewUrls}
