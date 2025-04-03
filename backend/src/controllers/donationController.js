@@ -84,9 +84,6 @@ const createMaterialDonation = asyncWrapper(async (req, res, next) => {
 
     console.log("7. Files processed successfully");
 
-    // Debug: Log the complete request body
-    console.log("7.1 Raw request body:", req.body);
-
     // Parse the JSON data if it's sent as a string in FormData
     let donationData = {};
     if (req.body.data) {
@@ -127,16 +124,71 @@ const createMaterialDonation = asyncWrapper(async (req, res, next) => {
 
     console.log("7.7 Formatted location:", location);
 
-    // Prepare materialDetails without description (since it's now at root level)
-    const { description, ...materialData } = donationData;
+    // Prepare the donation data with proper category handling
+    const { materialDetails, description, title, ...otherData } = donationData;
 
-    // Create donation using combined data sources
+    // Validate category and subcategory
+    if (!materialDetails?.category) {
+      return next(new AppError("Category is required", 400));
+    }
+
+    if (
+      materialDetails.category === "other" &&
+      !materialDetails.customCategory
+    ) {
+      return next(
+        new AppError("Custom category is required when selecting 'other'", 400)
+      );
+    }
+
+    if (!materialDetails?.subCategory) {
+      return next(new AppError("Subcategory is required", 400));
+    }
+
+    if (
+      materialDetails.subCategory === "Other" &&
+      !materialDetails.customSubCategory
+    ) {
+      return next(
+        new AppError(
+          "Custom subcategory is required when selecting 'Other'",
+          400
+        )
+      );
+    }
+
+    // Prepare the material details for database
+    const dbMaterialDetails = {
+      category:
+        materialDetails.category === "other"
+          ? "other"
+          : materialDetails.category,
+      ...(materialDetails.category === "other" && {
+        customCategory: materialDetails.customCategory,
+      }),
+      subCategory:
+        materialDetails.subCategory === "Other"
+          ? "Other"
+          : materialDetails.subCategory,
+      ...(materialDetails.subCategory === "Other" && {
+        customSubCategory: materialDetails.customSubCategory,
+      }),
+      quantity: materialDetails.quantity,
+      unit: materialDetails.unit,
+      condition: materialDetails.condition,
+      ...(materialDetails.expirationDate && {
+        expirationDate: new Date(materialDetails.expirationDate),
+      }),
+    };
+
+    // Create donation
     const donation = await Donations.create({
       donor: donorId,
-      ...materialData, // Use the parsed data (without description)
-      ...req.body, // Then override with any direct body fields
-      description, // Add description at root level
-      location, // Use our properly formatted location
+      ...otherData,
+      description,
+      title,
+      materialDetails: dbMaterialDetails,
+      location,
       images: fileUrls,
       trackingId: generateTrackingId(),
       donationType: "material",
