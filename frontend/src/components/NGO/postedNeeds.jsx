@@ -107,7 +107,22 @@ function PostedNeeds() {
 
   // ... keep the rest of your existing functions (openDetailsModal, closeDetailsModal, etc.)
 
-  if (loading) return <div className="text-center py-4">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4">
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((skeleton) => (
+          <div
+            key={skeleton}
+            className="animate-pulse p-4 border rounded-lg shadow-md bg-gray-300 dark:bg-gray-700"
+          >
+            <div className="h-32 bg-gray-400 dark:bg-gray-600 rounded-md"></div>
+            <div className="mt-2 h-4 bg-gray-400 dark:bg-gray-600 w-3/4 rounded"></div>
+            <div className="mt-2 h-3 bg-gray-400 dark:bg-gray-600 w-1/2 rounded"></div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -148,7 +163,7 @@ function PostedNeeds() {
             {needs.map((need) => (
               <div
                 key={need._id}
-                className="p-4 bg-white shadow rounded-lg relative"
+                className="block p-2 border rounded shadow-md hover:shadow-lg transition-shadow duration-300 bg-white dark:bg-darkCard dark:border-gray-700 relative"
               >
                 <h3 className="font-bold text-lg">
                   {need.title || "Untitled"}

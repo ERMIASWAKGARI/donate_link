@@ -164,9 +164,10 @@ const createMaterialDonation = asyncWrapper(async (req, res, next) => {
 // @route   GET /api/donations/material
 // @access  Private (NGOs)
 const getAllMaterialDonations = asyncWrapper(async (req, res, next) => {
+  console.log("1. Getting all material donations");
   const donations = await Donations.find({
     donationType: "material",
-    status: "posted",
+    status: "pending",
   }).populate("donor", "name email phone");
 
   sendSuccessResponse(res, 200, {
@@ -180,29 +181,31 @@ const getAllMaterialDonations = asyncWrapper(async (req, res, next) => {
 // @access  Private (NGO)
 const requestMaterialDonation = asyncWrapper(async (req, res, next) => {
   const donation = await Donations.findById(req.params.id);
+
   const { ngoId } = req.body;
 
   if (!donation) {
     return next(new AppError("No donation found with that ID", 404));
   }
+ 
 
-  if (donation.status !== "posted") {
+  if (donation.status !== "pending") {
     return next(
       new AppError("This donation is not available for request", 400)
     );
   }
-
   // Verify NGO user exists
   const ngoUser = await User.findById(ngoId);
+ 
   if (!ngoUser || ngoUser.role !== "ngo") {
     return next(new AppError("No valid NGO found with that ID", 404));
   }
 
   // Update donation status and add NGO
+  console.log("donation", donation);
   donation.NGO = ngoId;
   donation.status = "requested";
   await donation.save();
-
   // Create notification for donor
   const notification = await Notification.create({
     recipient: donation.donor,

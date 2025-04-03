@@ -45,24 +45,32 @@ const DonationsList = () => {
   return (
     <div>
       {/* Navbar */}
-      <nav className="bg-blue-600 sticky top-0 w-full text-white py-4  flex justify-center gap-6 shadow-md">
+      <nav className="bg-white sticky top-0 w-full text-gray-800 py-4 flex justify-center gap-6 shadow-md">
         <button
           onClick={() => setSelectedCategory("money")}
-          className="font-semibold hover:underline"
+          className={`flex items-center p-2 rounded transition-colors ${
+            selectedCategory === "money" ? "bg-yellow-400" : "hover:bg-gray-100"
+          }`}
         >
-          Money Donations
+          <span className="font-semibold">Money Donations</span>
         </button>
         <button
           onClick={() => setSelectedCategory("items")}
-          className="font-semibold hover:underline"
+          className={`flex items-center p-2 rounded transition-colors ${
+            selectedCategory === "items" ? "bg-yellow-400" : "hover:bg-gray-100"
+          }`}
         >
-          Materials Donated
+          <span className="font-semibold">Materials Donated</span>
         </button>
         <button
           onClick={() => setSelectedCategory("service")}
-          className="font-semibold hover:underline"
+          className={`flex items-center p-2 rounded transition-colors ${
+            selectedCategory === "service"
+              ? "bg-yellow-400"
+              : "hover:bg-gray-100"
+          }`}
         >
-          Service Applications
+          <span className="font-semibold">Service Applications</span>
         </button>
       </nav>
 
