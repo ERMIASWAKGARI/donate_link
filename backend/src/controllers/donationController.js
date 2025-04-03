@@ -219,7 +219,7 @@ const getAllMaterialDonations = asyncWrapper(async (req, res, next) => {
   console.log("1. Getting all material donations");
   const donations = await Donations.find({
     donationType: "material",
-    status: "pending",
+    // status: "pending",
   }).populate("donor", "name email phone");
 
   sendSuccessResponse(res, 200, {
@@ -233,7 +233,7 @@ const getAllMaterialDonations = asyncWrapper(async (req, res, next) => {
 // @access  Private (NGO)
 const requestMaterialDonation = asyncWrapper(async (req, res, next) => {
   const donation = await Donations.findById(req.params.id);
-
+  console.log("donation", donation);
   const { ngoId } = req.body;
 
   if (!donation) {
@@ -254,10 +254,11 @@ const requestMaterialDonation = asyncWrapper(async (req, res, next) => {
   }
 
   // Update donation status and add NGO
-  console.log("donation", donation);
+
   donation.NGO = ngoId;
   donation.status = "requested";
   await donation.save();
+  console.log("donation", donation);
   // Create notification for donor
   const notification = await Notification.create({
     recipient: donation.donor,

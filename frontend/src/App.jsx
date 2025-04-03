@@ -21,12 +21,14 @@ import VolunteerDashboard from "./pages/volunteer/VolunteerDashboard";
 
 import NgoDashboard from "./components/NGO/NgoDashboard";
 import DonationForm from "./pages/Donor/OrganizationalDonor/DonationForm";
-
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 function App() {
   return (
     <div className="pb-16">
       <UserProvider>
         <ScrollToTop />
+        <ToastContainer />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/register" element={<RegisterPage />} />

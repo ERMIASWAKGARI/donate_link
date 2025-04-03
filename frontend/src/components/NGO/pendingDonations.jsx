@@ -36,11 +36,24 @@ const PendingDonations = () => {
   useEffect(() => {
     fetchDonations();
   }, []);
-
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4">
+        {[1, 2, 3, 4].map((skeleton) => (
+          <div
+            key={skeleton}
+            className="animate-pulse p-4 border rounded-lg shadow-md bg-gray-300 dark:bg-gray-700"
+          >
+            <div className="h-32 bg-gray-400 dark:bg-gray-600 rounded-md"></div>
+            <div className="mt-2 h-4 bg-gray-400 dark:bg-gray-600 w-3/4 rounded"></div>
+            <div className="mt-2 h-3 bg-gray-400 dark:bg-gray-600 w-1/2 rounded"></div>
+          </div>
+        ))}
+      </div>
+    );
+  }
   const handleRequest = async (donationId) => {
     try {
-      // Get NGO ID from user data (assuming it's stored in localStorage)
-      console.log("donation id", donationId);
       const ngoId = user?._id;
 
       if (!ngoId) {
@@ -49,7 +62,7 @@ const PendingDonations = () => {
 
       const response = await axiosInstance.post(
         `/organization/material/${donationId}/request`,
-        { ngoId }, // Send ngoId in the request body
+        { ngoId },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -57,9 +70,15 @@ const PendingDonations = () => {
         }
       );
 
-      console.log("response", response);
+      // Update the local state immediately
+      setDonations((prevDonations) =>
+        prevDonations.map((donation) =>
+          donation._id === donationId
+            ? { ...donation, status: "requested" }
+            : donation
+        )
+      );
 
-      // Show success toast
       toast.success("Donation requested successfully!", {
         position: "top-right",
         autoClose: 3000,
@@ -68,9 +87,6 @@ const PendingDonations = () => {
         pauseOnHover: true,
         draggable: true,
       });
-
-      const updatedResponse = await fetchDonations();
-      setDonations(updatedResponse.data.message.donations);
     } catch (err) {
       setError(err.message);
       toast.error(err.response?.data?.message || "Failed to request donation", {
