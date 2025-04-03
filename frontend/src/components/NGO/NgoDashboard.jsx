@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { useContext, useState } from "react";
 import {
   FaBars,
@@ -6,17 +5,16 @@ import {
   FaHandHoldingHeart,
   FaHandsHelping,
   FaHome,
-  FaLessThan,
+  FaChevronLeft,
   FaTimes,
-  FaUsers,
+  FaUser,
 } from "react-icons/fa";
-import { UserContext } from "../../context/UserContext";
-import DonationsList from "./donationsList";
+import PendingDonations from "./pendingDonations";
 import PostedNeeds from "./postedNeeds";
+import DonationsList from "./donationsList";
 import VolunteerApplication from "./VolunteerApplication";
-
-import Header from "../../components/header/Header";
-
+import { UserContext } from "../../context/UserContext";
+import Header from "../header/Header";
 const ngoData = {
   name: "Helping Hands NGO",
   email: "contact@helpinghands.org",
@@ -109,9 +107,11 @@ export default function NgoDashboard() {
         return <DonationsList donations={donations} />;
       case "volunteers":
         return <VolunteerApplication volunteers={volunteers} />;
+      case "pending-donations":
+        return <PendingDonations />;
       default:
         return (
-          <div className="mt-6">
+          <div className="mt-6 p-3">
             <h1 className="text-2xl font-bold text-blue-700">
               Welcome, {user?.name}
             </h1>
@@ -148,7 +148,7 @@ export default function NgoDashboard() {
             mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
           } md:translate-x-0 transform fixed md:relative z-40 ${
             sidebarOpen ? "w-64" : "w-20"
-          } bg-primary text-white h-full transition-all duration-300 ease-in-out flex-shrink-0`}
+          } bg-[#006400] text-white h-full transition-all duration-300 ease-in-out flex-shrink-0`}
         >
           <div className="p-4 flex items-center justify-between border-b border-blue-700">
             <h1 className="text-xl font-bold truncate">
@@ -161,7 +161,7 @@ export default function NgoDashboard() {
               className="hidden md:block p-1 hover:bg-blue-700  focus:outline-none"
             >
               {sidebarOpen ? (
-                <FaLessThan size={14} />
+                <FaChevronLeft size={14} />
               ) : (
                 <FaChevronRight size={14} />
               )}
@@ -225,6 +225,22 @@ export default function NgoDashboard() {
               <li>
                 <button
                   onClick={() => {
+                    setActiveSection("pending-donations");
+                    setMobileSidebarOpen(false);
+                  }}
+                  className={`flex items-center p-2 w-full rounded  transition-colors ${
+                    activeSection === "pending-donations" ? "bg-yellow-400" : ""
+                  }`}
+                >
+                  <FaHandsHelping className="text-lg flex-shrink-0" />
+                  {(sidebarOpen || mobileSidebarOpen) && (
+                    <span className="ml-3 truncate">Available Donations</span>
+                  )}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => {
                     setActiveSection("volunteers");
                     setMobileSidebarOpen(false);
                   }}
@@ -232,7 +248,7 @@ export default function NgoDashboard() {
                     activeSection === "volunteers" ? "bg-yellow-400" : ""
                   }`}
                 >
-                  <FaUsers className="text-lg flex-shrink-0" />
+                  <FaUser className="text-lg flex-shrink-0" />
                   {(sidebarOpen || mobileSidebarOpen) && (
                     <span className="ml-3 truncate">Applications</span>
                   )}
@@ -244,11 +260,10 @@ export default function NgoDashboard() {
 
         {/* Main content */}
         <div
-          className={`flex-1 overflow-auto transition-all duration-300 ${
-            sidebarOpen ? "md:ml-24 mx-auto" : "md:ml-10"
-          }`}
+          className={`flex-1 overflow-auto transition-all duration-300 
+        }`}
         >
-          <div className="p-4 md:p-6">{renderContent()}</div>
+          <div className="relative">{renderContent()}</div>
         </div>
       </div>
     </>

@@ -10,7 +10,7 @@ const notificationSchema = new mongoose.Schema({
   type: {
     type: String,
     enum: [
-      "donation",
+      "donation-request",
       "application",
       "need",
       "payment",

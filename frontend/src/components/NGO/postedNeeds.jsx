@@ -44,9 +44,7 @@ function PostedNeeds() {
       setNeeds(response.data.data || []);
       setTotalItems(response.data.total || 0);
     } catch (err) {
-      setError(
-        err.response?.data?.message || err.message || "Failed to fetch needs"
-      );
+      setError("No posts added yet ");
     } finally {
       setLoading(false);
     }
@@ -109,19 +107,34 @@ function PostedNeeds() {
 
   // ... keep the rest of your existing functions (openDetailsModal, closeDetailsModal, etc.)
 
-  if (loading) return <div className="text-center py-4">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4">
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((skeleton) => (
+          <div
+            key={skeleton}
+            className="animate-pulse p-4 border rounded-lg shadow-md bg-gray-300 dark:bg-gray-700"
+          >
+            <div className="h-32 bg-gray-400 dark:bg-gray-600 rounded-md"></div>
+            <div className="mt-2 h-4 bg-gray-400 dark:bg-gray-600 w-3/4 rounded"></div>
+            <div className="mt-2 h-3 bg-gray-400 dark:bg-gray-600 w-1/2 rounded"></div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   if (error) {
     return (
       <div className="text-center py-4 text-red-500">
-        Error: {typeof error === "object" ? JSON.stringify(error) : error}
+        {typeof error === "object" ? JSON.stringify(error) : error}
       </div>
     );
   }
 
   return (
-    <div className="mt-6">
-      <div className="flex justify-between items-center">
+    <div className="mt-6 px-2">
+      <div className="flex p-2 justify-between items-center">
         <h2 className="text-xl font-semibold text-gray-800">Posted Needs</h2>
         <button
           onClick={() => setShowNeedForm(!showNeedForm)}
@@ -150,49 +163,73 @@ function PostedNeeds() {
             {needs.map((need) => (
               <div
                 key={need._id}
-                className="p-4 bg-white shadow rounded-lg relative"
+                className=" block border rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-white dark:bg-darkCard dark:border-gray-700 relative"
               >
-                <h3 className="font-bold text-lg">
-                  {need.title || "Untitled"}
-                </h3>
-                <p className="font-medium">
-                  {need.description || "No description provided"}
-                </p>
-                <div className="flex flex-wrap gap-1 my-2">
-                  {Array.isArray(need.needTypes) &&
-                    need.needTypes.map((type) => (
-                      <span
-                        key={type}
-                        className="px-2 py-1 bg-gray-100 text-xs rounded"
-                      >
-                        {type}
-                      </span>
-                    ))}
-                </div>
-                {need.needTypes?.includes("money") && need.targetMoney && (
-                  <p className="text-gray-600">Amount: {need.targetMoney}</p>
+                {need.beneficiaryInfo.pictures?.length > 0 && (
+                  <div className="relative max-h-[200px] h-max  w-full  rounded-t-md overflow-hidden">
+                    <img
+                      src={`http://localhost:5000/uploads/${need?.beneficiaryInfo.pictures[0].replace(
+                        /\\/g,
+                        "/"
+                      )}`}
+                      alt={`Need `}
+                      className="flex w-full h- h-[200px]  object-cover"
+                    />
+                  </div>
                 )}
-                <p
-                  className={`text-sm font-semibold ${
-                    need.status === "Fulfilled"
-                      ? "text-green-600"
-                      : need.status === "Expired"
-                      ? "text-red-600"
-                      : "text-blue-600"
-                  }`}
-                >
-                  Status: {need.status || "Unknown"}
-                </p>
-                <p className="text-sm text-gray-500">
-                  Urgency: {need.urgencyLevel || "Not specified"}
-                </p>
-                <div className="flex justify-between mt-2">
-                  <button
-                    onClick={() => openDetailsModal(need)}
-                    className="px-3 py-1 bg-yellow-500 text-white rounded cursor-pointer hover:bg-yellow-600"
-                  >
-                    <FaEye />
-                  </button>
+                <div className="bg-white p-4 rounded shadow">
+                  <p className="text-gray-700">
+                    <span className="font-bold text-lg">
+                      {need.title || "Untitled"}:{" "}
+                    </span>
+                    {need.description || "No description provided"}
+                    {Array.isArray(need.needTypes) &&
+                      need.needTypes.length > 0 && (
+                        <>
+                          {" "}
+                          This need includes{" "}
+                          {need.needTypes.map((type, index) => (
+                            <span key={type} className="font-medium">
+                              {type}
+                              {index < need.needTypes.length - 1 ? ", " : "."}
+                            </span>
+                          ))}
+                        </>
+                      )}
+                    {need.needTypes?.includes("money") && need.targetMoney && (
+                      <>
+                        {" "}
+                        The target amount is{" "}
+                        <span className="font-semibold">
+                          ${need.targetMoney}
+                        </span>
+                        .
+                      </>
+                    )}
+                    The current status is{" "}
+                    <span
+                      className={`font-semibold ${
+                        need.status === "Fulfilled"
+                          ? "text-green-600"
+                          : need.status === "Expired"
+                          ? "text-red-600"
+                          : "text-blue-600"
+                      }`}
+                    >
+                      {need.status || "Unknown"}
+                    </span>{" "}
+                    with an urgency level of{" "}
+                    <span className="font-medium">
+                      {need.urgencyLevel || "Not specified"}
+                    </span>
+                    .
+                    <button
+                      onClick={() => openDetailsModal(need)}
+                      className="ml-2 flex cursor-pointer items-center gap-1 text-yellow-500 hover:text-yellow-600"
+                    >
+                      see more <FaEye />
+                    </button>
+                  </p>
                 </div>
               </div>
             ))}
