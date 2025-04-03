@@ -1,8 +1,10 @@
 import AdminLayout from './AdminLayout/index';
-import useUsers from './hooks/useUsers';
+import ErrorDisplay from './common/ErrorDisplay';
+import Spinner from './common/Spinner ';
+import useDashboardUsers from './hooks/useDashboardUsers';
 
 const AdminDashboard = () => {
-  const { users, pagination, loading, error } = useUsers();
+  const { users, pagination, loading, error } = useDashboardUsers();
 
   // Calculate statistics from users data
   const totalUsers = pagination?.totalItems || 0;
@@ -10,22 +12,6 @@ const AdminDashboard = () => {
   const bannedUsers = users?.filter((user) => user.isBanned).length || 0;
   const pendingVerification =
     users?.filter((user) => !user.isVerified && !user.isBanned).length || 0;
-
-  if (loading)
-    return (
-      <AdminLayout>
-        <div className="p-6">Loading dashboard data...</div>
-      </AdminLayout>
-    );
-
-  if (error)
-    return (
-      <AdminLayout>
-        <div className="p-6 text-red-500">
-          Error loading user data: {error.message}
-        </div>
-      </AdminLayout>
-    );
 
   return (
     <AdminLayout>
@@ -66,6 +52,17 @@ const AdminDashboard = () => {
         </h2>
         {/* Activity list would go here */}
       </div>
+
+      {loading && (
+        <div className="flex items-center justify-center h-64">
+          <Spinner size="lg" color="indigo" />
+        </div>
+      )}
+      {error && (
+        <div className="p-6">
+          <ErrorDisplay message={error.message || 'Failed to load users'} />
+        </div>
+      )}
     </AdminLayout>
   );
 };

@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 
 import { useState } from 'react';
 import DataTable from '../common/DataTable';
+import ErrorDisplay from '../common/ErrorDisplay';
 import Pagination from '../common/Pagination';
 import SearchBar from '../common/SearchBar';
+import Spinner from '../common/Spinner ';
 import StatusBadge from '../common/StatusBadge';
 import useUsers from '../hooks/useUsers';
 import BulkActions from './BulkActions';
@@ -137,7 +139,11 @@ const UserList = () => {
 
   const handlePageChange = (page) => {
     changePage(page);
-    window.scrollTo(0, 0); // Optional: scroll to top on page change
+    window.scrollTo(0, 0);
+
+    const params = new URLSearchParams(window.location.search);
+    params.set('page', page);
+    window.history.pushState({}, '', `${window.location.pathname}?${params}`);
   };
 
   const handleSelectUser = (userId) => {
@@ -178,14 +184,6 @@ const UserList = () => {
     // Implement unban logic
   };
 
-  if (loading) return <div className="p-6">Loading users...</div>;
-  if (error)
-    return (
-      <div className="p-6 text-red-500">
-        Error: {error.message || 'Failed to load users'}
-      </div>
-    );
-
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
       {/* Header Section */}
@@ -221,7 +219,6 @@ const UserList = () => {
           </div>
         </div>
       </div>
-
       {/* Controls Section */}
       <div className="px-6 py-4 border-b border-gray-100">
         <div className="flex flex-col md:flex-row gap-4">
@@ -270,7 +267,6 @@ const UserList = () => {
           />
         </div>
       )}
-
       {/* Data Table */}
       <div className="px-6 py-4">
         <div className="rounded-lg border border-gray-200 overflow-hidden">
@@ -283,6 +279,16 @@ const UserList = () => {
         </div>
       </div>
 
+      {loading && (
+        <div className="flex items-center justify-center h-64">
+          <Spinner size="lg" color="indigo" />
+        </div>
+      )}
+      {error && (
+        <div className="p-6">
+          <ErrorDisplay message={error.message || 'Failed to load users'} />
+        </div>
+      )}
       {/* Pagination */}
       {pagination && pagination.totalPages > 1 && (
         <div className="px-6 py-4 border-t border-gray-100 bg-gray-50">

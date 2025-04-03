@@ -1,8 +1,14 @@
 // hooks/useUsers.js
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+
 import { getAllUsers, getUsersByRole, searchUsers } from '../api/adminApi';
 
 const useUsers = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const pageParam = searchParams.get('page');
+  const initialPage = pageParam ? parseInt(pageParam) : 1;
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,7 +21,11 @@ const useUsers = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
 
-  const fetchUsers = async (page = 1, query = '', role = '') => {
+  const fetchUsers = async (page = initialPage, query = '', role = '') => {
+    const params = new URLSearchParams(searchParams);
+    params.set('page', page);
+    setSearchParams(params);
+
     setLoading(true);
     setError(null);
 
@@ -48,10 +58,18 @@ const useUsers = () => {
   };
 
   useEffect(() => {
-    fetchUsers();
+    const params = new URLSearchParams(window.location.search);
+    const initialSearch = params.get('search') || '';
+    const initialRole = params.get('role') || '';
+    const initialPage = params.get('page') || 1;
+    fetchUsers(initialPage, initialSearch, initialRole);
   }, []);
 
   const handleSearch = (query) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set('search', query);
+    params.delete('page'); // Reset to page 1 when searching
+    window.history.pushState({}, '', `${window.location.pathname}?${params}`);
     setSearchQuery(query);
     setSelectedRole(''); // Clear selected role when searching
     fetchUsers(1, query);
@@ -59,6 +77,10 @@ const useUsers = () => {
   };
 
   const handleRoleChange = (role) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set('role', role);
+    params.delete('page'); // Reset to page 1 when changing role
+    window.history.pushState({}, '', `${window.location.pathname}?${params}`);
     setSelectedRole(role);
     fetchUsers(1, searchQuery, role);
   };
