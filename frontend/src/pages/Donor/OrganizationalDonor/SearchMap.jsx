@@ -138,7 +138,7 @@ const SearchMap = ({
       {isDropdownOpen && suggestions.length > 0 && (
         <div
           ref={dropdownRef}
-          className="absolute z-50 w-full bg-white border border-gray-300 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto"
+          className="absolute z-1000 w-full bg-white border border-gray-300 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto"
         >
           {suggestions.map((location) => (
             <button

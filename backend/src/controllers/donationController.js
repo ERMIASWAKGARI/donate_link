@@ -13,9 +13,41 @@ const sendSuccessResponse = require("../utils/responseHelper");
 // @route   POST /api/donations/material
 // @access  Private (Organization Donor)
 
-// @desc    Create a new material donation post
-// @route   POST /api/donations/material
-// @access  Private (Organization Donor)
+const handleFileUploads = async (files, uploadPath) => {
+  try {
+    if (!files || files.length === 0) {
+      throw new Error("No files provided");
+    }
+
+    const fileUrls = await Promise.all(
+      files.map((file) => {
+        return new Promise((resolve, reject) => {
+          const newFilename = `donation-${Date.now()}-${Math.random()
+            .toString(36)
+            .substring(2, 9)}${path.extname(file.originalname)}`;
+          const newPath = path.join(__dirname, uploadPath, newFilename);
+
+          fs.rename(file.path, newPath, (err) => {
+            if (err) return reject(err);
+            resolve(`${uploadPath}/${newFilename}`);
+          });
+        });
+      })
+    );
+
+    return fileUrls;
+  } catch (error) {
+    // Clean up any uploaded files on error
+    if (files) {
+      files.forEach((file) => {
+        if (fs.existsSync(file.path)) {
+          fs.unlinkSync(file.path);
+        }
+      });
+    }
+    throw error;
+  }
+};
 const createMaterialDonation = asyncWrapper(async (req, res, next) => {
   try {
     console.log("1. Starting donation creation");
@@ -33,34 +65,7 @@ const createMaterialDonation = asyncWrapper(async (req, res, next) => {
     console.log("4. User verified successfully");
 
     // File handling
-    if (!req.files || req.files.length === 0) {
-      console.log("5. No files uploaded");
-      return next(new AppError("Please upload at least one file", 400));
-    }
-
-    console.log("6. Processing", req.files.length, "files");
-
-    // Process files
-    const fileUrls = await Promise.all(
-      req.files.map((file) => {
-        return new Promise((resolve, reject) => {
-          const newFilename = `donation-${Date.now()}-${Math.random()
-            .toString(36)
-            .substring(2, 9)}${path.extname(file.originalname)}`;
-          const newPath = path.join(
-            __dirname,
-            "../uploads/donations",
-            newFilename
-          );
-
-          fs.rename(file.path, newPath, (err) => {
-            if (err) return reject(err);
-            resolve(`/uploads/donations/${newFilename}`);
-          });
-        });
-      })
-    );
-
+    const fileUrls = await handleFileUploads(req.files, "../uploads/donations");
     console.log("7. Files processed successfully");
 
     // Parse the JSON data if it's sent as a string in FormData
@@ -178,22 +183,9 @@ const createMaterialDonation = asyncWrapper(async (req, res, next) => {
     sendSuccessResponse(res, 201, { donation });
   } catch (err) {
     console.error("9. Error in donation creation:", err);
-
-    // Clean up any uploaded files
-    if (req.files) {
-      req.files.forEach((file) => {
-        if (fs.existsSync(file.path)) {
-          fs.unlinkSync(file.path);
-        }
-      });
-    }
-
     next(new AppError("Error processing donation: " + err.message, 500));
   }
 });
-// @desc    Get all material donations (for NGOs to browse)
-// @route   GET /api/donations/material
-// @access  Private (NGOs)
 
 const createOtherDonation = asyncWrapper(async (req, res, next) => {
   try {
@@ -205,6 +197,8 @@ const createOtherDonation = asyncWrapper(async (req, res, next) => {
       return next(new AppError("Not authorized", 403));
     }
 
+    const fileUrls = await handleFileUploads(req.files, "../uploads/donations");
+    console.log("7. Files processed successfully");
     // Parse the JSON data if it's sent as a string in FormData
     let donationData = {};
     if (req.body.data) {
@@ -243,6 +237,7 @@ const createOtherDonation = asyncWrapper(async (req, res, next) => {
       title: donationData.title,
       description: donationData.description || "",
       address: donationData.address,
+      images: fileUrls,
       location: {
         type: "Point",
         coordinates: [longitude, latitude],
@@ -253,31 +248,6 @@ const createOtherDonation = asyncWrapper(async (req, res, next) => {
     };
 
     // Handle file uploads
-    if (!req.files || req.files.length === 0) {
-      return next(new AppError("Please upload at least one image", 400));
-    }
-
-    const fileUrls = await Promise.all(
-      req.files.map((file) => {
-        return new Promise((resolve, reject) => {
-          const newFilename = `donation-${Date.now()}-${Math.random()
-            .toString(36)
-            .substring(2, 9)}${path.extname(file.originalname)}`;
-          const newPath = path.join(
-            __dirname,
-            "../uploads/donations",
-            newFilename
-          );
-
-          fs.rename(file.path, newPath, (err) => {
-            if (err) return reject(err);
-            resolve(`/uploads/donations/${newFilename}`);
-          });
-        });
-      })
-    );
-
-    donation.images = fileUrls;
 
     // Create the donation
     const createdDonation = await Donations.create(donation);
@@ -289,18 +259,9 @@ const createOtherDonation = asyncWrapper(async (req, res, next) => {
       },
     });
   } catch (err) {
-    // Clean up any uploaded files on error
-    if (req.files) {
-      req.files.forEach((file) => {
-        if (fs.existsSync(file.path)) {
-          fs.unlinkSync(file.path);
-        }
-      });
-    }
     next(new AppError("Error processing donation: " + err.message, 500));
   }
 });
-
 // Helper function to generate tracking ID
 
 const getAllMaterialDonations = asyncWrapper(async (req, res, next) => {
@@ -327,7 +288,6 @@ const requestMaterialDonation = asyncWrapper(async (req, res, next) => {
   if (!donation) {
     return next(new AppError("No donation found with that ID", 404));
   }
- 
 
   if (donation.status !== "pending") {
     return next(
@@ -336,7 +296,7 @@ const requestMaterialDonation = asyncWrapper(async (req, res, next) => {
   }
   // Verify NGO user exists
   const ngoUser = await User.findById(ngoId);
- 
+
   if (!ngoUser || ngoUser.role !== "ngo") {
     return next(new AppError("No valid NGO found with that ID", 404));
   }
@@ -512,6 +472,25 @@ const getDonationByTrackingId = asyncWrapper(async (req, res, next) => {
   sendSuccessResponse(res, 200, { donation });
 });
 
+const deleteAllDonations = asyncWrapper(async (req, res, next) => {
+  try {
+    // For testing purposes - no password required
+    console.warn(
+      "WARNING: Running in test mode - any authenticated user can delete all donations"
+    );
+
+    await Promise.all([Donations.deleteMany({}), ,]);
+
+    res.status(200).json({
+      status: "success",
+      message: "TEST MODE: All donations deleted",
+      data: {},
+    });
+  } catch (err) {
+    console.error("Error in test deletion:", err);
+    next(new AppError("Test deletion failed: " + err.message, 500));
+  }
+});
 module.exports = {
   createMaterialDonation,
   getAllMaterialDonations,
@@ -519,5 +498,6 @@ module.exports = {
   respondToDonationRequest,
   completeDonation,
   getDonationByTrackingId,
-  createOtherDonation
+  createOtherDonation,
+  deleteAllDonations,
 };
