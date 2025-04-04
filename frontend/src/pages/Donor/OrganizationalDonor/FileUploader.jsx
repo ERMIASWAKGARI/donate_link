@@ -82,7 +82,7 @@ const FileUploader = ({
     <div className="space-y-2">
       {/* Combined Drag and Drop Zone & Preview Area */}
       <div
-        className={`relative border-2 border-dashed rounded-lg p-4 transition-colors min-h-[130px] ${
+        className={`relative border-2 border-dashed rounded-lg p-4 transition-colors min-h-[100px] ${
           isDragging
             ? "border-blue-500 bg-blue-50"
             : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"

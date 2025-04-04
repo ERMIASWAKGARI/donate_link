@@ -4,6 +4,7 @@ import { FiAlertTriangle } from "react-icons/fi";
 import MaterialDonation from "./MaterialDonation";
 import { showToast } from "./ToastNotification";
 import ToastNotifications from "./ToastNotification";
+import { useNavigate } from "react-router-dom";
 
 const materialCategories = {
   food: [
@@ -12,7 +13,7 @@ const materialCategories = {
     "Fresh Produce",
     "Dairy",
     "Baked Goods",
-    "Other",
+    // "Other",
   ],
   medical: [
     "Medicines",
@@ -20,7 +21,7 @@ const materialCategories = {
     "Medical Equipment",
     "PPE",
     "Sanitation",
-    "Other",
+    // "Other",
   ],
   learning: [
     "Books",
@@ -28,26 +29,28 @@ const materialCategories = {
     "Electronics",
     "School Uniforms",
     "Backpacks",
-    "Other",
+    // "Other",
   ],
   drinking: [
     "Bottled Water",
     "Water Filters",
     "Water Purification Tablets",
-    "Other",
+    // "Other",
   ],
   clothing: [
     "Adult Clothing",
     "Children Clothing",
     "Shoes",
     "Winter Gear",
-    "Other",
+    // "Other",
   ],
   // other: ["Other"],
 };
 
 const DonationForm = () => {
   const [donationType, setDonationType] = useState("material");
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -175,6 +178,33 @@ const DonationForm = () => {
     setFiles(newFiles);
     setPreviewUrls(newPreviewUrls);
     URL.revokeObjectURL(previewUrls[index]);
+  };
+
+  const handleCancel = () => {
+    // Reset form state
+    setFormData({
+      title: "",
+      description: "",
+      materialDetails: {
+        category: "",
+        customCategory: "",
+        subCategory: "",
+        customSubCategory: "",
+        quantity: 1,
+        unit: "pieces",
+        condition: "new",
+        expirationDate: "",
+      },
+      address: "",
+      location: {
+        type: "Point",
+        coordinates: [38.7636, 8.9806],
+      },
+    });
+    setFiles([]);
+    setPreviewUrls([]);
+    // If using React Router, you could navigate away:
+    navigate("/donor/dashboard");
   };
 
   const validateForm = () => {
@@ -389,6 +419,7 @@ const DonationForm = () => {
           setMapCenter={setMapCenter}
           materialCategories={materialCategories}
           isSubmitting={isSubmitting}
+          onCancel={handleCancel}
         />
       ) : (
         <div className="text-center py-12">

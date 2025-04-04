@@ -12,27 +12,6 @@ const sendSuccessResponse = require("../utils/responseHelper");
 // @desc    Create a new material donation post
 // @route   POST /api/donations/material
 // @access  Private (Organization Donor)
-const moveFilesToPermanentLocation = (files) => {
-  const fileUrls = [];
-  const uploadPath = path.join(__dirname, "../uploads/donations");
-
-  // Create upload directory if it doesn't exist
-  if (!fs.existsSync(uploadPath)) {
-    fs.mkdirSync(uploadPath, { recursive: true });
-  }
-
-  files.forEach((file) => {
-    const newFilename = `donation-${Date.now()}-${Math.round(
-      Math.random() * 1e9
-    )}${path.extname(file.originalname)}`;
-    const newPath = path.join(uploadPath, newFilename);
-
-    fs.renameSync(file.path, newPath);
-    fileUrls.push(`/uploads/donations/${newFilename}`);
-  });
-
-  return fileUrls;
-};
 
 // @desc    Create a new material donation post
 // @route   POST /api/donations/material
@@ -215,6 +194,115 @@ const createMaterialDonation = asyncWrapper(async (req, res, next) => {
 // @desc    Get all material donations (for NGOs to browse)
 // @route   GET /api/donations/material
 // @access  Private (NGOs)
+
+const createOtherDonation = asyncWrapper(async (req, res, next) => {
+  try {
+    const donorId = req.user.id;
+
+    // Verify user exists and is organization donor
+    const user = await User.findById(donorId).select("+role").lean();
+    if (!user || user.role !== "organization_donor") {
+      return next(new AppError("Not authorized", 403));
+    }
+
+    // Parse the JSON data if it's sent as a string in FormData
+    let donationData = {};
+    if (req.body.data) {
+      try {
+        donationData = JSON.parse(req.body.data);
+      } catch (e) {
+        return next(new AppError("Invalid donation data format", 400));
+      }
+    }
+
+    // Required fields validation
+    if (!donationData.title) {
+      return next(new AppError("Title is required", 400));
+    }
+
+    if (!donationData.address) {
+      return next(new AppError("Address is required", 400));
+    }
+
+    // Location validation
+    if (!donationData.location || !donationData.location.coordinates) {
+      return next(new AppError("Location coordinates are required", 400));
+    }
+
+    const [longitude, latitude] = donationData.location.coordinates.map(
+      (coord) => parseFloat(coord)
+    );
+    if (isNaN(longitude) || isNaN(latitude)) {
+      return next(new AppError("Valid location coordinates are required", 400));
+    }
+
+    // Prepare the donation data
+    const donation = {
+      donor: donorId,
+      donationType: "other",
+      title: donationData.title,
+      description: donationData.description || "",
+      address: donationData.address,
+      location: {
+        type: "Point",
+        coordinates: [longitude, latitude],
+      },
+      trackingId: generateTrackingId(),
+      status: donationData.status || "pending",
+      notifications: donationData.notifications || [],
+    };
+
+    // Handle file uploads
+    if (!req.files || req.files.length === 0) {
+      return next(new AppError("Please upload at least one image", 400));
+    }
+
+    const fileUrls = await Promise.all(
+      req.files.map((file) => {
+        return new Promise((resolve, reject) => {
+          const newFilename = `donation-${Date.now()}-${Math.random()
+            .toString(36)
+            .substring(2, 9)}${path.extname(file.originalname)}`;
+          const newPath = path.join(
+            __dirname,
+            "../uploads/donations",
+            newFilename
+          );
+
+          fs.rename(file.path, newPath, (err) => {
+            if (err) return reject(err);
+            resolve(`/uploads/donations/${newFilename}`);
+          });
+        });
+      })
+    );
+
+    donation.images = fileUrls;
+
+    // Create the donation
+    const createdDonation = await Donations.create(donation);
+
+    res.status(201).json({
+      status: "success",
+      data: {
+        donation: createdDonation,
+      },
+    });
+  } catch (err) {
+    // Clean up any uploaded files on error
+    if (req.files) {
+      req.files.forEach((file) => {
+        if (fs.existsSync(file.path)) {
+          fs.unlinkSync(file.path);
+        }
+      });
+    }
+    next(new AppError("Error processing donation: " + err.message, 500));
+  }
+});
+
+// Helper function to generate tracking ID
+
 const getAllMaterialDonations = asyncWrapper(async (req, res, next) => {
   const donations = await Donations.find({
     donationType: "material",
@@ -427,4 +515,5 @@ module.exports = {
   respondToDonationRequest,
   completeDonation,
   getDonationByTrackingId,
+  createOtherDonation
 };
