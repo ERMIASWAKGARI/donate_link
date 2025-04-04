@@ -41,21 +41,47 @@ const donationsSchema = new mongoose.Schema(
       maxlength: 500,
     },
 
+    title: {
+      type: String,
+    },
+
     // --- Material Donation Fields ---
     materialDetails: {
       category: {
         type: String,
-        enum: ["food", "medical", "learning", "drinking", "clothing", "other"],
+        // enum: ["food", "medical", "learning", "drinking", "clothing", "other"],
         required: function () {
           return this.donationType === "material";
         },
       },
+      customCategory: {
+        type: String,
+        required: function () {
+          return (
+            this.donationType === "material" &&
+            this.materialDetails.category === "other"
+          );
+        },
+        maxlength: 100,
+      },
+      // In schema
       subCategory: {
         type: String,
         required: function () {
           return this.donationType === "material";
         },
       },
+      customSubCategory: {
+        type: String,
+        required: function () {
+          return (
+            this.donationType === "material" &&
+            this.materialDetails.subCategory === "other"
+          );
+        },
+        maxlength: 100,
+      },
+
       quantity: {
         type: Number,
         required: function () {

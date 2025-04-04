@@ -1,7 +1,11 @@
-import React, { useEffect } from 'react';
-import { FaUserFriends, FaHandHoldingHeart, FaHandsHelping } from 'react-icons/fa';
-import AOS from 'aos';
-import 'aos/dist/aos.css'; // Import AOS styles
+import React, { useEffect } from "react";
+import {
+  FaUserFriends,
+  FaHandHoldingHeart,
+  FaHandsHelping,
+} from "react-icons/fa";
+import AOS from "aos";
+import "aos/dist/aos.css"; // Import AOS styles
 
 const ImpactSection = () => {
   useEffect(() => {
@@ -20,7 +24,7 @@ const ImpactSection = () => {
             className="flex flex-col items-center"
             data-aos="fade-up" // AOS fade-up animation for Donors Helped
           >
-            <FaUserFriends className="text-green-600 text-5xl mb-4" />
+            <FaUserFriends className="text-[#008080] text-5xl mb-4" />
             <h3 className="text-4xl font-bold text-gray-800">1,200+</h3>
             <p className="text-gray-600">Donors Helped</p>
           </div>
@@ -31,7 +35,7 @@ const ImpactSection = () => {
             data-aos="fade-up"
             data-aos-delay="100" // Delay for staggered animation
           >
-            <FaHandHoldingHeart className="text-green-600 text-5xl mb-4" />
+            <FaHandHoldingHeart className="text-[#008080] text-5xl mb-4" />
             <h3 className="text-4xl font-bold text-gray-800">$50K+</h3>
             <p className="text-gray-600">Donations Received</p>
           </div>
@@ -42,7 +46,7 @@ const ImpactSection = () => {
             data-aos="fade-up"
             data-aos-delay="200" // Delay for staggered animation
           >
-            <FaHandsHelping className="text-green-600 text-5xl mb-4" />
+            <FaHandsHelping className="text-[#008080] text-5xl mb-4" />
             <h3 className="text-4xl font-bold text-gray-800">30+</h3>
             <p className="text-gray-600">NGOs Supported</p>
           </div>

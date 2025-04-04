@@ -1,14 +1,14 @@
-import React, { useEffect } from 'react';
-import { FaUserPlus, FaGift, FaBuilding, FaChartLine } from 'react-icons/fa';
-import { motion } from 'framer-motion';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
+import React, { useEffect } from "react";
+import { FaUserPlus, FaGift, FaBuilding, FaChartLine } from "react-icons/fa";
+import { motion } from "framer-motion";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 const HowItWorksSection = () => {
   useEffect(() => {
-    AOS.init({ 
+    AOS.init({
       duration: 1000,
-      once: true
+      once: true,
     });
   }, []);
 
@@ -19,9 +19,9 @@ const HowItWorksSection = () => {
       opacity: 1,
       transition: {
         staggerChildren: 0.2,
-        when: "beforeChildren"
-      }
-    }
+        when: "beforeChildren",
+      },
+    },
   };
 
   const item = {
@@ -31,15 +31,15 @@ const HowItWorksSection = () => {
       opacity: 1,
       transition: {
         duration: 0.6,
-        ease: "easeOut"
-      }
-    }
+        ease: "easeOut",
+      },
+    },
   };
 
   const iconHover = {
     scale: 1.1,
     rotate: 5,
-    transition: { type: "spring", stiffness: 400, damping: 10 }
+    transition: { type: "spring", stiffness: 400, damping: 10 },
   };
 
   const steps = [
@@ -47,26 +47,27 @@ const HowItWorksSection = () => {
       icon: <FaUserPlus className="text-3xl" />,
       title: "Sign Up",
       description: "Create your donor account and get started in minutes.",
-      color: "bg-green-100 text-green-600"
+      color: "bg-green-100 text-green-600",
     },
     {
       icon: <FaGift className="text-3xl" />,
       title: "Choose Items",
       description: "Select from various donation options or specific items.",
-      color: "bg-blue-100 text-blue-600"
+      color: "bg-blue-100 text-blue-600",
     },
     {
       icon: <FaBuilding className="text-3xl" />,
       title: "Select an NGO",
       description: "Pick a trusted organization that aligns with your values.",
-      color: "bg-purple-100 text-purple-600"
+      color: "bg-purple-100 text-purple-600",
     },
     {
       icon: <FaChartLine className="text-3xl" />,
       title: "Track Impact",
-      description: "Receive updates on how your contribution makes a difference.",
-      color: "bg-yellow-100 text-yellow-600"
-    }
+      description:
+        "Receive updates on how your contribution makes a difference.",
+      color: "bg-yellow-100 text-yellow-600",
+    },
   ];
 
   return (
@@ -81,9 +82,9 @@ const HowItWorksSection = () => {
           className="text-center mb-16"
         >
           <h2 className="text-4xl font-bold text-gray-800 mb-4">
-            How <span className="text-green-600">It Works</span>
+            How <span className="text-[#008080]">It Works</span>
           </h2>
-          <div className="w-20 h-1 bg-green-500 mx-auto mb-6"></div>
+          <div className="w-20 h-1 bg-primary mx-auto mb-6"></div>
           <p className="text-gray-600 max-w-2xl mx-auto">
             Our simple 4-step process makes donating easy and impactful
           </p>
@@ -107,7 +108,9 @@ const HowItWorksSection = () => {
             >
               {/* Animated Number */}
               <div className="relative mb-6">
-                <div className={`w-20 h-20 ${step.color} rounded-full flex items-center justify-center text-2xl font-bold absolute -top-12 left-1/2 transform -translate-x-1/2`}>
+                <div
+                  className={`w-20 h-20 ${step.color} rounded-full flex items-center justify-center text-2xl font-bold absolute -top-12 left-1/2 transform -translate-x-1/2`}
+                >
                   {index + 1}
                 </div>
               </div>
@@ -121,20 +124,34 @@ const HowItWorksSection = () => {
               </motion.div>
 
               {/* Content */}
-              <h3 className="text-xl font-bold text-gray-800 mb-3 text-center">{step.title}</h3>
-              <p className="text-center text-gray-600 mb-6">{step.description}</p>
-              
+              <h3 className="text-xl font-bold text-gray-800 mb-3 text-center">
+                {step.title}
+              </h3>
+              <p className="text-center text-gray-600 mb-6">
+                {step.description}
+              </p>
+
               {/* Animated Arrow (except last item) */}
               {index < steps.length - 1 && (
-                <motion.div 
+                <motion.div
                   className="hidden lg:block absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2"
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.5 }}
                   viewport={{ once: true }}
                 >
-                  <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                  <svg
+                    className="w-8 h-8 text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 5l7 7-7 7M5 5l7 7-7 7"
+                    />
                   </svg>
                 </motion.div>
               )}
@@ -153,7 +170,7 @@ const HowItWorksSection = () => {
           <motion.button
             whileHover={{ scale: 1.05, backgroundColor: "#16a34a" }}
             whileTap={{ scale: 0.95 }}
-            className="px-8 py-3 bg-green-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+            className="px-8 py-3 bg-primary text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
           >
             Get Started Now
           </motion.button>

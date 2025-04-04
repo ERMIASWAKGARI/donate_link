@@ -1,16 +1,27 @@
 import { useState, useRef, useEffect } from "react";
 import DonationTypeSelector from "./DonationTypeSelector";
+import { FiAlertTriangle } from "react-icons/fi";
 import MaterialDonation from "./MaterialDonation";
+import { showToast } from "./ToastNotification";
+import ToastNotifications from "./ToastNotification";
+import { useNavigate } from "react-router-dom";
 
-// Category and subcategory data
 const materialCategories = {
-  food: ["Grains", "Canned Goods", "Fresh Produce", "Dairy", "Baked Goods"],
+  food: [
+    "Grains",
+    "Canned Goods",
+    "Fresh Produce",
+    "Dairy",
+    "Baked Goods",
+    // "Other",
+  ],
   medical: [
     "Medicines",
     "First Aid Kits",
     "Medical Equipment",
     "PPE",
     "Sanitation",
+    // "Other",
   ],
   learning: [
     "Books",
@@ -18,26 +29,42 @@ const materialCategories = {
     "Electronics",
     "School Uniforms",
     "Backpacks",
+    // "Other",
   ],
-  drinking: ["Bottled Water", "Water Filters", "Water Purification Tablets"],
-  clothing: ["Adult Clothing", "Children Clothing", "Shoes", "Winter Gear"],
-  other: ["Furniture", "Household Items", "Toys", "Other"],
+  drinking: [
+    "Bottled Water",
+    "Water Filters",
+    "Water Purification Tablets",
+    // "Other",
+  ],
+  clothing: [
+    "Adult Clothing",
+    "Children Clothing",
+    "Shoes",
+    "Winter Gear",
+    // "Other",
+  ],
+  // other: ["Other"],
 };
 
 const DonationForm = () => {
   const [donationType, setDonationType] = useState("material");
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
-    description: "", // Moved to root level
+    title: "",
+    description: "",
     materialDetails: {
       category: "",
+      customCategory: "",
       subCategory: "",
+      customSubCategory: "",
       quantity: 1,
       unit: "pieces",
       condition: "new",
       expirationDate: "",
     },
     address: "",
-    title: "",
     location: {
       type: "Point",
       coordinates: [38.7636, 8.9806],
@@ -47,13 +74,12 @@ const DonationForm = () => {
   const [previewUrls, setPreviewUrls] = useState([]);
   const fileInputRef = useRef(null);
   const [mapCenter, setMapCenter] = useState([8.9806, 38.7636]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Function to get donorId from accessToken
   const getDonorIdFromToken = () => {
     const accessToken = localStorage.getItem("accessToken");
-    console.log("Token:", accessToken);
     if (!accessToken) {
-      console.error("No access token found");
+      showToast.warning("Session expired. Please login again.");
       return null;
     }
 
@@ -62,10 +88,9 @@ const DonationForm = () => {
       const decodedPayload = JSON.parse(
         atob(payload.replace(/-/g, "+").replace(/_/g, "/"))
       );
-      console.log("Decoded token payload:", decodedPayload);
       return decodedPayload.id;
-    } catch (error) {
-      console.error("Error decoding token:", error);
+    } catch {
+      showToast.error("Invalid session. Please login again.");
       return null;
     }
   };
@@ -74,17 +99,19 @@ const DonationForm = () => {
     setDonationType(type);
     if (type !== "material") {
       setFormData({
+        title: "",
         description: "",
         materialDetails: {
           category: "",
+          customCategory: "",
           subCategory: "",
+          customSubCategory: "",
           quantity: 1,
           unit: "pieces",
           condition: "new",
           expirationDate: "",
         },
         address: "",
-        title: "",
         location: {
           type: "Point",
           coordinates: [38.7636, 8.9806],
@@ -96,7 +123,6 @@ const DonationForm = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    // Handle nested fields
     if (name.includes(".")) {
       const [parent, child] = name.split(".");
       setFormData((prev) => ({
@@ -106,9 +132,28 @@ const DonationForm = () => {
           [child]: value,
         },
       }));
-    }
-    // Handle root-level fields
-    else {
+
+      if (parent === "materialDetails") {
+        if (child === "category" && value !== "other") {
+          setFormData((prev) => ({
+            ...prev,
+            materialDetails: {
+              ...prev.materialDetails,
+              customCategory: "",
+            },
+          }));
+        }
+        if (child === "subCategory" && value !== "Other") {
+          setFormData((prev) => ({
+            ...prev,
+            materialDetails: {
+              ...prev.materialDetails,
+              customSubCategory: "",
+            },
+          }));
+        }
+      }
+    } else {
       setFormData((prev) => ({
         ...prev,
         [name]: value,
@@ -135,34 +180,121 @@ const DonationForm = () => {
     URL.revokeObjectURL(previewUrls[index]);
   };
 
+  const handleCancel = () => {
+    // Reset form state
+    setFormData({
+      title: "",
+      description: "",
+      materialDetails: {
+        category: "",
+        customCategory: "",
+        subCategory: "",
+        customSubCategory: "",
+        quantity: 1,
+        unit: "pieces",
+        condition: "new",
+        expirationDate: "",
+      },
+      address: "",
+      location: {
+        type: "Point",
+        coordinates: [38.7636, 8.9806],
+      },
+    });
+    setFiles([]);
+    setPreviewUrls([]);
+    // If using React Router, you could navigate away:
+    navigate("/donor/dashboard");
+  };
+
+  const validateForm = () => {
+    if (!formData.title.trim()) {
+      showToast.error("Please enter a title for your donation");
+      return false;
+    }
+    if (!formData.description.trim()) {
+      showToast.error("Please provide a description");
+      return false;
+    }
+    if (!formData.materialDetails.category) {
+      showToast.error("Please select a category");
+      return false;
+    }
+    if (
+      formData.materialDetails.category === "other" &&
+      !formData.materialDetails.customCategory.trim()
+    ) {
+      showToast.error("Please specify your custom category");
+      return false;
+    }
+    if (!formData.materialDetails.subCategory) {
+      showToast.error("Please select a subcategory");
+      return false;
+    }
+    if (
+      formData.materialDetails.subCategory === "Other" &&
+      !formData.materialDetails.customSubCategory.trim()
+    ) {
+      showToast.error("Please specify your custom subcategory");
+      return false;
+    }
+    if (!formData.address.trim()) {
+      showToast.error("Please enter an address");
+      return false;
+    }
+    if (files.length === 0) {
+      showToast.error("Please upload at least one image");
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+    const loadingToast = showToast.loading("Submitting your donation...");
+
     try {
       const donorId = getDonorIdFromToken();
-      if (!donorId) throw new Error("Please login to make a donation");
+      if (!donorId) {
+        showToast.dismiss(loadingToast);
+        setIsSubmitting(false);
+        return;
+      }
 
       const formDataToSend = new FormData();
+      files.forEach((file) => formDataToSend.append("files", file));
 
-      // Append files
-      files.forEach((file) => {
-        formDataToSend.append("files", file);
-      });
-
-      // Prepare payload with description at root level
       const payload = {
-        ...formData,
+        title: formData.title,
+        description: formData.description,
+        address: formData.address,
         donorId,
         donationType: "material",
+        materialDetails: {
+          category:
+            formData.materialDetails.category === "other"
+              ? formData.materialDetails.customCategory
+              : formData.materialDetails.category,
+          subCategory:
+            formData.materialDetails.subCategory === "Other"
+              ? formData.materialDetails.customSubCategory
+              : formData.materialDetails.subCategory,
+          quantity: formData.materialDetails.quantity,
+          unit: formData.materialDetails.unit,
+          condition: formData.materialDetails.condition,
+          ...(formData.materialDetails.expirationDate && {
+            expirationDate: formData.materialDetails.expirationDate,
+          }),
+        },
+        location: formData.location,
       };
 
-      // Stringify and append the payload
       formDataToSend.append("data", JSON.stringify(payload));
-
-      // Append location coordinates separately
       formDataToSend.append("longitude", formData.location.coordinates[0]);
       formDataToSend.append("latitude", formData.location.coordinates[1]);
-
-      console.log("Full payload being sent:", payload);
 
       const response = await fetch(
         "http://localhost:5000/api/organization/material",
@@ -176,28 +308,35 @@ const DonationForm = () => {
         }
       );
 
+      showToast.dismiss(loadingToast);
+      setIsSubmitting(false);
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to submit donation");
+        throw new Error(errorData.message || "Failed to process your donation");
       }
 
       const data = await response.json();
-      console.log("Donation created:", data);
-      alert("Donation submitted successfully!");
+      showToast.success(
+        data.message ||
+          "Donation submitted successfully! Our team will review it shortly."
+      );
 
       // Reset form
       setFormData({
+        title: "",
         description: "",
         materialDetails: {
           category: "",
+          customCategory: "",
           subCategory: "",
+          customSubCategory: "",
           quantity: 1,
           unit: "pieces",
           condition: "new",
           expirationDate: "",
         },
         address: "",
-        title: "",
         location: {
           type: "Point",
           coordinates: [38.7636, 8.9806],
@@ -206,8 +345,21 @@ const DonationForm = () => {
       setFiles([]);
       setPreviewUrls([]);
     } catch (error) {
-      console.error("Error submitting donation:", error);
-      alert(error.message || "Error submitting donation. Please try again.");
+      showToast.dismiss(loadingToast);
+      setIsSubmitting(false);
+
+      if (error.message.includes("network")) {
+        showToast.error(
+          "Network error. Please check your connection and try again."
+        );
+      } else {
+        showToast.error(
+          error.message || "An unexpected error occurred. Please try again."
+        );
+      }
+
+      // Clean up files
+      files.forEach((file) => URL.revokeObjectURL(file.preview));
     }
   };
 
@@ -218,13 +370,39 @@ const DonationForm = () => {
   }, [previewUrls]);
 
   return (
-    <div className="max-w-7xl mx-auto p-6 bg-white rounded-lg shadow-md">
+    <div className="max-w-7xl mx-auto p-6 bg-white rounded-lg shadow-md relative">
+      <ToastNotifications />
+
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Make a Donation</h1>
+      {/* Important Notice Banner */}
 
       <DonationTypeSelector
         donationType={donationType}
         handleDonationTypeChange={handleDonationTypeChange}
       />
+
+      <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6 rounded-r-md">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <FiAlertTriangle className="h-5 w-5 text-amber-600" />
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-amber-800">
+              Important Notice
+            </h3>
+            <div className="mt-2 text-sm text-amber-700">
+              <p>
+                Please review all information carefully before submitting.
+                <span className="font-semibold">
+                  {" "}
+                  Donations cannot be edited
+                </span>{" "}
+                after submission. Ensure all details are accurate, especially:
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {donationType === "material" ? (
         <MaterialDonation
@@ -240,13 +418,13 @@ const DonationForm = () => {
           setFormData={setFormData}
           setMapCenter={setMapCenter}
           materialCategories={materialCategories}
+          isSubmitting={isSubmitting}
+          onCancel={handleCancel}
         />
       ) : (
         <div className="text-center py-12">
           <p className="text-lg text-gray-600">
-            {donationType === "money"
-              ? "Money donation form coming soon"
-              : "Service donation form coming soon"}
+            Other donation form coming soon
           </p>
         </div>
       )}

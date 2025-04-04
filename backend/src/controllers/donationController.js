@@ -12,27 +12,6 @@ const sendSuccessResponse = require("../utils/responseHelper");
 // @desc    Create a new material donation post
 // @route   POST /api/donations/material
 // @access  Private (Organization Donor)
-const moveFilesToPermanentLocation = (files) => {
-  const fileUrls = [];
-  const uploadPath = path.join(__dirname, "../uploads/donations");
-
-  // Create upload directory if it doesn't exist
-  if (!fs.existsSync(uploadPath)) {
-    fs.mkdirSync(uploadPath, { recursive: true });
-  }
-
-  files.forEach((file) => {
-    const newFilename = `donation-${Date.now()}-${Math.round(
-      Math.random() * 1e9
-    )}${path.extname(file.originalname)}`;
-    const newPath = path.join(uploadPath, newFilename);
-
-    fs.renameSync(file.path, newPath);
-    fileUrls.push(`/uploads/donations/${newFilename}`);
-  });
-
-  return fileUrls;
-};
 
 // @desc    Create a new material donation post
 // @route   POST /api/donations/material
@@ -84,9 +63,6 @@ const createMaterialDonation = asyncWrapper(async (req, res, next) => {
 
     console.log("7. Files processed successfully");
 
-    // Debug: Log the complete request body
-    console.log("7.1 Raw request body:", req.body);
-
     // Parse the JSON data if it's sent as a string in FormData
     let donationData = {};
     if (req.body.data) {
@@ -127,16 +103,71 @@ const createMaterialDonation = asyncWrapper(async (req, res, next) => {
 
     console.log("7.7 Formatted location:", location);
 
-    // Prepare materialDetails without description (since it's now at root level)
-    const { description, ...materialData } = donationData;
+    // Prepare the donation data with proper category handling
+    const { materialDetails, description, title, ...otherData } = donationData;
 
-    // Create donation using combined data sources
+    // Validate category and subcategory
+    if (!materialDetails?.category) {
+      return next(new AppError("Category is required", 400));
+    }
+
+    if (
+      materialDetails.category === "other" &&
+      !materialDetails.customCategory
+    ) {
+      return next(
+        new AppError("Custom category is required when selecting 'other'", 400)
+      );
+    }
+
+    if (!materialDetails?.subCategory) {
+      return next(new AppError("Subcategory is required", 400));
+    }
+
+    if (
+      materialDetails.subCategory === "Other" &&
+      !materialDetails.customSubCategory
+    ) {
+      return next(
+        new AppError(
+          "Custom subcategory is required when selecting 'Other'",
+          400
+        )
+      );
+    }
+
+    // Prepare the material details for database
+    const dbMaterialDetails = {
+      category:
+        materialDetails.category === "other"
+          ? "other"
+          : materialDetails.category,
+      ...(materialDetails.category === "other" && {
+        customCategory: materialDetails.customCategory,
+      }),
+      subCategory:
+        materialDetails.subCategory === "Other"
+          ? "Other"
+          : materialDetails.subCategory,
+      ...(materialDetails.subCategory === "Other" && {
+        customSubCategory: materialDetails.customSubCategory,
+      }),
+      quantity: materialDetails.quantity,
+      unit: materialDetails.unit,
+      condition: materialDetails.condition,
+      ...(materialDetails.expirationDate && {
+        expirationDate: new Date(materialDetails.expirationDate),
+      }),
+    };
+
+    // Create donation
     const donation = await Donations.create({
       donor: donorId,
-      ...materialData, // Use the parsed data (without description)
-      ...req.body, // Then override with any direct body fields
-      description, // Add description at root level
-      location, // Use our properly formatted location
+      ...otherData,
+      description,
+      title,
+      materialDetails: dbMaterialDetails,
+      location,
       images: fileUrls,
       trackingId: generateTrackingId(),
       donationType: "material",
@@ -163,10 +194,120 @@ const createMaterialDonation = asyncWrapper(async (req, res, next) => {
 // @desc    Get all material donations (for NGOs to browse)
 // @route   GET /api/donations/material
 // @access  Private (NGOs)
+
+const createOtherDonation = asyncWrapper(async (req, res, next) => {
+  try {
+    const donorId = req.user.id;
+
+    // Verify user exists and is organization donor
+    const user = await User.findById(donorId).select("+role").lean();
+    if (!user || user.role !== "organization_donor") {
+      return next(new AppError("Not authorized", 403));
+    }
+
+    // Parse the JSON data if it's sent as a string in FormData
+    let donationData = {};
+    if (req.body.data) {
+      try {
+        donationData = JSON.parse(req.body.data);
+      } catch (e) {
+        return next(new AppError("Invalid donation data format", 400));
+      }
+    }
+
+    // Required fields validation
+    if (!donationData.title) {
+      return next(new AppError("Title is required", 400));
+    }
+
+    if (!donationData.address) {
+      return next(new AppError("Address is required", 400));
+    }
+
+    // Location validation
+    if (!donationData.location || !donationData.location.coordinates) {
+      return next(new AppError("Location coordinates are required", 400));
+    }
+
+    const [longitude, latitude] = donationData.location.coordinates.map(
+      (coord) => parseFloat(coord)
+    );
+    if (isNaN(longitude) || isNaN(latitude)) {
+      return next(new AppError("Valid location coordinates are required", 400));
+    }
+
+    // Prepare the donation data
+    const donation = {
+      donor: donorId,
+      donationType: "other",
+      title: donationData.title,
+      description: donationData.description || "",
+      address: donationData.address,
+      location: {
+        type: "Point",
+        coordinates: [longitude, latitude],
+      },
+      trackingId: generateTrackingId(),
+      status: donationData.status || "pending",
+      notifications: donationData.notifications || [],
+    };
+
+    // Handle file uploads
+    if (!req.files || req.files.length === 0) {
+      return next(new AppError("Please upload at least one image", 400));
+    }
+
+    const fileUrls = await Promise.all(
+      req.files.map((file) => {
+        return new Promise((resolve, reject) => {
+          const newFilename = `donation-${Date.now()}-${Math.random()
+            .toString(36)
+            .substring(2, 9)}${path.extname(file.originalname)}`;
+          const newPath = path.join(
+            __dirname,
+            "../uploads/donations",
+            newFilename
+          );
+
+          fs.rename(file.path, newPath, (err) => {
+            if (err) return reject(err);
+            resolve(`/uploads/donations/${newFilename}`);
+          });
+        });
+      })
+    );
+
+    donation.images = fileUrls;
+
+    // Create the donation
+    const createdDonation = await Donations.create(donation);
+
+    res.status(201).json({
+      status: "success",
+      data: {
+        donation: createdDonation,
+      },
+    });
+  } catch (err) {
+    // Clean up any uploaded files on error
+    if (req.files) {
+      req.files.forEach((file) => {
+        if (fs.existsSync(file.path)) {
+          fs.unlinkSync(file.path);
+        }
+      });
+    }
+    next(new AppError("Error processing donation: " + err.message, 500));
+  }
+});
+
+// Helper function to generate tracking ID
+
 const getAllMaterialDonations = asyncWrapper(async (req, res, next) => {
+  console.log("1. Getting all material donations");
   const donations = await Donations.find({
     donationType: "material",
-    status: "posted",
+    // status: "pending",
   }).populate("donor", "name email phone");
 
   sendSuccessResponse(res, 200, {
@@ -180,29 +321,32 @@ const getAllMaterialDonations = asyncWrapper(async (req, res, next) => {
 // @access  Private (NGO)
 const requestMaterialDonation = asyncWrapper(async (req, res, next) => {
   const donation = await Donations.findById(req.params.id);
+  console.log("donation", donation);
   const { ngoId } = req.body;
 
   if (!donation) {
     return next(new AppError("No donation found with that ID", 404));
   }
+ 
 
-  if (donation.status !== "posted") {
+  if (donation.status !== "pending") {
     return next(
       new AppError("This donation is not available for request", 400)
     );
   }
-
   // Verify NGO user exists
   const ngoUser = await User.findById(ngoId);
+ 
   if (!ngoUser || ngoUser.role !== "ngo") {
     return next(new AppError("No valid NGO found with that ID", 404));
   }
 
   // Update donation status and add NGO
+
   donation.NGO = ngoId;
   donation.status = "requested";
   await donation.save();
-
+  console.log("donation", donation);
   // Create notification for donor
   const notification = await Notification.create({
     recipient: donation.donor,
@@ -375,4 +519,5 @@ module.exports = {
   respondToDonationRequest,
   completeDonation,
   getDonationByTrackingId,
+  createOtherDonation
 };
