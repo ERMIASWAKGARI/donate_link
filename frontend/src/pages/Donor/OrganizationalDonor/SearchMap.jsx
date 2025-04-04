@@ -108,7 +108,7 @@ const SearchMap = ({
   return (
     <div className="w-full relative">
       <form onSubmit={handleSearch} className="w-full">
-        <div className="relative pb-1">
+        <div className="relative pb-0">
           <input
             type="text"
             placeholder="Search for a location..."

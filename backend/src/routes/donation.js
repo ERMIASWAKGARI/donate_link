@@ -17,10 +17,16 @@ router.use((req, res, next) => {
 });
 // Material Donation Routes
 router.post(
+  "/non-material",
+  upload, // Now matches frontend field name
+  donationController.createOtherDonation
+);
+router.post(
   "/material",
   upload, // Now matches frontend field name
   donationController.createMaterialDonation
 );
+
 router.get(
   "/material",
 
