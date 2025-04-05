@@ -1,28 +1,30 @@
-import { Route, Routes } from "react-router-dom";
-import { UserProvider } from "./context/UserContext";
+import { Route, Routes } from 'react-router-dom';
+import { UserProvider } from './context/UserContext';
 
-import PrivateRoute from "./components/PrivateRoute"; // Import PrivateRoute
-import ScrollToTop from "./components/common/ScrollToTop";
-import LandingPage from "./pages/LandingPage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import VerifyEmail from "./pages/VerifyEmailPage";
-import VerifyOtp from "./pages/VerifyOtpPage";
+import PrivateRoute from './components/PrivateRoute'; // Import PrivateRoute
+import ScrollToTop from './components/common/ScrollToTop';
+import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import VerifyEmail from './pages/VerifyEmailPage';
+import VerifyOtp from './pages/VerifyOtpPage';
 
-import ForgotPassword from "./components/ForgotPassword";
-import ResetPassword from "./components/ResetPassword";
-import NotFoundPage from "./pages/NotFound";
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
+import NotFoundPage from './pages/NotFound';
 
-import AdminDashboard from "./pages/admin/Dashboard";
+import AdminDashboard from './pages/admin/Dashboard';
+import UserDetail from './pages/admin/UserDetail/UserDetail';
+import Users from './pages/admin/Users';
 
-import IndividualDashboard from "./pages/Donor/IndividualDonor/DashboardIndividual";
+import IndividualDashboard from './pages/Donor/IndividualDonor/DashboardIndividual';
 
-import VolunteerDashboard from "./pages/volunteer/VolunteerDashboard";
+import VolunteerDashboard from './pages/volunteer/VolunteerDashboard';
 
-import NgoDashboard from "./components/NGO/NgoDashboard";
-import DonationForm from "./pages/Donor/OrganizationalDonor/DonationForm";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import NgoDashboard from './components/NGO/NgoDashboard';
+import DonationForm from './pages/Donor/OrganizationalDonor/DonationForm';
 function App() {
   return (
     <div className="pb-16">
@@ -55,6 +57,8 @@ function App() {
 
           <Route element={<PrivateRoute />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/users" element={<Users />} />
+            <Route path="/admin/users/:id" element={<UserDetail />} />
             <Route path="/post-donation" element={<DonationForm />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />
