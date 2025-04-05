@@ -57,4 +57,9 @@ router.get(
   donationController.getDonationByTrackingId
 );
 
+router.delete(
+  "/delete-all-test", // Changed endpoint to make it clear this is for testing
+  // Only requires authentication
+  donationController.deleteAllDonations
+);
 module.exports = router;

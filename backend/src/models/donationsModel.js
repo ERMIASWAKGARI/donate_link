@@ -17,7 +17,7 @@ const donationsSchema = new mongoose.Schema(
     },
     donationType: {
       type: String,
-      enum: ["money", "material", "service"],
+      enum: ["money", "material", "service", "other"],
       required: true,
     },
 

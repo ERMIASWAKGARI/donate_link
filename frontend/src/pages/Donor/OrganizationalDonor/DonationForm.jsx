@@ -4,6 +4,7 @@ import { FiAlertTriangle } from "react-icons/fi";
 import MaterialDonation from "./MaterialDonation";
 import { showToast } from "./ToastNotification";
 import ToastNotifications from "./ToastNotification";
+import OtherDonationPage from "./OtherDonationPage";
 import { useNavigate } from "react-router-dom";
 
 const materialCategories = {
@@ -423,9 +424,7 @@ const DonationForm = () => {
         />
       ) : (
         <div className="text-center py-12">
-          <p className="text-lg text-gray-600">
-            Other donation form coming soon
-          </p>
+          <OtherDonationPage />
         </div>
       )}
     </div>
