@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import { getAllUsers, getUsersByRole, searchUsers } from '../api/adminApi';
+import { getAllUsers } from '../api/adminApi';
 
 const useUsers = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -20,24 +20,32 @@ const useUsers = () => {
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
+  const [selectedSort, setSelectedSort] = useState('');
 
-  const fetchUsers = async (page = initialPage, query = '', role = '') => {
-    const params = new URLSearchParams(searchParams);
+  const fetchUsers = async (
+    page = initialPage,
+    query = '',
+    role = '',
+    sort = ''
+  ) => {
+    const params = new URLSearchParams();
     params.set('page', page);
+    if (query) params.set('search', query);
+    if (role) params.set('role', role);
+    if (sort) params.set('sort', sort);
+
     setSearchParams(params);
+    window.history.replaceState(
+      {},
+      '',
+      `${window.location.pathname}?${params}`
+    );
 
     setLoading(true);
     setError(null);
 
     try {
-      let response;
-      if (role && role !== '') {
-        response = await getUsersByRole(role, page);
-      } else {
-        response = query
-          ? await searchUsers(query, page)
-          : await getAllUsers(page);
-      }
+      const response = await getAllUsers(page, role, sort, query);
 
       setUsers(response.users || []);
 
@@ -59,10 +67,18 @@ const useUsers = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const initialSearch = params.get('search') || '';
-    const initialRole = params.get('role') || '';
-    const initialPage = params.get('page') || 1;
-    fetchUsers(initialPage, initialSearch, initialRole);
+
+    // Only read params if they exist, otherwise use defaults
+    const initialSearch = params.has('search') ? params.get('search') : '';
+    const initialRole = params.has('role') ? params.get('role') : '';
+    const initialSort = params.has('sort') ? params.get('sort') : '';
+    const initialPage = params.has('page') ? params.get('page') : 1;
+
+    setSearchQuery(initialSearch);
+    setSelectedRole(initialRole);
+    setSelectedSort(initialSort);
+
+    fetchUsers(initialPage, initialSearch, initialRole, initialSort);
   }, []);
 
   const handleSearch = (query) => {
@@ -70,23 +86,55 @@ const useUsers = () => {
     params.set('search', query);
     params.delete('page'); // Reset to page 1 when searching
     window.history.pushState({}, '', `${window.location.pathname}?${params}`);
+    setUsers([]); // Clear users when searching
     setSearchQuery(query);
-    setSelectedRole(''); // Clear selected role when searching
-    fetchUsers(1, query);
-    setSearchQuery(''); // Clear the search query after fetching
+    fetchUsers(1, query, selectedRole, selectedSort);
   };
 
   const handleRoleChange = (role) => {
     const params = new URLSearchParams(window.location.search);
     params.set('role', role);
-    params.delete('page'); // Reset to page 1 when changing role
     window.history.pushState({}, '', `${window.location.pathname}?${params}`);
+    setUsers([]); // Clear users when changing role
     setSelectedRole(role);
-    fetchUsers(1, searchQuery, role);
+    fetchUsers(1, searchQuery, role, selectedSort);
+  };
+
+  const handleSortChange = (sort) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set('sort', sort);
+    params.set('page', 1); // Reset to page 1 when sorting
+    window.history.pushState({}, '', `${window.location.pathname}?${params}`);
+    setSelectedSort(sort);
+    setUsers([]); // Clear users when changing sort
+    fetchUsers(1, searchQuery, selectedRole, sort);
   };
 
   const handlePageChange = (page) => {
-    fetchUsers(page, searchQuery, selectedRole);
+    fetchUsers(page, searchQuery, selectedRole, selectedSort);
+  };
+
+  const resetAllFilters = () => {
+    // Create clean URL with just page=1
+    const cleanParams = new URLSearchParams();
+    cleanParams.set('page', '1');
+
+    // Update URL first - this is crucial
+    window.history.replaceState(
+      {},
+      '',
+      `${window.location.pathname}?${cleanParams}`
+    );
+    setSearchParams(cleanParams);
+
+    // Then clear all state
+    setSearchQuery('');
+    setSelectedRole('');
+    setSelectedSort('');
+    setUsers([]);
+
+    // Finally fetch fresh data
+    fetchUsers(1, '', '', '');
   };
 
   return {
@@ -95,11 +143,20 @@ const useUsers = () => {
     error,
     pagination,
     selectedRole,
+    selectedSort,
+    searchQuery,
     handleSearch,
+    resetAllFilters,
     changeRole: handleRoleChange,
+    changeSort: handleSortChange,
     changePage: handlePageChange,
     refetch: () =>
-      fetchUsers(pagination.currentPage, searchQuery, selectedRole),
+      fetchUsers(
+        pagination.currentPage,
+        searchQuery,
+        selectedRole,
+        selectedSort
+      ),
   };
 };
 

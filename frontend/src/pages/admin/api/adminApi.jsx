@@ -3,28 +3,24 @@ import axios from 'axios';
 const API_BASE_URL = 'http://localhost:5000/api/admin';
 const token = localStorage.getItem('accessToken');
 
-const getAllUsers = async (page = 1) => {
-  const response = await axios.get(`${API_BASE_URL}/users?page=${page}`, {
+const getAllUsers = async (page = 1, role = '', sort = '', query = '') => {
+  // Build query parameters object
+  const params = {
+    page: page,
+  };
+
+  // Only add parameters if they have values
+  if (role) params.role = role;
+  if (sort) params.sortBy = sort;
+  if (query) params.search = query;
+
+  const response = await axios.get(`${API_BASE_URL}/users`, {
+    params, // axios will properly encode the parameters
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
-  return {
-    users: response.data.data.users,
-    pagination: response.data.data.pagination,
-  };
-};
 
-const getUsersByRole = async (role, page = 1) => {
-  const response = await axios.get(
-    `${API_BASE_URL}/users?role=${role}&page=${page}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-  console.log('Response from getUsersByRole:', response.data); // Debugging line
   return {
     users: response.data.data.users,
     pagination: response.data.data.pagination,
@@ -40,23 +36,6 @@ const getUserById = async (id) => {
 
   console.log('Response from getUserById:', response.data.data[0]); // Debugging line
   return response.data.data[0];
-};
-
-const searchUsers = async (query, page = 1) => {
-  const response = await axios.get(
-    `${API_BASE_URL}/users?search=${query}&page=${page}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-
-  console.log('Search response:', response.data); // Debugging line
-  return {
-    users: response.data.data.users,
-    pagination: response.data.data.pagination,
-  };
 };
 
 const verifyUser = async (id) => {
@@ -108,9 +87,7 @@ export {
   deleteUser,
   getAllUsers,
   getUserById,
-  getUsersByRole,
   rejectUser,
-  searchUsers,
   unbanUser,
   verifyUser,
 };
