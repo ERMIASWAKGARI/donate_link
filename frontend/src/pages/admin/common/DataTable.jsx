@@ -1,5 +1,4 @@
 /* eslint-disable react/prop-types */
-
 const DataTable = ({ columns, data = [], onSelect, selectedItems }) => {
   return (
     <div className="overflow-x-auto">
@@ -20,7 +19,7 @@ const DataTable = ({ columns, data = [], onSelect, selectedItems }) => {
                   if (selectedItems.length === data.length) {
                     onSelect([]);
                   } else {
-                    onSelect(data.map((user) => user.name));
+                    onSelect(data.map((user) => user._id));
                   }
                 }}
               />
@@ -37,7 +36,7 @@ const DataTable = ({ columns, data = [], onSelect, selectedItems }) => {
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {data.map((row) => (
+          {data.map((row, index) => (
             <tr key={row._id}>
               <td className="px-6 py-4 whitespace-nowrap">
                 <input
@@ -53,7 +52,11 @@ const DataTable = ({ columns, data = [], onSelect, selectedItems }) => {
                   className="px-6 py-4 whitespace-nowrap"
                 >
                   {column.Cell
-                    ? column.Cell({ row, value: row[column.accessor] })
+                    ? column.Cell({
+                        row,
+                        value: row[column.accessor],
+                        index, // Pass the index to the Cell renderer
+                      })
                     : row[column.accessor]}
                 </td>
               ))}
@@ -64,5 +67,4 @@ const DataTable = ({ columns, data = [], onSelect, selectedItems }) => {
     </div>
   );
 };
-
 export default DataTable;
