@@ -28,7 +28,6 @@ export const UserStats = ({ pagination, users, loading, selectedRole }) => (
             <>
               <Spinner size="sm" color="white" />
               <span>
-                {users.length}{' '}
                 {roleOptions.find((r) => r.value === selectedRole)?.label}
               </span>
             </>

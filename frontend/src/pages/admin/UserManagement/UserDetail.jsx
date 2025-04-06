@@ -1,94 +1,58 @@
-/* eslint-disable no-unused-vars */
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import {
-  banUser,
-  deleteUser,
-  getUserById,
-  rejectUser,
-  unbanUser,
-  verifyUser,
-} from '../api/adminApi';
+import { FiArrowLeft } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
+import Spinner from '../common/Spinner ';
 import StatusBadge from '../common/StatusBadge';
-import VerificationPanel from './VerificationPanel';
+import { useUserDetailHandlers } from './UserDetail/useUserDetailHandlers';
+import VerificationDocsPanel from './UserDetail/VerificationDocsPanel';
 
 const UserDetail = () => {
-  const { id } = useParams();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [rejectionReason, setRejectionReason] = useState('');
+  const navigate = useNavigate();
+  const {
+    user,
+    loading,
+    error,
+    setRejectionReason,
+    verificationDocs,
+    docsLoading,
+    handleVerify,
+    handleReject,
+    handleBan,
+    handleUnban,
+    getVerificationStatus,
+    getBanStatus,
+    getEmailStatus,
+    getPhoneStatus,
+    getAccountStatus,
+    formatDate,
+  } = useUserDetailHandlers();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      console.log('Fetching user with ID:', id); // Debugging line
-      try {
-        const data = await getUserById(id);
-        console.log('Fetched user data:', data); // Debugging line
-        setUser(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUser();
-  }, [id]);
-
-  const handleVerify = async () => {
-    try {
-      await verifyUser(id);
-      setUser((prev) => ({ ...prev, isVerified: true }));
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  const handleReject = async () => {
-    try {
-      await rejectUser(id, rejectionReason);
-      setUser((prev) => ({ ...prev, isVerified: false }));
-      setRejectionReason('');
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  const handleBan = async () => {
-    try {
-      await banUser(id);
-      setUser((prev) => ({ ...prev, isBanned: true }));
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  const handleUnban = async () => {
-    try {
-      await unbanUser(id);
-      setUser((prev) => ({ ...prev, isBanned: false }));
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  const handleDelete = async () => {
-    try {
-      await deleteUser(id);
-      // Redirect to user list or show success message
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  if (loading) return <div>Loading user details...</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Spinner size="lg" color="indigo" />
+      </div>
+    );
+  }
   if (error) return <div>Error: {error}</div>;
   if (!user) return <div>User not found</div>;
+
+  const verificationStatus = getVerificationStatus();
+  const banStatus = getBanStatus();
+  const emailStatus = getEmailStatus();
+  const phoneStatus = getPhoneStatus();
+  const accountStatus = getAccountStatus();
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
       {/* Header Section */}
       <div className="bg-gradient-to-r from-indigo-600 to-blue-500 px-6 py-4">
+        <button
+          onClick={() => navigate('/admin/users')}
+          className="mb-4 flex items-center text-white hover:text-indigo-200 transition-colors"
+        >
+          <FiArrowLeft className="mr-2" />
+          Back to Users
+        </button>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-white">{user.name}</h1>
@@ -135,21 +99,13 @@ const UserDetail = () => {
             <div className="flex justify-between">
               <span className="text-gray-600">Joined Date:</span>
               <span className="font-medium text-gray-800">
-                {new Date(user.createdAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
+                {formatDate(user.createdAt)}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Last Updated:</span>
               <span className="font-medium text-gray-800">
-                {new Date(user.updatedAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
+                {formatDate(user.updatedAt)}
               </span>
             </div>
             <div className="flex justify-between">
@@ -181,47 +137,27 @@ const UserDetail = () => {
           </h2>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-gray-600">Verified:</span>
-              <span
-                className={`font-medium ${
-                  user.isVerified ? 'text-green-600' : 'text-red-600'
-                }`}
-              >
-                {user.isVerified ? 'Verified' : 'Not Verified'}
+              <span className="text-gray-600">{verificationStatus.label}:</span>
+              <span className={`font-medium ${verificationStatus.color}`}>
+                {verificationStatus.text}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Banned:</span>
-              <span
-                className={`font-medium ${
-                  user.isBanned ? 'text-red-600' : 'text-green-600'
-                }`}
-              >
-                {user.isBanned ? 'Banned' : 'Active'}
+              <span className={`font-medium ${banStatus.color}`}>
+                {banStatus.text}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Email:</span>
-              <span className="font-medium">
-                {!user.email ? (
-                  <span className="text-gray-400">Not provided</span>
-                ) : user.isEmailVerified ? (
-                  <span className="text-green-600">Verified</span>
-                ) : (
-                  <span className="text-yellow-600">Pending verification</span>
-                )}
+              <span className={`font-medium ${emailStatus.color}`}>
+                {emailStatus.text}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Phone:</span>
-              <span className="font-medium">
-                {!user.phone ? (
-                  <span className="text-gray-400">Not provided</span>
-                ) : user.isPhoneVerified ? (
-                  <span className="text-green-600">Verified</span>
-                ) : (
-                  <span className="text-yellow-600">Pending verification</span>
-                )}
+              <span className={`font-medium ${phoneStatus.color}`}>
+                {phoneStatus.text}
               </span>
             </div>
           </div>
@@ -248,50 +184,42 @@ const UserDetail = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex justify-between">
               <span className="text-gray-600">Account Active:</span>
-              <span
-                className={`font-medium ${
-                  user.isActive ? 'text-green-600' : 'text-red-600'
-                }`}
-              >
-                {user.isActive ? 'Active' : 'Inactive'}
+              <span className={`font-medium ${accountStatus.color}`}>
+                {accountStatus.text}
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Verification Panel - Only show for non-individual donors who aren't verified */}
+      {/* Verification Panel */}
       {!user.isVerified && user.role !== 'individual_donor' && (
         <div className="px-6 pb-6">
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
-            <div className="flex items-start">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-yellow-400"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3 flex-1">
-                <h3 className="text-sm font-medium text-yellow-800">
-                  Verification Required
-                </h3>
-                <VerificationPanel
-                  onVerify={handleVerify}
-                  onReject={handleReject}
-                  rejectionReason={rejectionReason}
-                  setRejectionReason={setRejectionReason}
-                />
-              </div>
+          {docsLoading ? (
+            <div className="flex justify-center py-4">
+              <Spinner size="md" color="indigo" />
             </div>
-          </div>
+          ) : verificationDocs ? (
+            <VerificationDocsPanel
+              docs={verificationDocs}
+              userType={user.role}
+              onVerify={handleVerify}
+              onReject={() => {
+                // You can add a modal for rejection reason here
+                const reason = prompt('Please enter rejection reason:');
+                if (reason) {
+                  setRejectionReason(reason);
+                  handleReject();
+                }
+              }}
+            />
+          ) : (
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
+              <p className="text-yellow-800">
+                Verification documents not available
+              </p>
+            </div>
+          )}
         </div>
       )}
 
