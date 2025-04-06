@@ -2,7 +2,13 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import { getAllUsers } from '../api/adminApi';
+import {
+  banUser,
+  bulkBanUsers,
+  bulkUnbanUsers,
+  getAllUsers,
+  unbanUser,
+} from '../api/adminApi';
 
 const useUsers = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -137,6 +143,70 @@ const useUsers = () => {
     fetchUsers(1, '', '', '');
   };
 
+  const banSingleUser = async (userId) => {
+    try {
+      await banUser(userId);
+      await fetchUsers(
+        pagination.currentPage,
+        searchQuery,
+        selectedRole,
+        selectedSort
+      );
+      return true;
+    } catch (err) {
+      setError(err.message || 'Failed to ban user');
+      return false;
+    }
+  };
+
+  const unbanSingleUser = async (userId) => {
+    try {
+      await unbanUser(userId);
+      await fetchUsers(
+        pagination.currentPage,
+        searchQuery,
+        selectedRole,
+        selectedSort
+      );
+      return true;
+    } catch (err) {
+      setError(err.message || 'Failed to unban user');
+      return false;
+    }
+  };
+
+  const banMultipleUsers = async (userIds) => {
+    try {
+      await bulkBanUsers(userIds);
+      await fetchUsers(
+        pagination.currentPage,
+        searchQuery,
+        selectedRole,
+        selectedSort
+      );
+      return true;
+    } catch (err) {
+      setError(err.message || 'Failed to ban users');
+      return false;
+    }
+  };
+
+  const unbanMultipleUsers = async (userIds) => {
+    try {
+      await bulkUnbanUsers(userIds);
+      await fetchUsers(
+        pagination.currentPage,
+        searchQuery,
+        selectedRole,
+        selectedSort
+      );
+      return true;
+    } catch (err) {
+      setError(err.message || 'Failed to unban users');
+      return false;
+    }
+  };
+
   return {
     users,
     loading,
@@ -157,6 +227,10 @@ const useUsers = () => {
         selectedRole,
         selectedSort
       ),
+    banSingleUser,
+    unbanSingleUser,
+    banMultipleUsers,
+    unbanMultipleUsers,
   };
 };
 

@@ -1,6 +1,14 @@
 /* eslint-disable react/prop-types */
+const DataTable = ({
+  columns,
+  data = [],
+  onSelect,
+  onSelectAll,
+  selectedItems,
+  isProcessing,
+}) => {
+  const allSelected = selectedItems.length === data.length && data.length > 0;
 
-const DataTable = ({ columns, data = [], onSelect, selectedItems }) => {
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
@@ -13,16 +21,9 @@ const DataTable = ({ columns, data = [], onSelect, selectedItems }) => {
               <input
                 type="checkbox"
                 className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                checked={
-                  selectedItems.length === data.length && data.length > 0
-                }
-                onChange={() => {
-                  if (selectedItems.length === data.length) {
-                    onSelect([]);
-                  } else {
-                    onSelect(data.map((user) => user.name));
-                  }
-                }}
+                checked={allSelected}
+                onChange={() => onSelectAll(!allSelected)}
+                disabled={isProcessing || data.length === 0}
               />
             </th>
             {columns.map((column) => (
@@ -37,32 +38,41 @@ const DataTable = ({ columns, data = [], onSelect, selectedItems }) => {
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {data.map((row) => (
-            <tr key={row._id}>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <input
-                  type="checkbox"
-                  checked={selectedItems.includes(row._id)}
-                  onChange={() => onSelect(row._id)}
-                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                />
-              </td>
-              {columns.map((column) => (
-                <td
-                  key={`${row._id}-${column.accessor}`}
-                  className="px-6 py-4 whitespace-nowrap"
-                >
-                  {column.Cell
-                    ? column.Cell({ row, value: row[column.accessor] })
-                    : row[column.accessor]}
+          {data.map(
+            (
+              row,
+              index // Add index parameter here
+            ) => (
+              <tr key={row._id}>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.includes(row._id)}
+                    onChange={() => onSelect(row._id)}
+                    disabled={isProcessing}
+                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  />
                 </td>
-              ))}
-            </tr>
-          ))}
+                {columns.map((column) => (
+                  <td
+                    key={`${row._id}-${column.accessor}`}
+                    className="px-6 py-4 whitespace-nowrap"
+                  >
+                    {column.Cell
+                      ? column.Cell({
+                          row: { original: row, index }, // Pass index here
+                          value: row[column.accessor],
+                          isProcessing,
+                        })
+                      : row[column.accessor]}
+                  </td>
+                ))}
+              </tr>
+            )
+          )}
         </tbody>
       </table>
     </div>
   );
 };
-
 export default DataTable;
