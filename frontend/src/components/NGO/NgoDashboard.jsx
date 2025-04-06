@@ -148,7 +148,7 @@ export default function NgoDashboard() {
             mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
           } md:translate-x-0 transform fixed md:relative z-40 ${
             sidebarOpen ? "w-64" : "w-20"
-          } bg-[#006400] text-white h-full transition-all duration-300 ease-in-out flex-shrink-0`}
+          } bg-[#008080] text-white h-full transition-all duration-300 ease-in-out flex-shrink-0`}
         >
           <div className="p-4 flex items-center justify-between border-b border-blue-700">
             <h1 className="text-xl font-bold truncate">
