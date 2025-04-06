@@ -32,7 +32,7 @@ router.patch('/me/reactivate', reactivateAccount);
 router.delete('/me/soft-delete', protect, softDeleteUserAccount);
 router.patch('/me/recover-account', recoverAccount);
 router.delete('/me/delete', protect, deleteUserAccount);
-router.post(
+router.patch(
   '/upload-verification-docs',
   protect,
   uploadVerificationDocsMiddleware,

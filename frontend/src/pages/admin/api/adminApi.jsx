@@ -153,7 +153,26 @@ const deleteUser = async (id) => {
   const response = await axios.delete(`${API_BASE_URL}/users/${id}`);
   return response.data;
 };
+const getVerificationDocuments = async (userId) => {
+  const token = localStorage.getItem('accessToken'); // Get fresh token
 
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/users/${userId}/verification-docs`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    console.log('Verification docs response:', response.data.data);
+    return response.data.data; // Assuming your backend wraps data in a data property
+  } catch (error) {
+    console.error('Error fetching verification docs:', error);
+    throw error;
+  }
+};
 export {
   banUser,
   bulkBanUsers,
@@ -161,6 +180,7 @@ export {
   deleteUser,
   getAllUsers,
   getUserById,
+  getVerificationDocuments,
   rejectUser,
   unbanUser,
   verifyUser,

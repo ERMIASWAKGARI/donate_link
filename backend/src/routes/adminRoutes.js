@@ -4,6 +4,7 @@ const {
   getAllUsers,
   getUserById,
   verifyUser,
+  getVerificationDocuments,
   rejectUserVerification,
   banUser,
   bulkBanUsers,
@@ -20,6 +21,13 @@ router.patch('/users/bulk-unban', protect, adminProtect, bulkUnbanUsers);
 router.patch('/users/bulk-ban', bulkBanUsers);
 router.get('/users/:id', protect, adminProtect, getUserById);
 router.patch('/users/:id', protect, adminProtect, verifyUser);
+router.get(
+  '/users/:id/verification-docs',
+  protect,
+  adminProtect,
+  getVerificationDocuments
+);
+
 router.patch(
   '/users/:id/reject-verification',
   protect,
