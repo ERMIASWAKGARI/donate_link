@@ -26,13 +26,7 @@ const applicationSchema = new mongoose.Schema(
       maxlength: 1000,
       trim: true,
     },
-    status: {
-      type: String,
-      enum: ["accepted", "rejected"],
-    },
-    importantDocuments: {
-      type: [String],
-    },
+   
     startDate: {
       type: Date,
       required: true,
