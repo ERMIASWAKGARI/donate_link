@@ -92,9 +92,15 @@ export const ActiveFilters = ({
   searchQuery,
   selectedRole,
   selectedSort,
+  verifiedFilter,
+  bannedFilter,
+  activeFilter,
   handleSearch,
   changeRole,
   changeSort,
+  handleVerifiedChange,
+  handleBannedChange,
+  handleActiveChange,
   resetAllFilters,
 }) => (
   <div className="bg-gray-50 px-6 py-3 border-b border-gray-200 flex flex-wrap items-center gap-2">
@@ -130,6 +136,43 @@ export const ActiveFilters = ({
         <button
           onClick={() => changeSort('')}
           className="ml-1.5 inline-flex text-purple-600 hover:text-purple-900"
+        >
+          &times;
+        </button>
+      </span>
+    )}
+
+    {verifiedFilter && (
+      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+        Verification:{' '}
+        {verifiedFilter === 'verified' ? 'Verified' : 'Unverified'}
+        <button
+          onClick={() => handleVerifiedChange('')}
+          className="ml-1.5 inline-flex text-yellow-600 hover:text-yellow-900"
+        >
+          &times;
+        </button>
+      </span>
+    )}
+
+    {bannedFilter && (
+      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+        Banned: {bannedFilter === 'banned' ? 'Banned' : 'Not Banned'}
+        <button
+          onClick={() => handleBannedChange('')}
+          className="ml-1.5 inline-flex text-red-600 hover:text-red-900"
+        >
+          &times;
+        </button>
+      </span>
+    )}
+
+    {activeFilter && (
+      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+        Active: {activeFilter === 'active' ? 'Active' : 'Inactive'}
+        <button
+          onClick={() => handleActiveChange('')}
+          className="ml-1.5 inline-flex text-green-600 hover:text-green-900"
         >
           &times;
         </button>

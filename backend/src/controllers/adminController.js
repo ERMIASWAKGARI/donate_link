@@ -7,11 +7,27 @@ const { sendNotification } = require('../utils/notificationService');
 
 // Get all users
 const getAllUsers = asyncWrapper(async (req, res) => {
-  console.log('Query:', req.query); // Log the query parameters for debugging
-  // Count total documents before applying pagination
+  console.log(req.query); // Log the query parameters for debugging
+
+  const { verified, banned, active, ...otherQueryParams } = req.query;
+
+  const filter = {};
+
+  // Handle verified filter
+  if (verified === 'verified') filter.isVerified = true;
+  if (verified === 'unverified') filter.isVerified = false;
+
+  // Handle banned filter
+  if (banned === 'banned') filter.isBanned = true;
+  if (banned === 'not_banned') filter.isBanned = false;
+
+  // Handle active filter
+  if (active === 'active') filter.isActive = true;
+  if (active === 'inactive') filter.isActive = false;
+
   const totalCount = await User.countDocuments();
 
-  const features = new APIFeatures(User.find(), req.query)
+  const features = new APIFeatures(User.find(filter), otherQueryParams)
     .filter()
     .search()
     .sort()

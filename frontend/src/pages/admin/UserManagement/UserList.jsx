@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Pagination from '../common/Pagination';
 import useUsers from '../hooks/useUsers';
 import BulkActions from './BulkActions';
+import StatusFilters from './StatusFilters';
 import { ActiveFilters, UserFilters } from './UserFilters';
 import { UserStats } from './UserStats';
 import { UserTable } from './UserTable';
@@ -21,6 +22,12 @@ const UserList = () => {
     selectedRole,
     selectedSort,
     handleSearch,
+    verifiedFilter,
+    bannedFilter,
+    activeFilter,
+    handleVerifiedChange,
+    handleBannedChange,
+    handleActiveChange,
     resetAllFilters,
     changeRole,
     changeSort,
@@ -114,25 +121,45 @@ const UserList = () => {
         </div>
       </div>
 
-      {/* Filters Section */}
-      <UserFilters
-        searchQuery={searchQuery}
-        selectedRole={selectedRole}
-        selectedSort={selectedSort}
-        handleSearch={handleSearch}
-        changeRole={changeRole}
-        changeSort={changeSort}
-      />
-
-      {/* Active Filters */}
-      {(selectedRole || selectedSort || searchQuery) && (
-        <ActiveFilters
+      <div className="px-6 py-4 border-b border-gray-100">
+        <UserFilters
           searchQuery={searchQuery}
           selectedRole={selectedRole}
           selectedSort={selectedSort}
           handleSearch={handleSearch}
           changeRole={changeRole}
           changeSort={changeSort}
+        />
+
+        <StatusFilters
+          verifiedFilter={verifiedFilter}
+          bannedFilter={bannedFilter}
+          activeFilter={activeFilter}
+          handleVerifiedChange={handleVerifiedChange}
+          handleBannedChange={handleBannedChange}
+          handleActiveChange={handleActiveChange}
+        />
+      </div>
+
+      {(selectedRole ||
+        selectedSort ||
+        searchQuery ||
+        verifiedFilter ||
+        bannedFilter ||
+        activeFilter) && (
+        <ActiveFilters
+          searchQuery={searchQuery}
+          selectedRole={selectedRole}
+          selectedSort={selectedSort}
+          verifiedFilter={verifiedFilter}
+          bannedFilter={bannedFilter}
+          activeFilter={activeFilter}
+          handleSearch={handleSearch}
+          changeRole={changeRole}
+          changeSort={changeSort}
+          handleVerifiedChange={handleVerifiedChange}
+          handleBannedChange={handleBannedChange}
+          handleActiveChange={handleActiveChange}
           resetAllFilters={resetAllFilters}
         />
       )}

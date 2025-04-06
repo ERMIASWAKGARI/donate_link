@@ -3,7 +3,15 @@ import axios from 'axios';
 const API_BASE_URL = 'http://localhost:5000/api/admin';
 const token = localStorage.getItem('accessToken');
 
-const getAllUsers = async (page = 1, role = '', sort = '', query = '') => {
+const getAllUsers = async (
+  page = 1,
+  role = '',
+  sort = '',
+  query = '',
+  verified = '',
+  banned = '',
+  active = ''
+) => {
   // Build query parameters object
   const params = {
     page: page,
@@ -13,6 +21,10 @@ const getAllUsers = async (page = 1, role = '', sort = '', query = '') => {
   if (role) params.role = role;
   if (sort) params.sortBy = sort;
   if (query) params.search = query;
+  if (verified) params.verified = verified;
+  if (banned) params.banned = banned;
+  if (active) params.active = active;
+  console.log('Query parameters:', params); // Debugging line
 
   const response = await axios.get(`${API_BASE_URL}/users`, {
     params, // axios will properly encode the parameters
