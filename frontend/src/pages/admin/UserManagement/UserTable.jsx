@@ -8,9 +8,9 @@ export const userColumns = [
   {
     Header: '#',
     accessor: '', // No data accessor needed
-    Cell: (
-      { index } // Use index instead of row.index
-    ) => <span className="text-sm text-gray-600">{index + 1}</span>,
+    Cell: ({ row }) => (
+      <span className="text-sm text-gray-600">{row.index + 1}</span>
+    ),
     width: 50, // Fixed width for the number column
   },
   {
@@ -113,9 +113,11 @@ export const UserTable = ({
   error,
   selectedUsers,
   onSelectUser,
+  onSelectAll,
   onView,
   onBan,
   onUnban,
+  isProcessing,
 }) => {
   if (loading) {
     return (
@@ -142,16 +144,21 @@ export const UserTable = ({
               ? {
                   ...col,
                   Cell: (props) =>
-                    col.Cell({ ...props, onView, onBan, onUnban }),
+                    col.Cell({
+                      ...props,
+                      onView,
+                      onBan,
+                      onUnban,
+                      isProcessing,
+                    }),
                 }
               : col
           )}
           data={users || []}
           onSelect={onSelectUser}
+          onSelectAll={onSelectAll}
           selectedItems={selectedUsers}
-          className="[&_td]:py-3 [&_th]:py-3" // Add better padding
-          headerClassName="bg-gray-50 text-gray-700 font-medium"
-          rowClassName="hover:bg-gray-50 border-b border-gray-100"
+          isProcessing={isProcessing}
         />
       </div>
     </div>

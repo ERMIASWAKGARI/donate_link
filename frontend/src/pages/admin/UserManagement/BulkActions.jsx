@@ -1,24 +1,29 @@
-// eslint-disable-next-line react/prop-types
-const BulkActions = ({ onBulkBan, onBulkUnban, selectedCount }) => {
+/* eslint-disable react/prop-types */
+const BulkActions = ({
+  onBulkBan,
+  onBulkUnban,
+  selectedCount,
+  isProcessing,
+}) => {
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 flex justify-between items-center">
-      <p className="text-blue-800">
-        {selectedCount} user{selectedCount !== 1 ? 's' : ''} selected
-      </p>
-      <div className="flex space-x-2">
-        <button
-          onClick={onBulkBan}
-          className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
-        >
-          Ban Selected
-        </button>
-        <button
-          onClick={onBulkUnban}
-          className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
-        >
-          Unban Selected
-        </button>
-      </div>
+    <div className="flex items-center gap-3">
+      <span className="text-sm font-medium text-gray-700">
+        {selectedCount} selected
+      </span>
+      <button
+        onClick={onBulkBan}
+        disabled={isProcessing}
+        className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isProcessing ? 'Processing...' : 'Ban Selected'}
+      </button>
+      <button
+        onClick={onBulkUnban}
+        disabled={isProcessing}
+        className="px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isProcessing ? 'Processing...' : 'Unban Selected'}
+      </button>
     </div>
   );
 };

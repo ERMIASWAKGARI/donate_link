@@ -10,6 +10,7 @@ import { UserTable } from './UserTable';
 const UserList = () => {
   const navigate = useNavigate();
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const {
     users,
@@ -24,11 +25,59 @@ const UserList = () => {
     changeRole,
     changeSort,
     changePage,
+    banSingleUser,
+    unbanSingleUser,
+    banMultipleUsers,
+    unbanMultipleUsers,
+    // eslint-disable-next-line no-unused-vars
+    refetch,
   } = useUsers();
 
   const handlePageChange = (page) => {
     changePage(page);
     window.scrollTo(0, 0);
+  };
+
+  const handleView = (userId) => navigate(`/admin/users/${userId}`);
+
+  const handleBan = async (userId) => {
+    setIsProcessing(true);
+    const success = await banSingleUser(userId);
+    if (success) {
+      setSelectedUsers((prev) => prev.filter((id) => id !== userId));
+    }
+    setIsProcessing(false);
+  };
+
+  const handleUnban = async (userId) => {
+    setIsProcessing(true);
+    const success = await unbanSingleUser(userId);
+    if (success) {
+      setSelectedUsers((prev) => prev.filter((id) => id !== userId));
+    }
+    setIsProcessing(false);
+  };
+
+  const handleBulkBan = async () => {
+    if (selectedUsers.length === 0) return;
+
+    setIsProcessing(true);
+    const success = await banMultipleUsers(selectedUsers);
+    if (success) {
+      setSelectedUsers([]);
+    }
+    setIsProcessing(false);
+  };
+
+  const handleBulkUnban = async () => {
+    if (selectedUsers.length === 0) return;
+
+    setIsProcessing(true);
+    const success = await unbanMultipleUsers(selectedUsers);
+    if (success) {
+      setSelectedUsers([]);
+    }
+    setIsProcessing(false);
   };
 
   const handleSelectUser = (userId) => {
@@ -40,11 +89,13 @@ const UserList = () => {
     );
   };
 
-  const handleView = (userId) => navigate(`/admin/users/${userId}`);
-  const handleBan = (userId) => console.log('Banning user:', userId);
-  const handleUnban = (userId) => console.log('Unbanning user:', userId);
-  const handleBulkBan = () => console.log('Banning users:', selectedUsers);
-  const handleBulkUnban = () => console.log('Unbanning users:', selectedUsers);
+  const handleSelectAll = (isSelected) => {
+    if (isSelected) {
+      setSelectedUsers(users.map((user) => user._id));
+    } else {
+      setSelectedUsers([]);
+    }
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -93,6 +144,7 @@ const UserList = () => {
             onBulkBan={handleBulkBan}
             onBulkUnban={handleBulkUnban}
             selectedCount={selectedUsers.length}
+            isProcessing={isProcessing}
           />
         </div>
       )}
@@ -100,13 +152,15 @@ const UserList = () => {
       {/* Main Table */}
       <UserTable
         users={users}
-        loading={loading}
+        loading={loading || isProcessing}
         error={error}
         selectedUsers={selectedUsers}
         onSelectUser={handleSelectUser}
+        onSelectAll={handleSelectAll}
         onView={handleView}
         onBan={handleBan}
         onUnban={handleUnban}
+        isProcessing={isProcessing}
       />
 
       {/* Pagination */}

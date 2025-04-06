@@ -52,27 +52,77 @@ const rejectUser = async (id, reason) => {
 };
 
 const banUser = async (id) => {
-  const response = await axios.patch(`${API_BASE_URL}/users/${id}/ban`);
-  return response.data;
+  try {
+    const response = await axios.patch(
+      `${API_BASE_URL}/users/${id}/ban`,
+      {}, // Empty body if not needed
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error banning user:', error);
+    throw error;
+  }
 };
 
 const unbanUser = async (id) => {
-  const response = await axios.patch(`${API_BASE_URL}/users/${id}/unban`);
-  return response.data;
+  try {
+    const response = await axios.patch(
+      `${API_BASE_URL}/users/${id}/unban`,
+      {}, // Empty body if not needed
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error unbanning user:', error);
+    throw error;
+  }
 };
 
 const bulkBanUsers = async (userIds) => {
-  const response = await axios.patch(`${API_BASE_URL}/users/bulk-ban`, {
-    userIds,
-  });
-  return response.data;
+  try {
+    const response = await axios.patch(
+      `${API_BASE_URL}/users/bulk-ban`,
+      { userIds },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error bulk banning users:', error);
+    throw error;
+  }
 };
 
 const bulkUnbanUsers = async (userIds) => {
-  const response = await axios.patch(`${API_BASE_URL}/users/bulk-unban`, {
-    userIds,
-  });
-  return response.data;
+  try {
+    const response = await axios.patch(
+      `${API_BASE_URL}/users/bulk-unban`,
+      { userIds },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error bulk unbanning users:', error);
+    throw error;
+  }
 };
 
 const deleteUser = async (id) => {
