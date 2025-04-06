@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:5000/api/admin';
-const token = localStorage.getItem('accessToken');
+// const token = localStorage.getItem('accessToken');
 
 const getAllUsers = async (
   page = 1,
@@ -12,6 +12,8 @@ const getAllUsers = async (
   banned = '',
   active = ''
 ) => {
+  const token = localStorage.getItem('accessToken'); // Get fresh token
+
   // Build query parameters object
   const params = {
     page: page,
@@ -40,6 +42,8 @@ const getAllUsers = async (
 };
 
 const getUserById = async (id) => {
+  const token = localStorage.getItem('accessToken'); // Get fresh token
+
   const response = await axios.get(`${API_BASE_URL}/users/${id}`, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -64,6 +68,8 @@ const rejectUser = async (id, reason) => {
 };
 
 const banUser = async (id) => {
+  const token = localStorage.getItem('accessToken'); // Get fresh token
+
   try {
     const response = await axios.patch(
       `${API_BASE_URL}/users/${id}/ban`,
@@ -82,6 +88,8 @@ const banUser = async (id) => {
 };
 
 const unbanUser = async (id) => {
+  const token = localStorage.getItem('accessToken'); // Get fresh token
+
   try {
     const response = await axios.patch(
       `${API_BASE_URL}/users/${id}/unban`,
@@ -100,6 +108,8 @@ const unbanUser = async (id) => {
 };
 
 const bulkBanUsers = async (userIds) => {
+  const token = localStorage.getItem('accessToken'); // Get fresh token
+
   try {
     const response = await axios.patch(
       `${API_BASE_URL}/users/bulk-ban`,
@@ -119,6 +129,8 @@ const bulkBanUsers = async (userIds) => {
 };
 
 const bulkUnbanUsers = async (userIds) => {
+  const token = localStorage.getItem('accessToken'); // Get fresh token
+
   try {
     const response = await axios.patch(
       `${API_BASE_URL}/users/bulk-unban`,
