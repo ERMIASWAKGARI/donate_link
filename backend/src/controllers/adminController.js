@@ -7,26 +7,65 @@ const { sendNotification } = require('../utils/notificationService');
 
 // Get all users
 const getAllUsers = asyncWrapper(async (req, res) => {
-  // Apply filtering, sorting, pagination, and search
-  // console.log(req.query);
-  const features = new APIFeatures(User.find(), req.query)
+  console.log(req.query); // Log the query parameters for debugging
+
+  const { verified, banned, active, ...otherQueryParams } = req.query;
+
+  const filter = {};
+
+  // Handle verified filter
+  if (verified === 'verified') filter.isVerified = true;
+  if (verified === 'unverified') filter.isVerified = false;
+
+  // Handle banned filter
+  if (banned === 'banned') filter.isBanned = true;
+  if (banned === 'not_banned') filter.isBanned = false;
+
+  // Handle active filter
+  if (active === 'active') filter.isActive = true;
+  if (active === 'inactive') filter.isActive = false;
+
+  const totalCount = await User.countDocuments();
+
+  const features = new APIFeatures(User.find(filter), otherQueryParams)
     .filter()
     .search()
     .sort()
     .limit()
     .paginate();
-  // console.log(features);
 
   const users = await features.executeQuery();
-  // console.log(users);
-  const totalUsers = users.length;
-  if (!totalUsers) {
-    throw new AppError('No users found', 404);
-  }
+
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 10;
+  const totalPages = Math.ceil(totalCount / limit);
 
   sendSuccessResponse(res, 200, 'Users retrieved successfully', {
-    totalUsers,
     users,
+    pagination: {
+      currentPage: page,
+      totalPages,
+      totalItems: totalCount,
+      itemsPerPage: limit,
+    },
+  });
+});
+
+// controllers/adminController.js
+const getUsersStats = asyncWrapper(async (req, res) => {
+  const totalUsers = await User.countDocuments();
+  const verifiedUsers = await User.countDocuments({ isVerified: true });
+  const bannedUsers = await User.countDocuments({ isBanned: true });
+  const pendingVerification = await User.countDocuments({
+    isVerified: false,
+    isBanned: false,
+  });
+
+  sendSuccessResponse(res, 200, 'Users statistics retrieved', {
+    totalUsers,
+    verifiedUsers,
+    bannedUsers,
+    pendingVerification,
   });
 });
 
@@ -55,6 +94,75 @@ const getUserById = asyncWrapper(async (req, res) => {
   }
 
   sendSuccessResponse(res, 200, 'User retrieved successfully', user);
+});
+
+function getRequiredDocumentsForRole(role) {
+  const requirements = {
+    ngo: ['registrationCertificate', 'authorizationLetter'],
+    organization_donor: ['licenseCertificate', 'taxCertificate'],
+    volunteer: ['idCard', 'trainingCertificate'],
+  };
+  return requirements[role] || [];
+}
+
+const getVerificationDocuments = asyncWrapper(async (req, res) => {
+  const user = await User.findById(req.params.id).lean();
+
+  if (!user) {
+    throw new AppError('User not found', 404);
+  }
+
+  // Determine which documents to fetch based on user role
+  let documents = null;
+  let docType = '';
+
+  switch (user.role) {
+    case 'ngo':
+      docType = 'ngoVerificationDocs';
+      documents = await User.findById(user._id)
+        .select('+ngoVerificationDocs')
+        .lean()
+        .then((u) => u.ngoVerificationDocs);
+      break;
+
+    case 'organization_donor':
+      docType = 'organizationVerificationDocs';
+      documents = await User.findById(user._id)
+        .select('+organizationVerificationDocs')
+        .lean()
+        .then((u) => u.organizationVerificationDocs);
+      break;
+
+    case 'volunteer':
+      docType = 'volunteerVerificationDocs';
+      documents = await User.findById(user._id)
+        .select('+volunteerVerificationDocs')
+        .lean()
+        .then((u) => u.volunteerVerificationDocs);
+      break;
+
+    default:
+      throw new AppError('This user type does not require verification', 400);
+  }
+  if (!documents) {
+    throw new AppError(
+      `No verification documents found for this ${user.role}`,
+      404
+    );
+  }
+
+  console.log(documents);
+
+  sendSuccessResponse(
+    res,
+    200,
+    `${user.role} verification documents retrieved successfully`,
+    {
+      userType: user.role,
+      documents,
+      requiredDocuments: getRequiredDocumentsForRole(user.role),
+    }
+  );
 });
 
 const verifyUser = asyncWrapper(async (req, res) => {
@@ -230,6 +338,7 @@ const logAdminAction = async (adminId, action, targetUserId) => {
 module.exports = {
   getAllUsers,
   getUserById,
+  getVerificationDocuments,
   verifyUser,
   rejectUserVerification,
   banUser,

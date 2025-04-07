@@ -9,7 +9,6 @@ const donation = require("./routes/donation");
 const errorHandler = require("./middleware/errorHandler");
 const AppError = require("./utils/appError");
 const donationRoutes = require("./routes/donationRoutes");
-const chatRoutes = require("./routes/chatRoutes");
 const path = require("path");
 
 dotenv.config();
@@ -25,7 +24,7 @@ app.use(
   cors({
     origin: "http://localhost:5173", // Must match your frontend URL exactly
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );

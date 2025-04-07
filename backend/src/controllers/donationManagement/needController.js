@@ -24,11 +24,6 @@ const postNgosNeed = async (req, res, next) => {
         path.join("donations", path.basename(file.path))
       ) || [];
 
-    // Validate number of pictures
-    // if (uploadedFiles.length > 10) {
-    //   throw new AppError("Cannot upload more than 10 pictures", 400);
-    // }
-
     // Parse and validate form data
     const {
       title,
@@ -219,17 +214,32 @@ getAllServiceNeeds = async (req, res) => {
   }
 };
 // Get all needs (with optional filtering)
-getAllNeeds = async (req, res) => {
+// In your backend route file (e.g., donationRoutes.js)
+const getAllNeeds = async (req, res) => {
   try {
-    const { status, needType } = req.query;
-    const filter = {};
+    console.log("here the request comes", req.query);
+    const { page = 1, limit = 10, search = "", category = "all" } = req.query;
 
-    if (status) {
-      filter.status = status;
+    const query = {
+      status: "Open",
+      // isVerified: true,
+    };
+
+    // Add search filter
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+      ];
     }
-    if (needType) {
-      filter.needTypes = needType;
+
+    // Add category filter
+    if (category !== "all") {
+      query.needTypes = category;
     }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const totalItems = await Need.countDocuments(query);
 
     const needs = await Need.find(filter)
       .populate("NGO", "name email") // Populate NGO basic info
@@ -238,15 +248,13 @@ getAllNeeds = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      count: needs.length,
       data: needs,
+      currentPage: parseInt(page),
+      totalPages,
+      totalItems,
     });
   } catch (error) {
-    console.error("Error fetching needs:", error);
-    res.status(500).json({
-      success: false,
-      error: "Server error",
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

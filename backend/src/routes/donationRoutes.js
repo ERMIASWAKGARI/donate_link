@@ -3,7 +3,7 @@ const router = express.Router();
 const needsController = require("../controllers/donationManagement/needController");
 const uploadNeedPictures = require("../middleware/uploadNeedPictures");
 const authMiddleware = require("../middleware/authenticationMiddleware");
-
+const donateItems = require("../controllers/donationManagement/donateItems");
 // Post NGO's Need with file upload support
 router.post(
   "/postNgosNeed",
@@ -19,4 +19,8 @@ router.get("/:id", needsController.getNeedById);
 
 router.get("/services/all", needsController.getAllServiceNeeds);
 
+// Material Donation Routes
+router.post("/material", donateItems.createMaterialDonation);
+router.get("/material/:id", donateItems.getMaterialDonation);
+router.put("/material/:id", donateItems.updateMaterialDonation);
 module.exports = router;

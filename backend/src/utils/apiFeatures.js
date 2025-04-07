@@ -7,12 +7,12 @@ class APIFeatures {
   filter() {
     const queryObj = { ...this.queryString };
     const excludedFields = [
-      "page",
-      "sortBy",
-      "order",
-      "limit",
-      "fields",
-      "search",
+      'page',
+      'sortBy',
+      'order',
+      'limit',
+      'fields',
+      'search',
     ];
     excludedFields.forEach((el) => delete queryObj[el]);
 
@@ -29,8 +29,8 @@ class APIFeatures {
       const searchStr = this.queryString.search;
       this.query = this.query.find({
         $or: [
-          { name: { $regex: searchStr, $options: "i" } },
-          { email: { $regex: searchStr, $options: "i" } },
+          { name: { $regex: searchStr, $options: 'i' } },
+          { email: { $regex: searchStr, $options: 'i' } },
         ],
       });
     }
@@ -38,13 +38,23 @@ class APIFeatures {
   }
 
   sort() {
-    if (this.queryString.sortBy && this.queryString.order) {
-      const sortBy = `${this.queryString.order === "asc" ? "" : "-"}${
-        this.queryString.sortBy
-      }`;
-      this.query = this.query.sort(sortBy);
+    if (this.queryString.sortBy) {
+      const sortValue = this.queryString.sortBy;
+
+      // Handle combined sort parameter (e.g., "name_asc", "email_desc")
+      if (sortValue.includes('_')) {
+        const [field, order] = sortValue.split('_');
+        const sortOrder = order === 'desc' ? '-' : '';
+        this.query = this.query.sort(`${sortOrder}${field}`);
+      }
+      // Handle special cases like "newest" and "oldest"
+      else if (sortValue === 'newest') {
+        this.query = this.query.sort('-createdAt');
+      } else if (sortValue === 'oldest') {
+        this.query = this.query.sort('createdAt');
+      }
     } else {
-      this.query = this.query.sort("-createdAt"); // Default: newest first
+      this.query = this.query.sort('-createdAt'); // Default: newest first
     }
 
     return this;
@@ -52,10 +62,10 @@ class APIFeatures {
 
   limit() {
     if (this.queryString.fields) {
-      const fields = this.queryString.fields.split(",").join(" ");
+      const fields = this.queryString.fields.split(',').join(' ');
       this.query = this.query.select(fields);
     } else {
-      this.query = this.query.select("-__v -password"); // Exclude __v and password
+      this.query = this.query.select('-__v -password'); // Exclude __v and password
     }
 
     return this;
@@ -63,7 +73,7 @@ class APIFeatures {
 
   paginate() {
     const page = parseInt(this.queryString.page, 10) || 1;
-    const limit = parseInt(this.queryString.limit, 10) || 9;
+    const limit = parseInt(this.queryString.limit, 10) || 10;
     const skip = (page - 1) * limit;
 
     this.query = this.query.skip(skip).limit(limit);
