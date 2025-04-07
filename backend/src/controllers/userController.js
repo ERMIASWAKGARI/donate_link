@@ -177,118 +177,66 @@ const uploadVerificationDocs = asyncWrapper(async (req, res) => {
     '+ngoVerificationDocs +organizationVerificationDocs +volunteerVerificationDocs'
   );
 
-  if (!user) {
-    throw new AppError('User not found.', 404);
-  }
-
-  if (!req.files || Object.keys(req.files).length === 0) {
+  if (!user) throw new AppError('User not found.', 404);
+  if (!req.files || Object.keys(req.files).length === 0)
     throw new AppError('No files uploaded.', 400);
+
+  // Document requirements mapping
+  const DOCUMENT_REQUIREMENTS = {
+    ngo: {
+      required: ['registrationCertificate', 'authorizationLetter'],
+      field: 'ngoVerificationDocs',
+    },
+    organization_donor: {
+      required: ['licenseCertificate', 'taxCertificate'],
+      field: 'organizationVerificationDocs',
+    },
+    volunteer: {
+      required: ['idCard', 'trainingCertificate'],
+      field: 'volunteerVerificationDocs',
+    },
+  };
+
+  const config = DOCUMENT_REQUIREMENTS[user.role];
+  if (!config)
+    throw new AppError('This role does not require verification docs.', 400);
+
+  // Initialize documents object if missing
+  if (!user[config.field]) {
+    user[config.field] = {};
   }
 
-  let requiredDocs = {};
-  let roleSpecificDocs = {};
-
-  switch (user.role) {
-    case 'ngo':
-      requiredDocs = ['registrationCertificate', 'authorizationLetter'];
-      if (!user.ngoVerificationDocs) {
-        user.ngoVerificationDocs = {}; // Initialize only if missing
-      }
-      if (
-        !req.files.registrationCertificate ||
-        !req.files.authorizationLetter
-      ) {
-        throw new AppError(
-          'Both registrationCertificate and authorizationLetter are required for NGO.',
-          400
-        );
-      }
-      roleSpecificDocs = {
-        registrationCertificate:
-          req.files.registrationCertificate?.[0]?.filename ||
-          user.ngoVerificationDocs.registrationCertificate,
-        authorizationLetter:
-          req.files.authorizationLetter?.[0]?.filename ||
-          user.ngoVerificationDocs.authorizationLetter,
-        additionalDocs: req.files.additionalDocs
-          ? req.files.additionalDocs.map((file) => file.filename)
-          : user.ngoVerificationDocs.additionalDocs,
-      };
-      user.ngoVerificationDocs = roleSpecificDocs;
-      break;
-
-    case 'organization_donor':
-      requiredDocs = ['licenseCertificate', 'taxCertificate'];
-      if (!user.organizationVerificationDocs) {
-        user.organizationVerificationDocs = {}; // Initialize only if missing
-      }
-      if (!req.files.licenseCertificate || !req.files.taxCertificate) {
-        throw new AppError(
-          'Both licenseCertificate and taxCertificate are required for Organization Donor.',
-          400
-        );
-      }
-
-      roleSpecificDocs = {
-        licenseCertificate:
-          req.files.licenseCertificate?.[0]?.filename ||
-          user.organizationVerificationDocs.licenseCertificate,
-        taxCertificate:
-          req.files.taxCertificate?.[0]?.filename ||
-          user.organizationVerificationDocs.taxCertificate,
-        additionalDocs: req.files.additionalDocs
-          ? req.files.additionalDocs.map((file) => file.filename)
-          : user.organizationVerificationDocs.additionalDocs,
-      };
-      user.organizationVerificationDocs = roleSpecificDocs;
-      break;
-
-    case 'volunteer':
-      requiredDocs = ['idCard', 'trainingCertificate'];
-      if (!user.volunteerVerificationDocs) {
-        user.volunteerVerificationDocs = {}; // Initialize only if missing
-      }
-      if (!req.files.idCard || !req.files.trainingCertificate) {
-        throw new AppError(
-          'Both idCard and trainingCertificate are required for Volunteer.',
-          400
-        );
-      }
-
-      roleSpecificDocs = {
-        idCard:
-          req.files.idCard?.[0]?.filename ||
-          user.volunteerVerificationDocs.idCard,
-        trainingCertificate:
-          req.files.trainingCertificate?.[0]?.filename ||
-          user.volunteerVerificationDocs.trainingCertificate,
-        additionalDocs: req.files.additionalDocs
-          ? req.files.additionalDocs.map((file) => file.filename)
-          : user.volunteerVerificationDocs.additionalDocs,
-      };
-      user.volunteerVerificationDocs = roleSpecificDocs;
-      break;
-
-    default:
-      throw new AppError(
-        'This user role does not require verification documents.',
-        400
-      );
+  // Validate required documents
+  const missingDocs = config.required.filter(
+    (doc) => !req.files[doc] && !user[config.field][doc]
+  );
+  if (missingDocs.length > 0) {
+    throw new AppError(
+      `Missing required documents: ${missingDocs.join(', ')}`,
+      400
+    );
   }
 
-  // Ensure all required docs are uploaded
-  requiredDocs.forEach((doc) => {
-    if (!req.files[doc] && !user[`${user.role}VerificationDocs`][doc]) {
-      throw new AppError(`${doc} is required for ${user.role}.`, 400);
-    }
+  // Process uploaded files
+  const processedDocs = {
+    ...user[config.field],
+    additionalDocs: req.files.additionalDocs
+      ? req.files.additionalDocs.map((file) => file.filename)
+      : user[config.field].additionalDocs || [],
+  };
+
+  // Add required documents
+  config.required.forEach((doc) => {
+    processedDocs[doc] =
+      req.files[doc]?.[0]?.filename || user[config.field][doc];
   });
 
+  // Update user document
+  user[config.field] = processedDocs;
   await user.save();
 
-  // Get Admin Users
+  // Notify admins
   const admins = await User.find({ role: 'admin' });
-
-  // Notify All Admins
   admins.forEach((admin) => {
     sendNotification(
       admin._id,
@@ -298,7 +246,8 @@ const uploadVerificationDocs = asyncWrapper(async (req, res) => {
   });
 
   sendSuccessResponse(res, 200, 'Documents uploaded successfully!', {
-    uploadedFiles: roleSpecificDocs,
+    uploadedFiles: processedDocs,
+    requiredDocuments: config.required,
   });
 });
 

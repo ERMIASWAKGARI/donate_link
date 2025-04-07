@@ -50,7 +50,6 @@ const getUserById = async (id) => {
     },
   });
 
-  console.log('Response from getUserById:', response.data.data[0]); // Debugging line
   return response.data.data[0];
 };
 
@@ -166,10 +165,10 @@ const getVerificationDocuments = async (userId) => {
       }
     );
 
-    console.log('Verification docs response:', response.data.data);
+    console.log('Verification docs response:', response);
     return response.data.data; // Assuming your backend wraps data in a data property
   } catch (error) {
-    console.error('Error fetching verification docs:', error);
+    console.error('Error fetching verification docs:', error.message);
     throw error;
   }
 };

@@ -96,67 +96,50 @@ const getUserById = asyncWrapper(async (req, res) => {
   sendSuccessResponse(res, 200, 'User retrieved successfully', user);
 });
 
-function getRequiredDocumentsForRole(role) {
+// utils/documentUtils.js
+const getRequiredDocumentsForRole = (role) => {
   const requirements = {
     ngo: ['registrationCertificate', 'authorizationLetter'],
     organization_donor: ['licenseCertificate', 'taxCertificate'],
     volunteer: ['idCard', 'trainingCertificate'],
   };
   return requirements[role] || [];
-}
+};
 
+const getDocumentTypeForRole = (role) => {
+  const types = {
+    ngo: 'ngoVerificationDocs',
+    organization_donor: 'organizationVerificationDocs',
+    volunteer: 'volunteerVerificationDocs',
+  };
+  return types[role];
+};
+
+// controllers/documentController.js
 const getVerificationDocuments = asyncWrapper(async (req, res) => {
   const user = await User.findById(req.params.id).lean();
+  console.log(user); // Debugging line
+  if (!user) throw new AppError('User not found', 404);
 
-  if (!user) {
-    throw new AppError('User not found', 404);
-  }
+  const docType = getDocumentTypeForRole(user.role);
+  if (!docType)
+    throw new AppError('This user type does not require verification', 400);
 
-  // Determine which documents to fetch based on user role
-  let documents = null;
-  let docType = '';
+  const documents = await User.findById(user._id)
+    .select(`+${docType}`)
+    .lean()
+    .then((u) => u[docType]);
 
-  switch (user.role) {
-    case 'ngo':
-      docType = 'ngoVerificationDocs';
-      documents = await User.findById(user._id)
-        .select('+ngoVerificationDocs')
-        .lean()
-        .then((u) => u.ngoVerificationDocs);
-      break;
-
-    case 'organization_donor':
-      docType = 'organizationVerificationDocs';
-      documents = await User.findById(user._id)
-        .select('+organizationVerificationDocs')
-        .lean()
-        .then((u) => u.organizationVerificationDocs);
-      break;
-
-    case 'volunteer':
-      docType = 'volunteerVerificationDocs';
-      documents = await User.findById(user._id)
-        .select('+volunteerVerificationDocs')
-        .lean()
-        .then((u) => u.volunteerVerificationDocs);
-      break;
-
-    default:
-      throw new AppError('This user type does not require verification', 400);
-  }
-  if (!documents) {
+  if (!documents)
     throw new AppError(
       `No verification documents found for this ${user.role}`,
       404
     );
-  }
-
-  console.log(documents);
 
   sendSuccessResponse(
     res,
     200,
-    `${user.role} verification documents retrieved successfully`,
+    `${user.role} verification documents retrieved`,
     {
       userType: user.role,
       documents,

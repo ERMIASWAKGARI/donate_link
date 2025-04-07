@@ -22,6 +22,7 @@ export const useUserDetailHandlers = () => {
     setDocsLoading(true);
     try {
       const docs = await getVerificationDocuments(userId);
+      console.log(docs);
       setVerificationDocs(docs);
     } catch (err) {
       console.error('Error fetching verification docs:', err);
