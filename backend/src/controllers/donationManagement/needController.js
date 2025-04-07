@@ -241,12 +241,15 @@ const getAllNeeds = async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const totalItems = await Need.countDocuments(query);
 
-    const needs = await Need.find(filter)
-      .populate("NGO", "name email") // Populate NGO basic info
-      // Populate application info
-      .sort({ createdAt: -1 }); // Newest first
+    const needs = await Need.find(query)
+      .sort({ urgencyLevel: -1, createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .populate("NGO", "name email");
 
-    res.status(200).json({
+    const totalPages = Math.ceil(totalItems / limit);
+
+    res.json({
       success: true,
       data: needs,
       currentPage: parseInt(page),
