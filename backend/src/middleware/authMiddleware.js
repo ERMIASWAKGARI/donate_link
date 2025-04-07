@@ -12,7 +12,7 @@ const protect = async (req, res, next) => {
     }
 
     if (!token) {
-      console.log('noooot');
+      console.log('no token found');
       throw new AppError('Not authorized, no token provided', 401);
     }
 

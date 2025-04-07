@@ -11,7 +11,6 @@ const UserDetail = () => {
     user,
     loading,
     error,
-    setRejectionReason,
     verificationDocs,
     docsLoading,
     handleVerify,
@@ -193,7 +192,7 @@ const UserDetail = () => {
       </div>
 
       {/* Verification Panel */}
-      {!user.isVerified && user.role !== 'individual_donor' && (
+      {user.role !== 'individual_donor' && (
         <div className="px-6 pb-6">
           {docsLoading ? (
             <div className="flex justify-center py-4">
@@ -202,14 +201,13 @@ const UserDetail = () => {
           ) : verificationDocs ? (
             <VerificationDocsPanel
               docs={verificationDocs}
+              user={user}
               userType={user.role}
               onVerify={handleVerify}
               onReject={() => {
-                // You can add a modal for rejection reason here
                 const reason = prompt('Please enter rejection reason:');
                 if (reason) {
-                  setRejectionReason(reason);
-                  handleReject();
+                  handleReject(reason);
                 }
               }}
             />
