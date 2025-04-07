@@ -6,7 +6,13 @@ import Spinner from '../../common/Spinner ';
 import DocumentItem from './DocumentItem';
 import VerificationActions from './VerificationActions';
 
-const VerificationDocsPanel = ({ docs, userType, onVerify, onReject }) => {
+const VerificationDocsPanel = ({
+  docs,
+  user,
+  userType,
+  onVerify,
+  onReject,
+}) => {
   const [expandedDoc, setExpandedDoc] = useState(null);
 
   const getDocumentName = (docType) => {
@@ -81,7 +87,11 @@ const VerificationDocsPanel = ({ docs, userType, onVerify, onReject }) => {
       {/* Verification actions */}
       {(docs.requiredDocuments?.length > 0 ||
         docs.documents.additionalDocs?.length > 0) && (
-        <VerificationActions onVerify={onVerify} onReject={onReject} />
+        <VerificationActions
+          user={user}
+          onVerify={onVerify}
+          onReject={onReject}
+        />
       )}
     </div>
   );

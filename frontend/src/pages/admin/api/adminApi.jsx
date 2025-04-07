@@ -54,15 +54,40 @@ const getUserById = async (id) => {
 };
 
 const verifyUser = async (id) => {
-  const response = await axios.patch(`${API_BASE_URL}/users/${id}`);
-  return response.data;
+  const token = localStorage.getItem('accessToken'); // Get fresh token
+
+  try {
+    const response = await axios.patch(
+      `${API_BASE_URL}/users/${id}/verify`,
+      {}, // Empty body if not needed
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error banning user:', error);
+    throw error;
+  }
 };
 
 const rejectUser = async (id, reason) => {
+  const token = localStorage.getItem('accessToken'); // Get fresh token
+  console.log('Rejecting user with ID:', id, 'Reason:', reason); // Debugging line
+
   const response = await axios.patch(
     `${API_BASE_URL}/users/${id}/reject-verification`,
-    { rejectionReason: reason }
+    { rejectionReason: reason },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
   );
+
+  console.log('Reject user response:', response);
   return response.data;
 };
 

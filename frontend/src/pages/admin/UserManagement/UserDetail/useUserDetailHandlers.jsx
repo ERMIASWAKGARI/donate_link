@@ -14,7 +14,6 @@ export const useUserDetailHandlers = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [rejectionReason, setRejectionReason] = useState('');
   const [verificationDocs, setVerificationDocs] = useState(null);
   const [docsLoading, setDocsLoading] = useState(false);
 
@@ -60,11 +59,10 @@ export const useUserDetailHandlers = () => {
     }
   };
 
-  const handleReject = async () => {
+  const handleReject = async (rejectionReason) => {
     try {
       await rejectUser(id, rejectionReason);
       setUser((prev) => ({ ...prev, isVerified: false }));
-      setRejectionReason('');
     } catch (err) {
       setError(err.message);
     }
@@ -144,8 +142,6 @@ export const useUserDetailHandlers = () => {
     user,
     loading,
     error,
-    rejectionReason,
-    setRejectionReason,
     verificationDocs,
     docsLoading,
     handleVerify,

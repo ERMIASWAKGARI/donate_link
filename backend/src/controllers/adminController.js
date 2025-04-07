@@ -7,7 +7,7 @@ const { sendNotification } = require('../utils/notificationService');
 
 // Get all users
 const getAllUsers = asyncWrapper(async (req, res) => {
-  console.log(req.query); // Log the query parameters for debugging
+  // console.log(req.query); // Log the query parameters for debugging
 
   const { verified, banned, active, ...otherQueryParams } = req.query;
 
@@ -118,7 +118,7 @@ const getDocumentTypeForRole = (role) => {
 // controllers/documentController.js
 const getVerificationDocuments = asyncWrapper(async (req, res) => {
   const user = await User.findById(req.params.id).lean();
-  console.log(user); // Debugging line
+  // console.log(user); // Debugging line
   if (!user) throw new AppError('User not found', 404);
 
   const docType = getDocumentTypeForRole(user.role);
@@ -152,6 +152,8 @@ const verifyUser = asyncWrapper(async (req, res) => {
   const userId = req.params.id;
   const adminId = req.user._id;
 
+  console.log('User ID:', userId);
+
   const user = await User.findById(userId);
   if (!user) throw new AppError('User not found.', 404);
 
@@ -174,6 +176,7 @@ const verifyUser = asyncWrapper(async (req, res) => {
 const rejectUserVerification = asyncWrapper(async (req, res) => {
   const userId = req.params.id;
   const { rejectionReason } = req.body;
+  console.log('Rejection Reason:', rejectionReason);
 
   const user = await User.findById(userId);
   if (!user) throw new AppError('User not found.', 404);
@@ -187,7 +190,11 @@ const rejectUserVerification = asyncWrapper(async (req, res) => {
     'general'
   );
 
-  sendSuccessResponse(res, 200, 'User verification rejected.');
+  sendSuccessResponse(
+    res,
+    200,
+    `User verification rejected. Reason: ${rejectionReason}`
+  );
 });
 
 // Deactivate a user account

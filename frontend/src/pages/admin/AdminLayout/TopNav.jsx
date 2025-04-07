@@ -8,6 +8,11 @@ const TopNav = () => {
 
   const toggleDropdown = () => setShowDropdown(!showDropdown);
 
+  const handleLogout = () => {
+    logout(); // Call the logout function
+    window.location.href = '/login'; // Redirect to login page
+  };
+
   return (
     <header className="bg-white shadow-sm h-16 flex items-center justify-between px-6 relative z-10">
       <div className="flex items-center">
@@ -55,7 +60,7 @@ const TopNav = () => {
               </button>
               <button
                 className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
-                onClick={logout}
+                onClick={handleLogout}
               >
                 <FiLogOut className="mr-2" /> Logout
               </button>

@@ -20,7 +20,6 @@ router.patch('/users/bulk-ban', protect, adminProtect, bulkBanUsers);
 router.patch('/users/bulk-unban', protect, adminProtect, bulkUnbanUsers);
 router.patch('/users/bulk-ban', bulkBanUsers);
 router.get('/users/:id', protect, adminProtect, getUserById);
-router.patch('/users/:id', protect, adminProtect, verifyUser);
 router.get(
   '/users/:id/verification-docs',
   protect,
@@ -28,6 +27,7 @@ router.get(
   getVerificationDocuments
 );
 
+router.patch('/users/:id/verify', protect, adminProtect, verifyUser);
 router.patch(
   '/users/:id/reject-verification',
   protect,
