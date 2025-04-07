@@ -1,7 +1,13 @@
-import Header from '../../components/header/Header';
+import Header from "../../components/header/Header";
+import ServiceNeedsList from "./ServiceNeedsList";
 
 const VolunteerDashboard = () => {
-  return <Header />;
+  return (
+    <>
+      <Header />
+      <ServiceNeedsList />
+    </>
+  );
 };
 
 export default VolunteerDashboard;

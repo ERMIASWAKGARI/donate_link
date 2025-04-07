@@ -185,7 +185,7 @@ const OtherDonationPage = () => {
     <div className="max-w-7xl mx-auto  bg-white rounded-lg shadow-md relative">
       <ToastNotifications />
 
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">
+      <h1 className="text-2xl font-bold text-gray-800 mb-1">
         Other Donation Form
       </h1>
 

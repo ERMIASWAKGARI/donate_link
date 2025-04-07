@@ -25,7 +25,7 @@ const OtherDonationForm = ({
         <div className="w-full lg:w-1/2">
           {/* Donation Details Section */}
           <div className="p-6 rounded-lg">
-            <h2 className="text-lg font-semibold text-gray-700 mb-4">
+            <h2 className="text-lg font-semibold text-gray-700 mb-2">
               Donation Details
             </h2>
 
@@ -78,7 +78,7 @@ const OtherDonationForm = ({
         {/* Right Column - Location Section */}
         <div className="w-full lg:w-1/2">
           <div className="p-6 rounded-lg h-full">
-            <h2 className="text-lg font-semibold text-gray-700 mb-4">
+            <h2 className="text-lg font-semibold text-gray-700 mb-2">
               Location Details
             </h2>
             <div className="mb-4">

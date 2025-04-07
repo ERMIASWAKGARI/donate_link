@@ -17,4 +17,6 @@ router.get("/getAllNeeds", needsController.getAllNeeds);
 router.get("/ngo/:ngoId", needsController.getNeedsByNgo);
 router.get("/:id", needsController.getNeedById);
 
+router.get("/services/all", needsController.getAllServiceNeeds);
+
 module.exports = router;

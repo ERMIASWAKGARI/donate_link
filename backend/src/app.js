@@ -1,15 +1,16 @@
-const express=require("express")
-const cors = require('cors');
-const dotenv = require('dotenv');
-const connectDB = require('./config/db');
-const userRoutes = require('./routes/userRoutes');
-const authRoutes = require('./routes/authRoutes');
-const adminRoutes = require('./routes/adminRoutes'); // <-- Import admin routes
-const donation = require('./routes/donation');
-const errorHandler = require('./middleware/errorHandler');
-const AppError = require('./utils/appError');
-const donationRoutes = require('./routes/donationRoutes');
-const path=require("path")
+const express = require("express");
+const cors = require("cors");
+const dotenv = require("dotenv");
+const connectDB = require("./config/db");
+const userRoutes = require("./routes/userRoutes");
+const authRoutes = require("./routes/authRoutes");
+const adminRoutes = require("./routes/adminRoutes"); // <-- Import admin routes
+const donation = require("./routes/donation");
+const errorHandler = require("./middleware/errorHandler");
+const AppError = require("./utils/appError");
+const donationRoutes = require("./routes/donationRoutes");
+const chatRoutes = require("./routes/chatRoutes");
+const path = require("path");
 
 dotenv.config();
 
@@ -40,7 +41,6 @@ app.use(
   })
 );
 
-
 // 1. First set up body parsers with increased limits
 app.use(express.json({ limit: "50mb" }));
 app.use(
@@ -49,8 +49,6 @@ app.use(
     extended: true,
   })
 );
-
-
 
 // 3. Static file serving
 app.use("/uploads", express.static("uploads"));
@@ -62,6 +60,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/donation", donationRoutes);
 
 app.use("/api/organization", donation);
+app.use("/api/chat", chatRoutes);
 app.use("/api/admin", adminRoutes);
 app.all("*", (req, res, next) => {
   next(new AppError(`Cannot find ${req.originalUrl} on this server!`, 404));
