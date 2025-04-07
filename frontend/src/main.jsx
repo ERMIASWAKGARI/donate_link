@@ -12,9 +12,11 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     <Router>
       <UserProvider>
-        <GoogleOAuthProvider clientId="1021431617656-ngngp6r2q4q2b53f12vio2pjq85hjsgj.apps.googleusercontent.com">
-          <App />
-        </GoogleOAuthProvider>{" "}
+        <ChatProvider>
+          <GoogleOAuthProvider clientId="1021431617656-ngngp6r2q4q2b53f12vio2pjq85hjsgj.apps.googleusercontent.com">
+            <App />
+          </GoogleOAuthProvider>{" "}
+        </ChatProvider>
       </UserProvider>
     </Router>
   </StrictMode>
