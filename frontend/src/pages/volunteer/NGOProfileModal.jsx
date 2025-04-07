@@ -17,32 +17,23 @@ const NGOProfileModal = ({ ngo, onClose, onMessageClick }) => {
   const [error, setError] = useState(null);
 
   const handleMessageClick = async () => {
-    if (!ngo?._id) {
-      setError("No NGO selected");
-      return;
-    }
+    if (!ngo?._id) return;
 
     setIsLoading(true);
-    setError(null);
-
     try {
-      console.log("[1/4] Starting conversation creation...");
       const conversation = await startConversation(ngo._id);
-
-      console.log("[2/4] Setting active conversation...");
       setActiveConversation(conversation);
 
-      onMessageClick(); // Triggers the modal transition
+      // Open chat modal first
+      onMessageClick();
 
-      console.log("[3/4] Closing NGO profile modal...");
-      onClose(); // This unmounts the component
+      // Then close this modal after ensuring ChatModal is mounted
+      setTimeout(() => {
+        onClose();
+      }, 100); // Increased delay to ensure render cycle completes
     } catch (error) {
       console.error("Chat error:", error);
-      setError(error.message || "Failed to start chat");
-      alert(
-        "Failed to start chat: " +
-          (error.response?.data?.message || error.message)
-      );
+      setError(error);
     } finally {
       setIsLoading(false);
     }

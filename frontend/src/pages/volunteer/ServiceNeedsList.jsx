@@ -6,10 +6,7 @@ import {
   FaSpinner,
   FaExclamationCircle,
   FaMapMarkerAlt,
-  FaGlobe,
   FaInfoCircle,
-  FaBuilding,
-  FaTimes,
 } from "react-icons/fa";
 import NGOProfileBadge from "./NGOProfileBadge";
 import NeedDetailsModal from "./NeedDetailsModal";
@@ -27,23 +24,24 @@ const ServiceNeedsList = () => {
   const [selectedNeed, setSelectedNeed] = useState(null);
   const [selectedNGO, setSelectedNGO] = useState(null);
   const [showChatModal, setShowChatModal] = useState(false);
+  const [chatModalReady, setChatModalReady] = useState(false);
 
   useEffect(() => {
     console.log("ChatModal mounted - Current visibility:", showChatModal);
     console.log("DOM check:", document.querySelector(".ChatModal"));
 
-    if (showChatModal) {
-      const interval = setInterval(() => {
-        const modal = document.querySelector(".ChatModal");
-        console.log("Current modal state:", {
-          exists: !!modal,
-          visible: modal?.offsetParent !== null,
-          styles: modal ? window.getComputedStyle(modal) : null,
-        });
-      }, 1000);
+    // if (showChatModal) {
+    //   const interval = setInterval(() => {
+    //     const modal = document.querySelector(".ChatModal");
+    //     console.log("Current modal state:", {
+    //       exists: !!modal,
+    //       visible: modal?.offsetParent !== null,
+    //       styles: modal ? window.getComputedStyle(modal) : null,
+    //     });
+    //   }, 1000);
 
-      return () => clearInterval(interval);
-    }
+    //   return () => clearInterval(interval);
+    // }
   }, [showChatModal]);
 
   // Fetch service needs
@@ -73,8 +71,31 @@ const ServiceNeedsList = () => {
   }, [searchTerm, filters]);
 
   useEffect(() => {
+    console.log("showChatModal state:", showChatModal);
+  }, [showChatModal]);
+
+  useEffect(() => {
     console.log("ChatModal visibility changed to:", showChatModal);
   }, [showChatModal]);
+
+  // Add this effect to handle the modal sequence
+  useEffect(() => {
+    if (chatModalReady) {
+      setShowChatModal(true);
+      setChatModalReady(false);
+    }
+  }, [chatModalReady]);
+
+  // Update the onMessageClick handler
+  const handleMessageClick = () => {
+    setChatModalReady(true);
+  };
+
+  // In ServiceNeedsList
+  // const handleMessageClick = () => {
+  //   console.log("Opening chat modal...");
+  //   setShowChatModal(true); // No other logic here
+  // };
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -309,89 +330,25 @@ const ServiceNeedsList = () => {
         />
       )}
 
-      {/* NGO Profile Modal */}
-      {selectedNGO && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <h2 className="text-2xl font-bold text-gray-800">
-                  {selectedNGO.name}
-                </h2>
-                <button
-                  type="button"
-                  onClick={() => setSelectedNGO(null)}
-                  className="text-gray-500 hover:text-gray-700 transition-colors"
-                  aria-label="Close modal"
-                >
-                  <FaTimes size={24} />
-                </button>
-              </div>
+      <div>
+        {/* Profile modal */}
+        {/* NGO Profile Modal */}
+        {selectedNGO && (
+          <NGOProfileModal
+            ngo={selectedNGO}
+            onClose={() => setSelectedNGO(null)}
+            onMessageClick={handleMessageClick}
+          />
+        )}
 
-              <div className="flex items-center mb-6">
-                <div className="bg-blue-100 p-4 rounded-full mr-4">
-                  <FaBuilding className="text-blue-600 text-2xl" />
-                </div>
-                <div>
-                  <p className="text-gray-600">{selectedNGO.email}</p>
-                  {selectedNGO.phone && (
-                    <p className="text-gray-600">{selectedNGO.phone}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-4 mb-6">
-                <div className="flex items-center">
-                  <FaGlobe className="text-gray-400 mr-3" />
-                  <span className="text-gray-700">
-                    {selectedNGO.website || "No website provided"}
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <FaMapMarkerAlt className="text-gray-400 mr-3" />
-                  <span className="text-gray-700">
-                    {selectedNGO.address || "No address provided"}
-                  </span>
-                </div>
-                {selectedNGO.description && (
-                  <div>
-                    <h3 className="font-semibold text-gray-700 mb-1">About</h3>
-                    <p className="text-gray-600">{selectedNGO.description}</p>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                {/* Profile modal */}
-                {/* NGO Profile Modal */}
-                {selectedNGO && (
-                  <NGOProfileModal
-                    ngo={selectedNGO}
-                    onClose={() => setSelectedNGO(null)}
-                    onMessageClick={() => {
-                      setSelectedNGO(null); // Close profile modal
-                      setShowChatModal(true); // Open chat modal
-                    }}
-                  />
-                )}
-
-                {/* Chat Modal - Only appears after message click */}
-                {showChatModal && (
-                  <div className="fixed inset-0 z-[1000]">
-                    <ChatModal
-                      onClose={() => {
-                        console.log("Closing ChatModal");
-                        setShowChatModal(false);
-                      }}
-                      showChatModal={true} // Force true when rendered
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+        {/* Chat Modal - Only appears after message click */}
+        {showChatModal && (
+          <ChatModal
+            onClose={() => setShowChatModal(false)}
+            showChatModal={true}
+          />
+        )}
+      </div>
     </div>
   );
 };

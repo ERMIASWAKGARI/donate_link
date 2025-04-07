@@ -57,7 +57,11 @@ const conversationSchema = new mongoose.Schema({
       },
     ],
   },
-  // ... other fields
+
+  lastMessage: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Message", // Reference the Message model
+  }, // ... other fields
 });
 
 // Update conversation timestamp when a message is sent

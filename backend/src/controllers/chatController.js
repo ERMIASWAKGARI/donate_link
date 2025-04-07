@@ -58,7 +58,7 @@ exports.getMessages = asyncWrapper(async (req, res, next) => {
   const { conversationId } = req.params;
   const userId = req.user._id;
 
-  // Verify user is part of the conversation
+  // Verify conversation exists and user is participant
   const conversation = await Conversation.findOne({
     _id: conversationId,
     participants: userId,
@@ -68,11 +68,15 @@ exports.getMessages = asyncWrapper(async (req, res, next) => {
     return next(new AppError("Not authorized to view this conversation", 403));
   }
 
+  // Get messages with proper population
   const messages = await Message.find({ conversationId })
     .sort({ createdAt: 1 })
-    .populate("sender", "name profilePicture");
+    .populate("sender", "name profilePicture")
+    .lean(); // Convert to plain JS object
 
+  // Ensure consistent response format
   sendSuccessResponse(res, 200, {
+    success: true,
     count: messages.length,
     messages,
   });
@@ -83,45 +87,62 @@ exports.sendMessage = asyncWrapper(async (req, res, next) => {
   const { conversationId, content, attachments = [] } = req.body;
   const userId = req.user._id;
 
-  // Verify user is part of the conversation
-  const conversation = await Conversation.findOne({
-    _id: conversationId,
-    participants: userId,
-  });
-
-  if (!conversation) {
-    return next(
-      new AppError("Not authorized to send messages in this conversation", 403)
-    );
+  // Validate input
+  if (!conversationId) {
+    return next(new AppError("Conversation ID is required", 400));
   }
 
-  // Validate message content
   if (!content?.trim() && attachments.length === 0) {
     return next(new AppError("Message content or attachment is required", 400));
   }
 
-  const message = await Message.create({
-    conversationId,
-    sender: userId,
-    content: content?.trim(),
-    attachments,
-  });
+  try {
+    // Verify conversation exists and user is participant
+    const conversation = await Conversation.findOne({
+      _id: conversationId,
+      participants: userId,
+    });
 
-  // Update conversation's last message and timestamp
-  await Conversation.findByIdAndUpdate(conversationId, {
-    lastMessage: message._id,
-    updatedAt: Date.now(),
-  });
+    if (!conversation) {
+      return next(new AppError("Conversation not found or unauthorized", 404));
+    }
 
-  // Populate sender info
-  const populatedMessage = await Message.findById(message._id).populate(
-    "sender",
-    "name profilePicture"
-  );
+    // Create message
+    const message = await Message.create({
+      conversationId,
+      sender: userId,
+      content: content?.trim(),
+      attachments,
+    });
 
-  sendSuccessResponse(res, 201, { message: populatedMessage });
+    // Update conversation
+    await Conversation.findByIdAndUpdate(conversationId, {
+      lastMessage: message._id,
+      updatedAt: Date.now(),
+    });
+
+    // Populate message with necessary data
+    const populatedMessage = await Message.findById(message._id)
+      .populate("sender", "name profilePicture")
+      .populate({
+        path: "conversationId",
+        select: "participants",
+        populate: {
+          path: "participants",
+          select: "name profilePicture role",
+        },
+      });
+
+    // Send success response
+    res.status(201).json({
+      success: true,
+      message: populatedMessage,
+    });
+  } catch (err) {
+    console.error("Message creation error:", err);
+    return next(new AppError("Failed to send message", 500));
+  }
 });
-
 // Mark messages as read
 exports.markAsRead = asyncWrapper(async (req, res, next) => {
   const { messageIds } = req.body;

@@ -19,19 +19,23 @@ export const ChatProvider = ({ children }) => {
   const [messages, setMessages] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [socket, setSocket] = useState(null);
+  const [isLoadingConversations, setIsLoadingConversations] = useState(false);
+  const [conversationsError, setConversationsError] = useState(null);
 
   const { user } = useUser();
 
-  // Safely calculate unread count
+  // Enhanced unread count calculation
   const calculateUnreadCount = useCallback(
     (convs) => {
       try {
         if (!Array.isArray(convs)) return 0;
 
         return convs.reduce((total, conv) => {
+          const lastMessage = conv?.lastMessage;
           if (
-            conv?.lastMessage &&
-            !conv.lastMessage.readBy?.includes(user?._id)
+            lastMessage &&
+            !lastMessage.readBy?.includes(user?._id) &&
+            lastMessage.sender?._id !== user?._id
           ) {
             return total + 1;
           }
@@ -49,7 +53,7 @@ export const ChatProvider = ({ children }) => {
   useEffect(() => {
     if (!user?._id) return undefined;
 
-    const newSocket = io("http://localhost:5000", {
+    const newSocket = io(API_BASE_URL, {
       query: { userId: user._id },
       transports: ["websocket"],
       auth: {
@@ -74,24 +78,32 @@ export const ChatProvider = ({ children }) => {
     };
   }, [user]);
 
-  // Socket event listeners
+  // Socket event listeners for real-time updates
   useEffect(() => {
     if (!socket) return undefined;
 
     const handleNewMessage = (message) => {
       try {
-        setMessages((prev) => [...(Array.isArray(prev) ? prev : []), message]);
+        // Update messages if in active conversation
+        if (activeConversation?._id === message?.conversationId?._id) {
+          setMessages((prev) => [
+            ...(Array.isArray(prev) ? prev : []),
+            message,
+          ]);
+        }
 
+        // Update conversations with new last message
         setConversations((prev) => {
           if (!Array.isArray(prev)) return prev;
           return prev.map((conv) =>
-            conv?._id === message?.conversationId
+            conv?._id === message?.conversationId?._id
               ? { ...conv, lastMessage: message }
               : conv
           );
         });
 
-        if (activeConversation?._id !== message?.conversationId) {
+        // Update unread count if not in active conversation
+        if (activeConversation?._id !== message?.conversationId?._id) {
           setUnreadCount((prev) => prev + 1);
         }
       } catch (error) {
@@ -106,25 +118,48 @@ export const ChatProvider = ({ children }) => {
     };
   }, [socket, activeConversation]);
 
+  // Enhanced fetchConversations with loading state and error handling
   const fetchConversations = useCallback(async () => {
+    if (!localStorage.getItem("accessToken")) return;
+
+    setIsLoadingConversations(true);
     try {
-      const { data } = await axios.get("/api/chat/conversations");
+      const { data } = await axios.get(
+        `${API_BASE_URL}/api/chat/conversations`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        }
+      );
 
-      // Normalize response data
-      const normalizedData = Array.isArray(data?.data)
-        ? data.data
-        : Array.isArray(data)
-        ? data
-        : [];
+      // Updated data extraction to match backend response
+      const conversationsData = data?.message?.conversations || [];
 
-      setConversations(normalizedData);
-      setUnreadCount(calculateUnreadCount(normalizedData));
+      if (!Array.isArray(conversationsData)) {
+        throw new Error("Invalid conversations data format");
+      }
+
+      console.log("Fetched conversations:", conversationsData); // Debug log
+
+      setConversations(conversationsData);
+      setUnreadCount(calculateUnreadCount(conversationsData));
+      return conversationsData;
     } catch (error) {
-      console.error("Error fetching conversations:", error);
-      setConversations([]);
-      setUnreadCount(0);
+      console.error("Fetch error:", error);
+      // Don't reset conversations state here
+      throw error;
+    } finally {
+      setIsLoadingConversations(false);
     }
   }, [calculateUnreadCount]);
+
+  // Automatically fetch conversations when user changes
+  useEffect(() => {
+    if (user?._id) {
+      fetchConversations();
+    }
+  }, [user?._id, fetchConversations]);
 
   const startConversation = useCallback(async (participantId) => {
     try {
@@ -140,50 +175,102 @@ export const ChatProvider = ({ children }) => {
       if (!data?.conversation) {
         throw new Error(data?.message || "Failed to create conversation");
       }
-      console.log("Conversation successfully created:", data.conversation._id);
+
+      // Update conversations list with the new conversation
+      setConversations((prev) => {
+        const exists = prev.some((conv) => conv._id === data.conversation._id);
+        return exists ? prev : [data.conversation, ...prev];
+      });
+
       return data.conversation;
     } catch (error) {
-      console.error("Conversation error:", {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message,
-      });
+      console.error("Conversation error:", error);
       throw error;
     }
   }, []);
 
+  useEffect(() => {
+    const initializeChat = async () => {
+      if (user?._id) {
+        try {
+          // Fetch conversations first
+          await fetchConversations();
+
+          // If there are conversations but none active, set the first one as active
+          if (conversations.length > 0 && !activeConversation) {
+            setActiveConversation(conversations[0]);
+          }
+        } catch (error) {
+          console.error("Failed to initialize chat:", error);
+        }
+      }
+    };
+
+    initializeChat();
+  }, [user?._id, fetchConversations]);
+
   const fetchMessages = useCallback(async (conversationId) => {
+    if (!conversationId) return;
+
     try {
-      const { data } = await axios.get(`/api/chat/messages/${conversationId}`);
-      const normalizedMessages = Array.isArray(data?.data)
-        ? data.data
-        : Array.isArray(data)
-        ? data
+      const { data } = await axios.get(
+        `${API_BASE_URL}/api/chat/messages/${conversationId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        }
+      );
+
+      const messagesData = data?.messages || data?.data || data || [];
+      const normalizedMessages = Array.isArray(messagesData)
+        ? messagesData
         : [];
-      setMessages(normalizedMessages);
-      return normalizedMessages;
+      const sortedMessages = normalizedMessages.sort(
+        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+      );
+
+      setMessages(sortedMessages);
+      return sortedMessages;
     } catch (error) {
       console.error("Error fetching messages:", error);
       setMessages([]);
       throw error;
     }
   }, []);
-
   const sendMessage = useCallback(
     async (conversationId, content, attachments = []) => {
-      if (!socket?.connected) {
-        throw new Error("Socket not connected");
-      }
-
       try {
-        const { data } = await axios.post("/api/chat/messages", {
-          conversationId,
-          content,
-          attachments,
-        });
+        const { data } = await axios.post(
+          `${API_BASE_URL}/api/chat/messages`,
+          { conversationId, content, attachments },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
-        socket.emit("sendMessage", data);
-        return data;
+        if (data.success && data.message) {
+          // Update local state immediately
+          setMessages((prev) => [...prev, data.message]);
+          setConversations((prev) =>
+            prev.map((conv) =>
+              conv._id === conversationId
+                ? { ...conv, lastMessage: data.message }
+                : conv
+            )
+          );
+
+          // Emit via socket if available
+          if (socket) {
+            socket.emit("sendMessage", data.message);
+          }
+
+          return data.message;
+        }
+        throw new Error(data.message || "Failed to send message");
       } catch (error) {
         console.error("Error sending message:", error);
         throw error;
@@ -192,16 +279,37 @@ export const ChatProvider = ({ children }) => {
     [socket]
   );
 
-  const markMessagesAsRead = useCallback(async (messageIds) => {
-    if (!Array.isArray(messageIds) || messageIds.length === 0) return;
+  const markMessagesAsRead = useCallback(
+    async (messageIds) => {
+      if (!Array.isArray(messageIds) || messageIds.length === 0) return;
 
-    try {
-      await axios.post("/api/chat/messages/read", { messageIds });
-      setUnreadCount((prev) => Math.max(0, prev - messageIds.length));
-    } catch (error) {
-      console.error("Error marking messages as read:", error);
-    }
-  }, []);
+      try {
+        await axios.post(
+          `${API_BASE_URL}/api/chat/messages/read`,
+          { messageIds },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            },
+          }
+        );
+
+        // Update local state
+        setMessages((prev) =>
+          prev.map((msg) =>
+            messageIds.includes(msg._id)
+              ? { ...msg, readBy: [...(msg.readBy || []), user._id] }
+              : msg
+          )
+        );
+
+        setUnreadCount((prev) => Math.max(0, prev - messageIds.length));
+      } catch (error) {
+        console.error("Error marking messages as read:", error);
+      }
+    },
+    [user?._id]
+  );
 
   return (
     <ChatContext.Provider
@@ -210,12 +318,23 @@ export const ChatProvider = ({ children }) => {
         activeConversation,
         messages: Array.isArray(messages) ? messages : [],
         unreadCount,
+        isLoadingConversations,
+        conversationsError,
         fetchConversations,
         startConversation,
         fetchMessages,
         sendMessage,
         markMessagesAsRead,
-        setActiveConversation,
+        setActiveConversation: (conversation) => {
+          // When setting active conversation, mark its messages as read
+          if (
+            conversation?.lastMessage &&
+            !conversation.lastMessage.readBy?.includes(user?._id)
+          ) {
+            markMessagesAsRead([conversation.lastMessage._id]);
+          }
+          setActiveConversation(conversation);
+        },
         socketConnected: socket?.connected || false,
       }}
     >

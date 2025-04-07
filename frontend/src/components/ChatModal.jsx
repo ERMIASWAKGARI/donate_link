@@ -23,6 +23,7 @@ const ChatModal = ({ onClose, showChatModal }) => {
     fetchMessages,
     sendMessage,
     setActiveConversation,
+    isLoadingConversations,
   } = useChat();
 
   const { user } = useUser();
@@ -30,6 +31,7 @@ const ChatModal = ({ onClose, showChatModal }) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
+  const [isVisible, setIsVisible] = useState(false);
   const messagesEndRef = useRef(null);
   const modalRef = useRef(null);
 
@@ -41,37 +43,82 @@ const ChatModal = ({ onClose, showChatModal }) => {
     setIsMobileView(window.innerWidth < 768);
   }, []);
 
+  // Main initialization effect
+  useEffect(() => {
+    let isMounted = true;
+
+    const initializeChat = async () => {
+      if (!showChatModal || !user?._id) return;
+
+      try {
+        console.log("Starting conversation fetch...");
+        const loadedConversations = await fetchConversations();
+        console.log("Fetched conversations:", loadedConversations);
+
+        if (isMounted) {
+          if (loadedConversations?.length > 0 && !activeConversation) {
+            console.log(
+              "Setting initial conversation:",
+              loadedConversations[0]
+            );
+            setActiveConversation(loadedConversations[0]);
+          }
+
+          if (activeConversation?._id) {
+            console.log("Loading messages for:", activeConversation._id);
+            await fetchMessages(activeConversation._id);
+            scrollToBottom();
+          }
+        }
+      } catch (error) {
+        console.error("Chat initialization failed:", error);
+      }
+    };
+
+    if (showChatModal) {
+      initializeChat();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [showChatModal, user?._id]);
+
+  // Handle conversation changes
+  useEffect(() => {
+    if (!activeConversation?._id) return;
+
+    const loadMessages = async () => {
+      try {
+        console.log(
+          "Loading messages for new conversation:",
+          activeConversation._id
+        );
+        await fetchMessages(activeConversation._id);
+        scrollToBottom();
+      } catch (error) {
+        console.error("Failed to load messages:", error);
+      }
+    };
+
+    loadMessages();
+  }, [activeConversation?._id, fetchMessages, scrollToBottom]);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
+
+  // Window resize handler
   useEffect(() => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [handleResize]);
 
-  const stableFetchConversations = useCallback(async () => {
-    await fetchConversations();
-  }, [fetchConversations]);
-
-  const stableFetchMessages = useCallback(
-    async (id) => {
-      await fetchMessages(id);
-    },
-    [fetchMessages]
-  );
-
+  // Modal visibility and outside click handler
   useEffect(() => {
-    stableFetchConversations();
-  }, [stableFetchConversations]);
+    setIsVisible(true);
 
-  useEffect(() => {
-    if (activeConversation) {
-      stableFetchMessages(activeConversation._id);
-    }
-  }, [activeConversation, stableFetchMessages]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
-
-  useEffect(() => {
     const handleClickOutside = (event) => {
       if (modalRef.current && !modalRef.current.contains(event.target)) {
         onClose();
@@ -88,9 +135,13 @@ const ChatModal = ({ onClose, showChatModal }) => {
 
   const handleSendMessage = async () => {
     if (message.trim() && activeConversation) {
-      await sendMessage(activeConversation._id, message);
-      setMessage("");
-      setShowEmojiPicker(false);
+      try {
+        await sendMessage(activeConversation._id, message);
+        setMessage("");
+        setShowEmojiPicker(false);
+      } catch (error) {
+        console.error("Failed to send message:", error);
+      }
     }
   };
 
@@ -113,6 +164,7 @@ const ChatModal = ({ onClose, showChatModal }) => {
   });
 
   const handleConversationClick = (conversation) => {
+    console.log("Conversation clicked:", conversation._id);
     setActiveConversation(conversation);
     if (isMobileView) {
       document.getElementById("conversation-list").classList.add("hidden");
@@ -132,7 +184,9 @@ const ChatModal = ({ onClose, showChatModal }) => {
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: 20, opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="relative bg-white z-[1000] rounded-lg shadow-xl w-full max-w-4xl h-[80vh] flex flex-col"
+      className={`relative bg-white z-[100] h-[80vh] flex flex-col transition-all duration-300 ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"
+      }`}
     >
       <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white p-4 rounded-t-lg flex justify-between items-center">
         <h2 className="text-lg font-semibold">Messages</h2>
@@ -166,7 +220,11 @@ const ChatModal = ({ onClose, showChatModal }) => {
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            {filteredConversations.length > 0 ? (
+            {isLoadingConversations ? (
+              <div className="flex justify-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+              </div>
+            ) : filteredConversations.length > 0 ? (
               filteredConversations.map((conv) => {
                 const otherParticipant = conv.participants.find(
                   (p) => p._id !== user._id

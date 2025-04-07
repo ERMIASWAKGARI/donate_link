@@ -52,13 +52,11 @@ export const headerLinks = {
   volunteer: [
     { to: "/volunteer-opportunities", text: "Opportunities", icon: "Calendar" },
     { to: "/my-shifts", text: "My Shifts", icon: "Clock" },
-    { to: "/messages", text: "Messages", icon: "MessageSquare" }, // 👈 added
   ],
   ngo: [
     { to: "/manage-donations", text: "Manage Donations", icon: "List" },
     { to: "/reports", text: "Reports", icon: "FileText" },
     { to: "/volunteers", text: "Volunteers", icon: "Users" },
-    { to: "/messages", text: "Messages", icon: "MessageSquare" }, // 👈 added
   ],
 };
 
