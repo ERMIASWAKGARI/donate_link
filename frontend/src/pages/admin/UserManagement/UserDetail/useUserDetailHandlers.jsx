@@ -62,6 +62,7 @@ export const useUserDetailHandlers = () => {
   const handleReject = async (rejectionReason) => {
     try {
       await rejectUser(id, rejectionReason);
+      fetchVerificationDocs(id); // Refresh verification docs
       setUser((prev) => ({ ...prev, isVerified: false }));
     } catch (err) {
       setError(err.message);

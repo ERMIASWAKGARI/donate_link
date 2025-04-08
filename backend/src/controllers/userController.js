@@ -178,6 +178,10 @@ const uploadVerificationDocs = asyncWrapper(async (req, res) => {
   );
 
   if (!user) throw new AppError('User not found.', 404);
+  if (user.isVerified) {
+    throw new AppError('User is already verified.', 400);
+  }
+
   if (!req.files || Object.keys(req.files).length === 0)
     throw new AppError('No files uploaded.', 400);
 

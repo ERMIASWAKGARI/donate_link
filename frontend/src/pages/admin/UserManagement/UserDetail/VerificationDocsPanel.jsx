@@ -35,6 +35,20 @@ const VerificationDocsPanel = ({
     }
   };
 
+  const hasDocuments = () => {
+    if (!docs || !docs.documents) return false;
+
+    // Check if any required document exists
+    const hasRequiredDocs = docs.requiredDocuments?.some(
+      (docType) => docs.documents[docType] !== null
+    );
+
+    // Check if any additional documents exist
+    const hasAdditionalDocs = docs.documents.additionalDocs?.length > 0;
+
+    return hasRequiredDocs || hasAdditionalDocs;
+  };
+
   if (!docs) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -43,10 +57,10 @@ const VerificationDocsPanel = ({
     );
   }
 
-  if (!docs.requiredDocuments || !docs.documents) {
+  if (!hasDocuments()) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <p className="text-red-500">No verification documents available</p>
+      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
+        <p className="text-yellow-800">Verification documents not available</p>
       </div>
     );
   }
@@ -85,8 +99,7 @@ const VerificationDocsPanel = ({
       </div>
 
       {/* Verification actions */}
-      {(docs.requiredDocuments?.length > 0 ||
-        docs.documents.additionalDocs?.length > 0) && (
+      {hasDocuments() && (
         <VerificationActions
           user={user}
           onVerify={onVerify}
@@ -96,5 +109,4 @@ const VerificationDocsPanel = ({
     </div>
   );
 };
-
 export default VerificationDocsPanel;

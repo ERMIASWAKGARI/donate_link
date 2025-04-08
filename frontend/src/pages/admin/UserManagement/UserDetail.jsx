@@ -204,12 +204,7 @@ const UserDetail = () => {
               user={user}
               userType={user.role}
               onVerify={handleVerify}
-              onReject={() => {
-                const reason = prompt('Please enter rejection reason:');
-                if (reason) {
-                  handleReject(reason);
-                }
-              }}
+              onReject={handleReject}
             />
           ) : (
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">

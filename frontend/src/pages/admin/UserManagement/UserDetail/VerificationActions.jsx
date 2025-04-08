@@ -1,37 +1,35 @@
-// VerificationActions.jsx
 /* eslint-disable react/prop-types */
 import { useState } from 'react';
 import { FiCheckCircle, FiXCircle } from 'react-icons/fi';
+import RejectionModal from './RejectionModal';
 
 const VerificationActions = ({ user, onVerify, onReject }) => {
   const isVerified = user?.isVerified;
   const [showVerifyModal, setShowVerifyModal] = useState(false);
-  const [showRejectModal, setShowRejectModal] = useState(false);
-  const [actionType, setActionType] = useState('');
+  const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
 
   const handleVerifyClick = () => {
-    setActionType('verify');
     setShowVerifyModal(true);
   };
 
   const handleRejectClick = () => {
-    setActionType('reject');
-    setShowRejectModal(true);
+    setRejectionModalOpen(true);
   };
 
-  const handleConfirm = () => {
-    if (actionType === 'verify') {
-      onVerify();
-      setShowVerifyModal(false);
-    } else {
-      onReject();
-      setShowRejectModal(false);
-    }
-  };
-
-  const handleCancel = () => {
+  const handleConfirmVerify = () => {
+    onVerify();
     setShowVerifyModal(false);
-    setShowRejectModal(false);
+  };
+
+  const handleConfirmRejection = async (reason) => {
+    const confirmed = window.confirm(
+      'Are you sure you want to reject this verification? All uploaded documents will be permanently deleted.'
+    );
+
+    if (confirmed) {
+      await onReject(reason);
+      setRejectionModalOpen(false);
+    }
   };
 
   return (
@@ -62,19 +60,19 @@ const VerificationActions = ({ user, onVerify, onReject }) => {
 
       {/* Verify Confirmation Modal */}
       {showVerifyModal && (
-        <div className="fixed inset-0  flex items-center justify-center z-50">
-          <div className="bg-gray-200 p-6 rounded-lg max-w-md w-full">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full">
             <h3 className="text-lg font-medium mb-4">Confirm Verification</h3>
             <p className="mb-6">Are you sure you want to verify this user?</p>
             <div className="flex justify-end gap-3">
               <button
-                onClick={handleCancel}
+                onClick={() => setShowVerifyModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
-                onClick={handleConfirm}
+                onClick={handleConfirmVerify}
                 className="px-4 py-2 bg-green-600 rounded-md text-sm font-medium text-white hover:bg-green-700"
               >
                 Verify
@@ -84,29 +82,12 @@ const VerificationActions = ({ user, onVerify, onReject }) => {
         </div>
       )}
 
-      {/* Reject Confirmation Modal */}
-      {showRejectModal && (
-        <div className="fixed inset-0  flex items-center justify-center z-50">
-          <div className="bg-gray-200 p-6 rounded-lg max-w-md w-full">
-            <h3 className="text-lg font-medium mb-4">Confirm Rejection</h3>
-            <p className="mb-6">Are you sure you want to reject this user?</p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={handleCancel}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirm}
-                className="px-4 py-2 bg-red-500 rounded-md text-sm font-medium text-white hover:bg-red-600"
-              >
-                Reject
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Rejection Modal with reason input */}
+      <RejectionModal
+        open={rejectionModalOpen}
+        onClose={() => setRejectionModalOpen(false)}
+        onConfirm={handleConfirmRejection}
+      />
     </div>
   );
 };

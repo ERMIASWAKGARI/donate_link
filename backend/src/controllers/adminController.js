@@ -181,6 +181,34 @@ const rejectUserVerification = asyncWrapper(async (req, res) => {
   const user = await User.findById(userId);
   if (!user) throw new AppError('User not found.', 404);
 
+  // Clear verification documents based on user role
+  switch (user.role) {
+    case 'organization_donor':
+      user.organizationVerificationDocs = {
+        licenseCertificate: null,
+        taxCertificate: null,
+        additionalDocs: [],
+      };
+      break;
+    case 'volunteer':
+      user.volunteerVerificationDocs = {
+        idCard: null,
+        trainingCertificate: null,
+        additionalDocs: [],
+      };
+      break;
+    case 'ngo':
+      user.ngoVerificationDocs = {
+        registrationCertificate: null,
+        authorizationLetter: null,
+        additionalDocs: [],
+      };
+      break;
+    default:
+      // For individual donors or other roles that don't have verification docs
+      break;
+  }
+
   user.isVerified = false;
   await user.save();
 
@@ -193,10 +221,9 @@ const rejectUserVerification = asyncWrapper(async (req, res) => {
   sendSuccessResponse(
     res,
     200,
-    `User verification rejected. Reason: ${rejectionReason}`
+    `User verification rejected and documents cleared. Reason: ${rejectionReason}`
   );
 });
-
 // Deactivate a user account
 const banUser = asyncWrapper(async (req, res) => {
   const user = await User.findById(req.params.id);
