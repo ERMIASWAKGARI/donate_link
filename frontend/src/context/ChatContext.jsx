@@ -49,6 +49,14 @@ export const ChatProvider = ({ children }) => {
     [user?._id]
   );
 
+  // In your ChatContext.js
+  useEffect(() => {
+    if (conversations) {
+      const count = calculateUnreadCount(conversations);
+      setUnreadCount(count);
+    }
+  }, [conversations, calculateUnreadCount]);
+
   // Initialize socket connection
   useEffect(() => {
     if (!user?._id) return undefined;
@@ -147,6 +155,7 @@ export const ChatProvider = ({ children }) => {
       return conversationsData;
     } catch (error) {
       console.error("Fetch error:", error);
+      setConversationsError(error);
       // Don't reset conversations state here
       throw error;
     } finally {
@@ -222,7 +231,10 @@ export const ChatProvider = ({ children }) => {
         }
       );
 
-      const messagesData = data?.messages || data?.data || data || [];
+      // Extract messages from the correct path in the response
+      const messagesData = data?.message?.messages || [];
+
+      // Ensure we have an array and sort by createdAt
       const normalizedMessages = Array.isArray(messagesData)
         ? messagesData
         : [];
@@ -279,11 +291,13 @@ export const ChatProvider = ({ children }) => {
     [socket]
   );
 
+  // In your ChatContext
   const markMessagesAsRead = useCallback(
     async (messageIds) => {
       if (!Array.isArray(messageIds) || messageIds.length === 0) return;
 
       try {
+        // 1. Make API call to mark messages as read
         await axios.post(
           `${API_BASE_URL}/api/chat/messages/read`,
           { messageIds },
@@ -294,7 +308,7 @@ export const ChatProvider = ({ children }) => {
           }
         );
 
-        // Update local state
+        // 2. Update local messages state
         setMessages((prev) =>
           prev.map((msg) =>
             messageIds.includes(msg._id)
@@ -303,14 +317,37 @@ export const ChatProvider = ({ children }) => {
           )
         );
 
-        setUnreadCount((prev) => Math.max(0, prev - messageIds.length));
+        // 3. Update unread count
+        setUnreadCount((prev) => {
+          const newCount = prev - messageIds.length;
+          return newCount > 0 ? newCount : 0; // Ensure count doesn't go negative
+        });
+
+        // 4. Update conversations to reflect read status
+        setConversations((prev) =>
+          prev.map((conv) => {
+            if (
+              conv.lastMessage &&
+              messageIds.includes(conv.lastMessage._id) &&
+              !conv.lastMessage.readBy?.includes(user._id)
+            ) {
+              return {
+                ...conv,
+                lastMessage: {
+                  ...conv.lastMessage,
+                  readBy: [...(conv.lastMessage.readBy || []), user._id],
+                },
+              };
+            }
+            return conv;
+          })
+        );
       } catch (error) {
         console.error("Error marking messages as read:", error);
       }
     },
     [user?._id]
   );
-
   return (
     <ChatContext.Provider
       value={{

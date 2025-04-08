@@ -21,6 +21,7 @@ const ChatModal = ({ onClose, showChatModal }) => {
     messages,
     fetchConversations,
     fetchMessages,
+    markMessagesAsRead,
     sendMessage,
     setActiveConversation,
     isLoadingConversations,
@@ -103,6 +104,37 @@ const ChatModal = ({ onClose, showChatModal }) => {
 
     loadMessages();
   }, [activeConversation?._id, fetchMessages, scrollToBottom]);
+
+  // In your ChatModal component
+
+  useEffect(() => {
+    if (showChatModal && activeConversation?._id) {
+      const handleMarkAsRead = async () => {
+        try {
+          const unreadMessages = messages.filter(
+            (msg) =>
+              !msg.readBy?.includes(user._id) && msg.sender._id !== user._id
+          );
+
+          if (unreadMessages.length > 0) {
+            await markMessagesAsRead(unreadMessages.map((msg) => msg._id));
+            await fetchConversations(); // Refresh conversations to update unread count
+          }
+        } catch (error) {
+          console.error("Error marking messages as read:", error);
+        }
+      };
+
+      handleMarkAsRead();
+    }
+  }, [
+    showChatModal,
+    activeConversation,
+    messages,
+    user._id,
+    markMessagesAsRead,
+    fetchConversations,
+  ]);
 
   // Scroll to bottom when messages change
   useEffect(() => {

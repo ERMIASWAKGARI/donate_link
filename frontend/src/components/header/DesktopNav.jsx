@@ -3,14 +3,18 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Bell, ChevronDown, MessageSquare } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { useChat } from "../../context/ChatContext";
 import { headerLinks } from "./HeaderConfig";
 import ProfileDropdown from "./ProfileDropdown";
+
 import ChatModal from "../ChatModal"; // Import the ChatModal component
 
 const DesktopNav = ({ user, handleLogout }) => {
   const navigate = useNavigate();
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [showChatModal, setShowChatModal] = useState(false);
+  const { unreadCount } = useChat();
+
   const dropdownRefs = {
     howItWorks: useRef(null),
     donations: useRef(null),
@@ -195,6 +199,11 @@ const DesktopNav = ({ user, handleLogout }) => {
           >
             <MessageSquare className="w-5 h-5" />
             <span className="text-sm font-medium">Chat</span>
+            {unreadCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
           </motion.button>
 
           {/* Modern Chat Modal Overlay */}
