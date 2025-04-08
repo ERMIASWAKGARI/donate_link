@@ -10,5 +10,6 @@ router.get("/conversation/:participantId", chatController.getConversation);
 router.get("/messages/:conversationId", chatController.getMessages);
 router.post("/messages", chatController.sendMessage);
 router.post("/messages/read", chatController.markAsRead);
+router.delete("/messages/:conversationId", chatController.deleteAllMessages);
 
 module.exports = router;

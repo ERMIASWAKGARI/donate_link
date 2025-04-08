@@ -4,6 +4,7 @@ import {
   useState,
   useEffect,
   useCallback,
+  useRef,
 } from "react";
 import axios from "axios";
 import PropTypes from "prop-types";
@@ -21,10 +22,12 @@ export const ChatProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
   const [conversationsError, setConversationsError] = useState(null);
+  const [typingStatus, setTypingStatus] = useState({});
+  const typingTimeoutRef = useRef(null);
 
   const { user } = useUser();
 
-  // Enhanced unread count calculation
+  // Enhanced unread count calculation (keep existing)
   const calculateUnreadCount = useCallback(
     (convs) => {
       try {
@@ -49,7 +52,7 @@ export const ChatProvider = ({ children }) => {
     [user?._id]
   );
 
-  // In your ChatContext.js
+  // Keep existing useEffect for unread count
   useEffect(() => {
     if (conversations) {
       const count = calculateUnreadCount(conversations);
@@ -57,7 +60,7 @@ export const ChatProvider = ({ children }) => {
     }
   }, [conversations, calculateUnreadCount]);
 
-  // Initialize socket connection
+  // Enhanced socket initialization
   useEffect(() => {
     if (!user?._id) return undefined;
 
@@ -71,6 +74,7 @@ export const ChatProvider = ({ children }) => {
 
     newSocket.on("connect", () => {
       console.log("Socket connected:", newSocket.id);
+      newSocket.emit("userOnline", user._id);
     });
 
     newSocket.on("connect_error", (err) => {
@@ -80,19 +84,17 @@ export const ChatProvider = ({ children }) => {
     setSocket(newSocket);
 
     return () => {
-      newSocket.off("connect");
-      newSocket.off("connect_error");
-      newSocket.close();
+      newSocket.disconnect();
     };
   }, [user]);
 
-  // Socket event listeners for real-time updates
+  // Enhanced socket event listeners
   useEffect(() => {
     if (!socket) return undefined;
 
     const handleNewMessage = (message) => {
       try {
-        // Update messages if in active conversation
+        // Keep existing message handling
         if (activeConversation?._id === message?.conversationId?._id) {
           setMessages((prev) => [
             ...(Array.isArray(prev) ? prev : []),
@@ -100,7 +102,6 @@ export const ChatProvider = ({ children }) => {
           ]);
         }
 
-        // Update conversations with new last message
         setConversations((prev) => {
           if (!Array.isArray(prev)) return prev;
           return prev.map((conv) =>
@@ -110,7 +111,6 @@ export const ChatProvider = ({ children }) => {
           );
         });
 
-        // Update unread count if not in active conversation
         if (activeConversation?._id !== message?.conversationId?._id) {
           setUnreadCount((prev) => prev + 1);
         }
@@ -119,11 +119,34 @@ export const ChatProvider = ({ children }) => {
       }
     };
 
+    const handleUnreadUpdate = ({ conversationId, increment }) => {
+      if (activeConversation?._id !== conversationId) {
+        setUnreadCount((prev) => Math.max(0, prev + increment));
+      }
+    };
+
+    const handleTyping = ({ userId, isTyping }) => {
+      if (userId !== user._id) {
+        setTypingStatus((prev) => ({ ...prev, [userId]: isTyping }));
+      }
+    };
+
     socket.on("newMessage", handleNewMessage);
+    socket.on("unreadUpdate", handleUnreadUpdate);
+    socket.on("typing", handleTyping);
 
     return () => {
       socket.off("newMessage", handleNewMessage);
+      socket.off("unreadUpdate", handleUnreadUpdate);
+      socket.off("typing", handleTyping);
     };
+  }, [socket, activeConversation, user?._id]);
+
+  // Add conversation room joining
+  useEffect(() => {
+    if (socket && activeConversation?._id) {
+      socket.emit("joinConversation", activeConversation._id);
+    }
   }, [socket, activeConversation]);
 
   // Enhanced fetchConversations with loading state and error handling
@@ -264,28 +287,40 @@ export const ChatProvider = ({ children }) => {
           }
         );
 
-        if (data.success && data.message) {
-          // Update local state immediately
-          setMessages((prev) => [...prev, data.message]);
-          setConversations((prev) =>
-            prev.map((conv) =>
-              conv._id === conversationId
-                ? { ...conv, lastMessage: data.message }
-                : conv
-            )
-          );
+        console.log("Full API response:", data);
 
-          // Emit via socket if available
-          if (socket) {
-            socket.emit("sendMessage", data.message);
-          }
+        // Handle the response structure properly
+        const responseMessage = data.message || data.data?.message;
 
-          return data.message;
+        if (!responseMessage) {
+          throw new Error(data?.message || "Failed to send message");
         }
-        throw new Error(data.message || "Failed to send message");
+
+        // Update local state
+        setMessages((prev) => [...prev, responseMessage]);
+        setConversations((prev) =>
+          prev.map((conv) =>
+            conv._id === conversationId
+              ? { ...conv, lastMessage: responseMessage }
+              : conv
+          )
+        );
+
+        if (socket) {
+          socket.emit("sendMessage", responseMessage);
+        }
+
+        return responseMessage;
       } catch (error) {
-        console.error("Error sending message:", error);
-        throw error;
+        const errorMessage =
+          error?.response?.data?.message ||
+          error?.message ||
+          "Failed to send message";
+
+        console.error("Send message error:", errorMessage);
+        console.log("Full error response:", error?.response?.data || error);
+
+        throw new Error(errorMessage);
       }
     },
     [socket]
@@ -296,11 +331,23 @@ export const ChatProvider = ({ children }) => {
     async (messageIds) => {
       if (!Array.isArray(messageIds) || messageIds.length === 0) return;
 
+      // 1. Get only incoming message IDs (not sent by the current user)
+      const incomingMessageIds = messages
+        .filter(
+          (msg) =>
+            messageIds.includes(msg._id) &&
+            msg.sender._id !== user._id &&
+            !msg.readBy?.includes(user._id)
+        )
+        .map((msg) => msg._id);
+
+      if (incomingMessageIds.length === 0) return;
+
       try {
-        // 1. Make API call to mark messages as read
+        // 2. Make API call to mark messages as read
         await axios.post(
           `${API_BASE_URL}/api/chat/messages/read`,
-          { messageIds },
+          { messageIds: incomingMessageIds },
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -308,34 +355,35 @@ export const ChatProvider = ({ children }) => {
           }
         );
 
-        // 2. Update local messages state
+        // 3. Update local messages state
         setMessages((prev) =>
           prev.map((msg) =>
-            messageIds.includes(msg._id)
+            incomingMessageIds.includes(msg._id)
               ? { ...msg, readBy: [...(msg.readBy || []), user._id] }
               : msg
           )
         );
 
-        // 3. Update unread count
+        // 4. Update unread count
         setUnreadCount((prev) => {
-          const newCount = prev - messageIds.length;
-          return newCount > 0 ? newCount : 0; // Ensure count doesn't go negative
+          const newCount = prev - incomingMessageIds.length;
+          return newCount > 0 ? newCount : 0;
         });
 
-        // 4. Update conversations to reflect read status
+        // 5. Update conversations if lastMessage was affected
         setConversations((prev) =>
           prev.map((conv) => {
+            const lastMsg = conv.lastMessage;
             if (
-              conv.lastMessage &&
-              messageIds.includes(conv.lastMessage._id) &&
-              !conv.lastMessage.readBy?.includes(user._id)
+              lastMsg &&
+              incomingMessageIds.includes(lastMsg._id) &&
+              !lastMsg.readBy?.includes(user._id)
             ) {
               return {
                 ...conv,
                 lastMessage: {
-                  ...conv.lastMessage,
-                  readBy: [...(conv.lastMessage.readBy || []), user._id],
+                  ...lastMsg,
+                  readBy: [...(lastMsg.readBy || []), user._id],
                 },
               };
             }
@@ -346,7 +394,26 @@ export const ChatProvider = ({ children }) => {
         console.error("Error marking messages as read:", error);
       }
     },
-    [user?._id]
+    [user?._id, messages]
+  );
+
+  const handleTyping = useCallback(
+    (conversationId, isTyping) => {
+      if (!socket || !conversationId) return;
+
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+
+      socket.emit("typing", { conversationId, isTyping });
+
+      if (isTyping) {
+        typingTimeoutRef.current = setTimeout(() => {
+          socket.emit("typing", { conversationId, isTyping: false });
+        }, 3000);
+      }
+    },
+    [socket]
   );
   return (
     <ChatContext.Provider
@@ -373,6 +440,9 @@ export const ChatProvider = ({ children }) => {
           setActiveConversation(conversation);
         },
         socketConnected: socket?.connected || false,
+
+        typingStatus,
+        handleTyping,
       }}
     >
       {children}

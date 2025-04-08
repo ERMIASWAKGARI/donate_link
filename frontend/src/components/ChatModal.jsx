@@ -35,6 +35,7 @@ const ChatModal = ({ onClose, showChatModal }) => {
   const [isVisible, setIsVisible] = useState(false);
   const messagesEndRef = useRef(null);
   const modalRef = useRef(null);
+  const [isSending, setIsSending] = useState(false);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -113,7 +114,9 @@ const ChatModal = ({ onClose, showChatModal }) => {
         try {
           const unreadMessages = messages.filter(
             (msg) =>
-              !msg.readBy?.includes(user._id) && msg.sender._id !== user._id
+              msg.sender && // Check sender exists
+              !msg.readBy?.includes(user._id) &&
+              msg.sender._id !== user._id
           );
 
           if (unreadMessages.length > 0) {
@@ -135,7 +138,6 @@ const ChatModal = ({ onClose, showChatModal }) => {
     markMessagesAsRead,
     fetchConversations,
   ]);
-
   // Scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
@@ -166,17 +168,24 @@ const ChatModal = ({ onClose, showChatModal }) => {
   }, [showChatModal, onClose]);
 
   const handleSendMessage = async () => {
-    if (message.trim() && activeConversation) {
-      try {
-        await sendMessage(activeConversation._id, message);
-        setMessage("");
-        setShowEmojiPicker(false);
-      } catch (error) {
-        console.error("Failed to send message:", error);
-      }
+    if (!message.trim() || !activeConversation || isSending) return;
+
+    setIsSending(true);
+
+    try {
+      const result = await sendMessage(activeConversation._id, message);
+      console.log("Message sent successfully:", result);
+      setMessage(""); // Clear the input
+      console.log("Message clearly successfully:", result);
+      setShowEmojiPicker(false);
+    } catch (error) {
+      console.error("Send failed:", error.message);
+      // Optionally show error to user
+      // toast.error(error.message);
+    } finally {
+      setIsSending(false);
     }
   };
-
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -261,10 +270,14 @@ const ChatModal = ({ onClose, showChatModal }) => {
                 const otherParticipant = conv.participants.find(
                   (p) => p._id !== user._id
                 );
+
+                // Safest unread check with all possible guards
                 const unreadMessages =
                   conv.lastMessage &&
+                  conv.lastMessage.sender && // Check sender exists
+                  conv.lastMessage.sender._id !== user._id &&
+                  Array.isArray(conv.lastMessage.readBy) &&
                   !conv.lastMessage.readBy.includes(user._id);
-
                 return (
                   <div
                     key={conv._id}
@@ -364,53 +377,60 @@ const ChatModal = ({ onClose, showChatModal }) => {
 
               <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
                 {messages.length > 0 ? (
-                  messages.map((msg) => (
-                    <div
-                      key={msg._id}
-                      className={`mb-4 flex ${
-                        msg.sender._id === user._id
-                          ? "justify-end"
-                          : "justify-start"
-                      }`}
-                    >
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                  messages.map((msg) => {
+                    // Skip rendering if message is invalid
+                    if (!msg.sender) return null;
+
+                    return (
+                      <div
+                        key={msg._id}
+                        className={`mb-4 flex ${
                           msg.sender._id === user._id
-                            ? "bg-blue-500 text-white"
-                            : "bg-white text-gray-800 border border-gray-200"
+                            ? "justify-end"
+                            : "justify-start"
                         }`}
                       >
-                        <p className="break-words">{msg.content}</p>
-                        <div className="flex justify-end items-center mt-1">
-                          <span
-                            className={`text-xs ${
-                              msg.sender._id === user._id
-                                ? "text-blue-100"
-                                : "text-gray-500"
-                            }`}
-                          >
-                            {new Date(msg.createdAt).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </span>
-                          {msg.sender._id === user._id && (
-                            <span className="ml-1">
-                              {msg.readBy?.length > 1 ? (
-                                <span className="text-blue-100 text-xs">
-                                  ✓✓
-                                </span>
-                              ) : (
-                                <span className="text-blue-100 text-xs">✓</span>
-                              )}
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                            msg.sender._id === user._id
+                              ? "bg-blue-500 text-white"
+                              : "bg-white text-gray-800 border border-gray-200"
+                          }`}
+                        >
+                          <p className="break-words">{msg.content}</p>
+                          <div className="flex justify-end items-center mt-1">
+                            <span
+                              className={`text-xs ${
+                                msg.sender._id === user._id
+                                  ? "text-blue-100"
+                                  : "text-gray-500"
+                              }`}
+                            >
+                              {new Date(msg.createdAt).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
                             </span>
-                          )}
-                        </div>
-                      </motion.div>
-                    </div>
-                  ))
+                            {msg.sender._id === user._id && (
+                              <span className="ml-1">
+                                {msg.readBy?.length > 1 ? (
+                                  <span className="text-blue-100 text-xs">
+                                    ✓✓
+                                  </span>
+                                ) : (
+                                  <span className="text-blue-100 text-xs">
+                                    ✓
+                                  </span>
+                                )}
+                              </span>
+                            )}
+                          </div>
+                        </motion.div>
+                      </div>
+                    );
+                  })
                 ) : (
                   <div className="flex items-center justify-center h-full">
                     <p className="text-gray-500">No messages yet</p>
@@ -450,9 +470,13 @@ const ChatModal = ({ onClose, showChatModal }) => {
                   <button
                     className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 disabled:bg-blue-300 transition-colors"
                     onClick={handleSendMessage}
-                    disabled={!message.trim()}
+                    disabled={!message.trim() || isSending}
                   >
-                    <FiSend size={20} />
+                    {isSending ? (
+                      <div className="animate-spin h-5 w-5 border-2 border-t-transparent border-white rounded-full" /> // Add a spinner component
+                    ) : (
+                      <FiSend size={20} />
+                    )}
                   </button>
                 </div>
               </div>
