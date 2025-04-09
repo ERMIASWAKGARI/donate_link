@@ -33,17 +33,28 @@ export const ChatProvider = ({ children }) => {
       try {
         if (!Array.isArray(convs)) return 0;
 
-        return convs.reduce((total, conv) => {
+        const count = convs.reduce((total, conv) => {
           const lastMessage = conv?.lastMessage;
-          if (
+
+          // Add proper null checks
+          const isUnread =
             lastMessage &&
+            lastMessage.sender &&
             !lastMessage.readBy?.includes(user?._id) &&
-            lastMessage.sender?._id !== user?._id
-          ) {
-            return total + 1;
-          }
-          return total;
+            lastMessage.sender._id !== user?._id;
+
+          console.log(`[Unread Calc] Conv ${conv._id}:`, {
+            lastMsgId: lastMessage?._id,
+            sender: lastMessage?.sender?._id,
+            isUnread,
+            currentUser: user?._id,
+          });
+
+          return isUnread ? total + 1 : total;
         }, 0);
+
+        console.log(`[Unread Calc] Total unread: ${count}`);
+        return count;
       } catch (error) {
         console.error("Error calculating unread count:", error);
         return 0;
@@ -51,7 +62,6 @@ export const ChatProvider = ({ children }) => {
     },
     [user?._id]
   );
-
   // Keep existing useEffect for unread count
   useEffect(() => {
     if (conversations) {
@@ -93,8 +103,15 @@ export const ChatProvider = ({ children }) => {
     if (!socket) return undefined;
 
     const handleNewMessage = (message) => {
+      console.log("[Socket] New message received:", {
+        id: message._id,
+        sender: message.sender?._id,
+        isCurrentUser: message.sender?._id.toString() !== user?._id.toString(),
+        currentConversation: activeConversation?._id,
+        messageConversation: message.conversationId?._id,
+      });
+      if (!message?.sender) return; // Add this line
       try {
-        // Keep existing message handling
         if (activeConversation?._id === message?.conversationId?._id) {
           setMessages((prev) => [
             ...(Array.isArray(prev) ? prev : []),
@@ -106,13 +123,30 @@ export const ChatProvider = ({ children }) => {
           if (!Array.isArray(prev)) return prev;
           return prev.map((conv) =>
             conv?._id === message?.conversationId?._id
-              ? { ...conv, lastMessage: message }
+              ? {
+                  ...conv,
+                  lastMessage: message || conv.lastMessage, // Fallback
+                }
               : conv
           );
         });
 
-        if (activeConversation?._id !== message?.conversationId?._id) {
-          setUnreadCount((prev) => prev + 1);
+        const shouldIncrement =
+          activeConversation?._id !== message?.conversationId?._id &&
+          message?.sender?._id !== user?._id;
+
+        console.log("[Socket] Should increment unread?", shouldIncrement);
+
+        if (shouldIncrement) {
+          setUnreadCount((prev) => {
+            console.log(
+              "[Socket] Incrementing unread from",
+              prev,
+              "to",
+              prev + 1
+            );
+            return prev + 1;
+          });
         }
       } catch (error) {
         console.error("Error handling new message:", error);
@@ -275,6 +309,7 @@ export const ChatProvider = ({ children }) => {
   }, []);
   const sendMessage = useCallback(
     async (conversationId, content, attachments = []) => {
+      console.log("[Send] Attempting to send message...");
       try {
         const { data } = await axios.post(
           `${API_BASE_URL}/api/chat/messages`,
@@ -287,16 +322,18 @@ export const ChatProvider = ({ children }) => {
           }
         );
 
-        console.log("Full API response:", data);
-
-        // Handle the response structure properly
         const responseMessage = data.message || data.data?.message;
+        console.log("[Send] Message sent successfully:", {
+          id: responseMessage._id,
+          sender: responseMessage.sender?._id,
+          isCurrentUser: responseMessage.sender?._id === user?._id,
+        });
 
         if (!responseMessage) {
           throw new Error(data?.message || "Failed to send message");
         }
 
-        // Update local state
+        // Update local state (no unread count change)
         setMessages((prev) => [...prev, responseMessage]);
         setConversations((prev) =>
           prev.map((conv) =>
@@ -307,44 +344,37 @@ export const ChatProvider = ({ children }) => {
         );
 
         if (socket) {
+          console.log("[Send] Emitting via socket");
           socket.emit("sendMessage", responseMessage);
         }
 
         return responseMessage;
       } catch (error) {
-        const errorMessage =
-          error?.response?.data?.message ||
-          error?.message ||
-          "Failed to send message";
-
-        console.error("Send message error:", errorMessage);
-        console.log("Full error response:", error?.response?.data || error);
-
-        throw new Error(errorMessage);
+        console.error("Send message error:", error);
+        throw error;
       }
     },
     [socket]
   );
-
   // In your ChatContext
   const markMessagesAsRead = useCallback(
     async (messageIds) => {
-      if (!Array.isArray(messageIds) || messageIds.length === 0) return;
+      if (!Array.isArray(messageIds) || messageIds.length === 0 || !user?._id)
+        return;
 
-      // 1. Get only incoming message IDs (not sent by the current user)
+      // Double-check: Filter out any messages sent by the user (defensive programming)
       const incomingMessageIds = messages
         .filter(
           (msg) =>
             messageIds.includes(msg._id) &&
-            msg.sender._id !== user._id &&
-            !msg.readBy?.includes(user._id)
+            msg.sender?._id !== user._id && // ✅ Exclude user's own messages
+            !msg.readBy?.includes(user._id) // Only unread messages
         )
         .map((msg) => msg._id);
 
       if (incomingMessageIds.length === 0) return;
 
       try {
-        // 2. Make API call to mark messages as read
         await axios.post(
           `${API_BASE_URL}/api/chat/messages/read`,
           { messageIds: incomingMessageIds },
@@ -355,7 +385,7 @@ export const ChatProvider = ({ children }) => {
           }
         );
 
-        // 3. Update local messages state
+        // Update state
         setMessages((prev) =>
           prev.map((msg) =>
             incomingMessageIds.includes(msg._id)
@@ -364,13 +394,10 @@ export const ChatProvider = ({ children }) => {
           )
         );
 
-        // 4. Update unread count
-        setUnreadCount((prev) => {
-          const newCount = prev - incomingMessageIds.length;
-          return newCount > 0 ? newCount : 0;
-        });
+        // Safely decrement unread count
+        setUnreadCount((prev) => Math.max(0, prev - incomingMessageIds.length));
 
-        // 5. Update conversations if lastMessage was affected
+        // Update conversations
         setConversations((prev) =>
           prev.map((conv) => {
             const lastMsg = conv.lastMessage;
@@ -396,7 +423,6 @@ export const ChatProvider = ({ children }) => {
     },
     [user?._id, messages]
   );
-
   const handleTyping = useCallback(
     (conversationId, isTyping) => {
       if (!socket || !conversationId) return;
@@ -430,10 +456,10 @@ export const ChatProvider = ({ children }) => {
         sendMessage,
         markMessagesAsRead,
         setActiveConversation: (conversation) => {
-          // When setting active conversation, mark its messages as read
           if (
             conversation?.lastMessage &&
-            !conversation.lastMessage.readBy?.includes(user?._id)
+            !conversation.lastMessage.readBy?.includes(user?._id) &&
+            conversation.lastMessage.sender?._id !== user?._id // ✅ Exclude user's own messages
           ) {
             markMessagesAsRead([conversation.lastMessage._id]);
           }
