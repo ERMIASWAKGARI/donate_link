@@ -2,17 +2,17 @@ const mongoose = require("mongoose");
 
 const paymentSchema = new mongoose.Schema(
   {
-    need: {
+    needId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Needs",
       required: true,
     },
-    donor: {
+    donorId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    NGO: {
+    NGOId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,

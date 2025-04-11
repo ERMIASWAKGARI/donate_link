@@ -10,7 +10,7 @@ const DonationCard = ({ donation, onSeeMore, onDonate }) => {
 
   // Get the first image URL or fallback to placeholder
   const imageUrl = donation?.beneficiaryInfo?.pictures?.[0]
-    ? `http://localhost:5000/${donation.beneficiaryInfo.pictures[0].replace(
+    ? `http://localhost:5000/uploads/${donation.beneficiaryInfo.pictures[0].replace(
         /\\/g,
         "/"
       )}`
@@ -96,7 +96,7 @@ const DonationCard = ({ donation, onSeeMore, onDonate }) => {
             onClick={onDonate}
             className="bg-yellow-400 hover:bg-yellow-500 text-white font-medium py-2 px-6 rounded-full transition"
           >
-            Donate Now
+            {donation.needTypes.includes("service") ? "apply" : "Donate Now"}
           </button>
         </div>
       </div>

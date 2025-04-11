@@ -1,51 +1,73 @@
-const applicationSchema = new mongoose.Schema(
+// models/ServiceDonation.js
+const mongoose = require("mongoose");
+
+const ApplicationSchema = new mongoose.Schema(
   {
-    applicant: {
+    NGO: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-    }, // The applicant (volunteer or NGO)
-
-    category: {
-      type: String,
+    },
+    donorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
-
-    subCategory: {
-      type: String,
-      required: true,
-    },
-
-    need: {
+    needId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Needs",
       required: true,
-    }, // The need being applied for
-    motivation: {
-      type: String,
-      maxlength: 1000,
-      trim: true,
     },
-   
-    startDate: {
-      type: Date,
+    donationType: {
+      type: String,
+      enum: ["service"],
+      default: "service",
       required: true,
     },
-    endDate: Date,
-    hoursPerWeek: Number,
-    status: {
+    services: [
+      {
+        categoryName: {
+          type: String,
+          required: true,
+          maxlength: 50,
+        },
+        subCategoryName: {
+          type: String,
+          required: true,
+          maxlength: 50,
+        },
+      
+    
+        startDate: {
+          type: Date,
+          required: true,
+        },
+        endDate: {
+          type: Date,
+          required: true,
+          validate: {
+            validator: function (v) {
+              return v > this.startDate;
+            },
+            message: "End date must be after start date",
+          },
+        },
+        hoursPerWeek: {
+          type: Number,
+          required: true,
+          min: 1,
+          max: 168, // 24*7
+        },
+      },
+    ],
+    message: {
       type: String,
-      enum: [
-        "Submitted",
-        "Under Review",
-        "Interview Scheduled",
-        "Approved",
-        "Rejected",
-        "On Hold",
-        "Withdrawn",
-      ],
-      default: "Submitted",
+      default: "",
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
+
+module.exports = mongoose.model("Application", ApplicationSchema);

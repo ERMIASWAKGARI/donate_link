@@ -11,7 +11,7 @@ const DonationsPage = () => {
   const { needs, loading, error, pagination } = useSelector(
     (state) => state.needs
   );
-  const categories = ["Medical", "Food", "Emergency", "Education", "Clothing"];
+  const categories = ["material", "Food", "Emergency", "Education", "Clothing"];
 
   useEffect(() => {
     dispatch(fetchFilteredNeeds({}));

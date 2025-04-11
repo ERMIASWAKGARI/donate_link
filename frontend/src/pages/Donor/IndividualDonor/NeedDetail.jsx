@@ -52,19 +52,19 @@ const NeedDetail = ({ need, onClose }) => {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             {/* Left Column - Need Information */}
             <div className="lg:col-span-2">
               <NeedInformation need={need} />
 
               {/* Map Component */}
-              <div className="mt-6">
+              {/* <div className="mt-6">
                 <MapComponent
                   location={need.beneficiaryInfo.location}
                   currentLocation={currentLocation}
                   onGetDirections={getCurrentLocation}
                 />
-              </div>
+              </div> */}
             </div>
 
             {/* Right Column - Donation Form */}

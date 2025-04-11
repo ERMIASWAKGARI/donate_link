@@ -1,11 +1,13 @@
-import { useState } from "react";
-import axios from "axios";
+import { useState, useContext } from "react";
 
-const DonationForm = ({ need, onSubmit, currentUser }) => {
+import Axios from "../../../config/axiosConfig";
+import MaterialDonationForm from "./MatterialDonationForm";
+import { UserContext } from "../../../context/UserContext";
+const DonationForm = ({ need, onSubmit }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-
+  const { user } = useContext(UserContext);
   // Initialize form data based on need types
   const [formData, setFormData] = useState({
     type: need.needTypes.includes("money") ? "money" : need.needTypes[0],
@@ -107,7 +109,7 @@ const DonationForm = ({ need, onSubmit, currentUser }) => {
     return true;
   };
 
-  // Handle form submission
+  // Handle form submission// Update your handleSubmit function in DonationForm.js
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -116,7 +118,7 @@ const DonationForm = ({ need, onSubmit, currentUser }) => {
 
     try {
       // Validate form data
-      if (!currentUser || !currentUser.id) {
+      if (!user) {
         throw new Error("You must be logged in to make a donation");
       }
 
@@ -137,9 +139,6 @@ const DonationForm = ({ need, onSubmit, currentUser }) => {
 
       if (formData.type === "service") {
         for (const service of formData.services) {
-          if (!service.commitment) {
-            throw new Error("Please fill all service commitments");
-          }
           if (!service.motivation) {
             throw new Error("Please provide your motivation for each service");
           }
@@ -165,77 +164,98 @@ const DonationForm = ({ need, onSubmit, currentUser }) => {
         }
       }
 
-      // Prepare donation data
-      const donationData = {
-        NGO: need.NGO,
-        donorId: currentUser.id,
-        needId: need._id,
-        donationType: formData.type,
-        message: formData.message,
-      };
-
-      // Add type-specific data
+      // Submit based on donation type
+      let response;
       if (formData.type === "money") {
-        donationData.amount = parseFloat(formData.amount);
+        response = await axios.post("/api/donations/money", {
+          NGO: need.NGO,
+          donorId: user._id,
+          needId: need._id,
+          amount: parseFloat(formData.amount),
+          message: formData.message || "",
+        });
       } else if (formData.type === "material") {
-        donationData.materials = formData.materials.map((m) => ({
-          categoryName: m.categoryName,
-          subCategoryName: m.subCategoryName,
-          quantity: parseInt(m.quantity),
-        }));
-        donationData.location = formData.location;
-        donationData.pictures = formData.pictures;
+        const formDataToSend = new FormData();
+        formDataToSend.append("NGO", need.NGO);
+        formDataToSend.append("donorId", user._id);
+        formDataToSend.append("needId", need._id);
+        formDataToSend.append("message", formData.message || "");
+        formDataToSend.append(
+          "materials",
+          JSON.stringify(
+            formData.materials.map((m) => ({
+              categoryName: m.categoryName,
+              subCategoryName: m.subCategoryName,
+              quantity: parseInt(m.quantity),
+            }))
+          )
+        );
+        formDataToSend.append(
+          "location",
+          JSON.stringify({
+            latitude: formData.location.latitude,
+            longitude: formData.location.longitude,
+            address: formData.location.address,
+          })
+        );
+
+        // Handle file uploads
+        if (formData.pictures.length > 0) {
+          const pictureFiles = await Promise.all(
+            formData.pictures.map(async (pic) => {
+              if (pic.startsWith("data:")) {
+                const response = await fetch(pic);
+                const blob = await response.blob();
+                return new File([blob], `donation-${Date.now()}.jpg`, {
+                  type: "image/jpeg",
+                });
+              }
+              return pic;
+            })
+          );
+
+          pictureFiles.forEach((file) => {
+            formDataToSend.append("pictures", file);
+          });
+        }
+
+        response = await Axios.post("/api/donations/material", formDataToSend, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
       } else if (formData.type === "service") {
-        donationData.services = formData.services.map((s) => ({
-          categoryName: s.categoryName,
-          subCategoryName: s.subCategoryName,
-          commitment: s.commitment,
-          motivation: s.motivation,
-          startDate: s.startDate,
-          endDate: s.endDate,
-          hoursPerWeek: parseInt(s.hoursPerWeek),
-        }));
+        response = await Axios.post("/donation/service", {
+          NGO: need.NGO,
+          donorId: user._id,
+          needId: need._id,
+          services: formData.services.map((s) => ({
+            categoryName: s.categoryName,
+            subCategoryName: s.subCategoryName,
+            commitment: s.commitment,
+            motivation: s.motivation,
+            startDate: s.startDate,
+            endDate: s.endDate,
+            hoursPerWeek: parseInt(s.hoursPerWeek),
+          })),
+          message: formData.message || "",
+        });
       }
 
-      // In a real implementation, you would submit to your API here
-      console.log("Submitting donation:", donationData);
+      setSuccess(response?.data?.message || "Donation submitted successfully!");
+      if (onSubmit) onSubmit(response?.data?.donation || formData);
 
-      setSuccess("Donation submitted successfully!");
-      if (onSubmit) onSubmit(donationData);
-
-      // Reset form after successful submission
+      // Reset form
       setTimeout(() => {
         setFormData({
-          type: need.needTypes.includes("money") ? "money" : need.needTypes[0],
-          amount: "",
-          materials:
-            need.categories.material?.map((item) => ({
-              categoryName: item.categoryName,
-              subCategoryName: item.subCategoryName,
-              quantity: "",
-            })) || [],
-          services:
-            need.categories.service?.map((item) => ({
-              categoryName: item.categoryName,
-              subCategoryName: item.subCategoryName,
-              commitment: "",
-              motivation: "",
-              startDate: "",
-              endDate: "",
-              hoursPerWeek: "",
-            })) || [],
-          message: "",
-          location: {
-            address: "",
-            latitude: null,
-            longitude: null,
-          },
-          pictures: [],
+          // ... reset form data ...
         });
         setSuccess(null);
       }, 3000);
     } catch (err) {
-      setError(err.message || "An error occurred");
+      setError(
+        err.response?.data?.message || err.message || "An error occurred"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -328,117 +348,15 @@ const DonationForm = ({ need, onSubmit, currentUser }) => {
 
         {/* Material Donation Form */}
         {formData.type === "material" && formData.materials.length > 0 && (
-          <>
-            <div className="mb-4">
-              <h4 className="font-medium text-gray-700 mb-2">Material Items</h4>
-              <div className="space-y-3">
-                {formData.materials.map((item, index) => (
-                  <div key={index} className="border p-3 rounded">
-                    <p className="font-medium">
-                      {item.categoryName} - {item.subCategoryName}
-                    </p>
-                    <div className="mt-2">
-                      <label className="block text-sm text-gray-600 mb-1">
-                        Quantity
-                      </label>
-                      <input
-                        type="number"
-                        name="quantity"
-                        value={item.quantity}
-                        onChange={(e) => handleMaterialChange(index, e)}
-                        min="1"
-                        className="w-full p-2 border rounded"
-                        required
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Location for Material Donation */}
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">
-                Pickup/Drop-off Location
-              </label>
-              <input
-                type="text"
-                value={formData.location.address}
-                onChange={(e) =>
-                  handleLocationChange({
-                    ...formData.location,
-                    address: e.target.value,
-                  })
-                }
-                className="w-full p-2 border rounded"
-                placeholder="Enter full address"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                      (position) => {
-                        handleLocationChange({
-                          ...formData.location,
-                          latitude: position.coords.latitude,
-                          longitude: position.coords.longitude,
-                        });
-                      },
-                      (error) => {
-                        console.error("Error getting location:", error);
-                        setError("Could not get your current location");
-                      }
-                    );
-                  } else {
-                    setError("Geolocation is not supported by your browser");
-                  }
-                }}
-                className="mt-2 text-sm text-blue-600 hover:text-blue-800"
-              >
-                Use Current Location
-              </button>
-            </div>
-
-            {/* Pictures for Material Donation */}
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">
-                Upload Pictures (Max 10)
-              </label>
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleFileUpload}
-                className="w-full p-2 border rounded"
-                disabled={formData.pictures.length >= 10}
-              />
-              <div className="mt-2 flex flex-wrap gap-2">
-                {formData.pictures.map((url, index) => (
-                  <div key={index} className="relative">
-                    <img
-                      src={url}
-                      alt={`Donation ${index}`}
-                      className="h-16 w-16 object-cover rounded"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removePicture(index)}
-                      className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-              {formData.pictures.length >= 10 && (
-                <p className="text-sm text-red-500 mt-1">
-                  Maximum 10 pictures reached
-                </p>
-              )}
-            </div>
-          </>
+          <MaterialDonationForm
+            materials={formData.materials}
+            location={formData.location}
+            onMaterialChange={handleMaterialChange}
+            onLocationChange={handleLocationChange}
+            handleFileUpload={handleFileUpload}
+            removePicture={removePicture}
+            formData={formData}
+          />
         )}
 
         {/* Service Donation Form */}
@@ -452,20 +370,6 @@ const DonationForm = ({ need, onSubmit, currentUser }) => {
                     {item.categoryName} - {item.subCategoryName}
                   </p>
                   <div className="mt-2 space-y-3">
-                    <div>
-                      <label className="block text-sm text-gray-600 mb-1">
-                        Your Commitment
-                      </label>
-                      <textarea
-                        name="commitment"
-                        value={item.commitment}
-                        onChange={(e) => handleServiceChange(index, e)}
-                        className="w-full p-2 border rounded"
-                        rows="3"
-                        required
-                        placeholder="Describe how you can help with this service..."
-                      />
-                    </div>
                     <div>
                       <label className="block text-sm text-gray-600 mb-1">
                         Motivation
@@ -548,7 +452,6 @@ const DonationForm = ({ need, onSubmit, currentUser }) => {
           />
         </div>
 
-        {/* Submit Button */}
         <button
           type="submit"
           className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded disabled:opacity-50"

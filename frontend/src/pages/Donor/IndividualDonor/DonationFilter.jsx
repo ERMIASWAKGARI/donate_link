@@ -90,6 +90,14 @@ const DonationFilter = ({ categories }) => {
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
+          onClick={() => handleCategoryChange("service")}
+          className="px-4 py-3 text-gray-500 hover:text-green-600 font-medium rounded-lg border border-gray-200 hover:border-green-300 transition-colors"
+        >
+          service
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           onClick={handleReset}
           className="px-4 py-3 text-gray-500 hover:text-green-600 font-medium rounded-lg border border-gray-200 hover:border-green-300 transition-colors"
         >
