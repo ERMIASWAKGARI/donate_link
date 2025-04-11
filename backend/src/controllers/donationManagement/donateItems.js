@@ -3,29 +3,53 @@ const AppError = require('../../utils/appError');
 const asyncWrapper = require('../../middleware/asyncWrapper');
 
 // Create material donation
-const createMaterialDonation = asyncWrapper(async (req, res, next) => {
-  const donationData = req.body;
-
-  // Validate required fields
-  if (!donationData.NGO || !donationData.needId || !donationData.location || !donationData.materials) {
-    return next(new AppError('Missing required fields', 400));
-  }
-
-  // Create donation
-  const donation = await MaterialDonation.create({
-    ...donationData,
-    donationType: 'material',
-    trackingId: Math.random().toString(36).substring(2, 15)
-  });
-
-  res.status(201).json({
-    status: 'success',
-    data: {
-      donation
+const createMaterialDonation = async (req, res) => {
+  try {
+    console.log("here the request is",req.body);
+    const { NGO, donorId, needId, materials, location, message } = req.body;
+    
+    // Validate required fields
+    if (!NGO || !donorId || !needId || !materials || !location) {
+      return res.status(400).json({ message: 'Missing required fields' });
     }
-  });
-});
 
+    // Parse materials and location from stringified JSON (if needed)
+    const materialsArray = typeof materials === 'string' ? JSON.parse(materials) : materials;
+    const locationObj = typeof location === 'string' ? JSON.parse(location) : location;
+
+    // Generate tracking ID
+    const trackingId = 'DON-' + Date.now().toString(36).toUpperCase();
+
+    // Get uploaded picture URLs (assuming you've configured cloud storage)
+    const pictures = req.files?.map(file => file.path) || [];
+
+    const newDonation = new MaterialDonation({
+      NGO,
+      donorId,
+      needId,
+      pictures,
+      donationType: 'material',
+      trackingId,
+      location: {
+        latitude: locationObj.latitude,
+        longitude: locationObj.longitude,
+        address: locationObj.address
+      },
+      materials: materialsArray,
+      message: message || ''
+    });
+
+    await newDonation.save();
+
+    res.status(201).json({
+      message: 'Material donation submitted successfully',
+      donation: newDonation
+    });
+  } catch (error) {
+    console.error('Error submitting material donation:', error);
+    res.status(500).json({ message: 'Failed to submit donation', error: error.message });
+  }
+};
 // Get material donation by ID
 const getMaterialDonation = asyncWrapper(async (req, res, next) => {
   const donation = await MaterialDonation.findById(req.params.id)

@@ -4,6 +4,7 @@ const needsController = require("../controllers/donationManagement/needControlle
 const uploadNeedPictures = require("../middleware/uploadNeedPictures");
 const authMiddleware = require("../middleware/authenticationMiddleware");
 const donateItems = require("../controllers/donationManagement/donateItems");
+const serviceApplication = require("../controllers/donationManagement/serviceApplication");
 // Post NGO's Need with file upload support
 router.post(
   "/postNgosNeed",
@@ -17,7 +18,12 @@ router.get("/getAllNeeds", needsController.getAllNeeds);
 router.get("/ngo/:ngoId", needsController.getNeedsByNgo);
 router.get("/:id", needsController.getNeedById);
 // Material Donation Routes
-router.post("/material", donateItems.createMaterialDonation);
+router.post("/material",authMiddleware("individual_donor" || "organization_donor"),uploadNeedPictures, donateItems.createMaterialDonation);
 router.get("/material/:id", donateItems.getMaterialDonation);
 router.put("/material/:id", donateItems.updateMaterialDonation);
+
+// Service Donation Routes
+router.post("/service", authMiddleware("individual_donor" || "organization_donor" || "volunteer"), serviceApplication.serviceApplication);
+// router.get("/service/:id", serviceApplication.getServiceDonation);
+// router.put("/service/:id", serviceApplication.updateServiceDonation);
 module.exports = router;

@@ -173,6 +173,8 @@ const getAllNeeds = async (req, res) => {
       query.$or = [
         { title: { $regex: search, $options: "i" } },
         { description: { $regex: search, $options: "i" } },
+        { needTypes: { $regex: search, $options: "i" } },
+       
       ];
     }
 
@@ -188,7 +190,15 @@ const getAllNeeds = async (req, res) => {
       .sort({ urgencyLevel: -1, createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit))
-      .populate("NGO", "name email");
+      .populate("NGO", "name email")
+      .then(needs => {
+        if (category === "service") {
+          return needs.filter(need => need.needTypes.includes("service"));
+        } else if (category === "all") {
+          return needs.filter(need => !need.needTypes.includes("service")); 
+        }
+        return needs;
+      });
 
     const totalPages = Math.ceil(totalItems / limit);
 
