@@ -52,18 +52,19 @@ const createMaterialDonation = async (req, res) => {
 };
 // Get material donation by ID
 const getMaterialDonation = asyncWrapper(async (req, res, next) => {
-  const donation = await MaterialDonation.findById(req.params.id)
+  console.log("here the request is",req.params.ngoId,req.params.needId);
+  const donations = await MaterialDonation.find({ NGO: req.params.ngoId, needId: req.params.needId })
     .populate('NGO')
-    .populate('needId');
+    .populate('needId')
+    .populate('donorId');
 
-  if (!donation) {
-    return next(new AppError('No donation found with that ID', 404));
-  }
+ 
 
   res.status(200).json({
     status: 'success',
+    results: donations.length,
     data: {
-      donation
+      donations
     }
   });
 });

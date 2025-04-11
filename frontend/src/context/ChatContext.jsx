@@ -8,7 +8,7 @@ import {
 } from "react";
 import axios from "axios";
 import PropTypes from "prop-types";
-import { io } from "socket.io-client";
+import io from "socket.io-client"; // Fixed import
 import { useUser } from "./UserContext";
 
 const ChatContext = createContext();

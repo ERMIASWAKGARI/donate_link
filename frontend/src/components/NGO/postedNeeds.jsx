@@ -22,10 +22,9 @@ function PostedNeeds() {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(6); // Number of items per page
+  const [itemsPerPage] = useState(6);
   const [totalItems, setTotalItems] = useState(0);
 
-  // Fetch needs when component mounts or page changes
   useEffect(() => {
     fetchNeeds();
   }, [currentPage]);
@@ -44,7 +43,7 @@ function PostedNeeds() {
       setNeeds(response.data.data || []);
       setTotalItems(response.data.total || 0);
     } catch (err) {
-      setError("No posts added yet ");
+      setError("No posts added yet");
     } finally {
       setLoading(false);
     }
@@ -64,7 +63,7 @@ function PostedNeeds() {
 
       setNeeds((prev) => [newNeed, ...prev]);
       setShowNeedForm(false);
-      setTotalItems((prev) => prev + 1); // Update total count
+      setTotalItems((prev) => prev + 1);
     } catch (err) {
       console.error("Error adding need:", err);
       setError(
@@ -85,39 +84,36 @@ function PostedNeeds() {
     setSelectedNeed(null);
   };
 
-  // Calculate total pages
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  // Change page
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  // Previous page
   const prevPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
     }
   };
 
-  // Next page
   const nextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
     }
   };
 
-  // ... keep the rest of your existing functions (openDetailsModal, closeDetailsModal, etc.)
-
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4">
-        {[1, 2, 3, 4, 5, 6, 7, 8].map((skeleton) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-6">
+        {[...Array(6)].map((_, i) => (
           <div
-            key={skeleton}
-            className="animate-pulse p-4 border rounded-lg shadow-md bg-gray-300 dark:bg-gray-700"
+            key={i}
+            className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse"
           >
-            <div className="h-32 bg-gray-400 dark:bg-gray-600 rounded-md"></div>
-            <div className="mt-2 h-4 bg-gray-400 dark:bg-gray-600 w-3/4 rounded"></div>
-            <div className="mt-2 h-3 bg-gray-400 dark:bg-gray-600 w-1/2 rounded"></div>
+            <div className="h-48 bg-gray-200"></div>
+            <div className="p-4">
+              <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+              <div className="h-10 bg-gray-200 rounded"></div>
+            </div>
           </div>
         ))}
       </div>
@@ -126,401 +122,419 @@ function PostedNeeds() {
 
   if (error) {
     return (
-      <div className="text-center py-4 text-red-500">
-        {typeof error === "object" ? JSON.stringify(error) : error}
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center p-6 bg-white rounded-lg shadow-md max-w-md">
+          <p className="text-red-500 font-medium">{error}</p>
+          <button
+            onClick={fetchNeeds}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="mt-6 px-2">
-      <div className="flex p-2 justify-between items-center">
-        <h2 className="text-xl font-semibold text-gray-800">Posted Needs</h2>
-        <button
-          onClick={() => setShowNeedForm(!showNeedForm)}
-          className="flex items-center px-3 py-2 bg-yellow-400 text-black rounded hover:bg-yellow-600"
-          disabled={loading}
-        >
-          <FaPlus className="mr-2" />
-          Post New Need
-        </button>
-      </div>
-
-      {showNeedForm && (
-        <NgoNeedForm
-          onSubmit={handleAddNeed}
-          onCancel={() => setShowNeedForm(false)}
-        />
-      )}
-
-      {needs.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          No needs posted yet. Click the button above to post your first need.
+    <div className="bg-white min-h-screen p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-800">Posted Needs</h1>
+          <button
+            onClick={() => setShowNeedForm(!showNeedForm)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <FaPlus /> Post New Need
+          </button>
         </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-            {needs.map((need) => (
-              <div
-                key={need._id}
-                className=" block border rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-white dark:bg-darkCard dark:border-gray-700 relative"
-              >
-                {need.beneficiaryInfo.pictures?.length > 0 && (
-                  <div className="relative max-h-[200px] h-max  w-full  rounded-t-md overflow-hidden">
-                    <img
-                      src={`http://localhost:5000/uploads/${need?.beneficiaryInfo.pictures[0].replace(
-                        /\\/g,
-                        "/"
-                      )}`}
-                      alt={`Need `}
-                      className="flex w-full h- h-[200px]  object-cover"
-                    />
-                  </div>
-                )}
-                <div className="bg-white p-4 rounded shadow">
-                  <p className="text-gray-700">
-                    <span className="font-bold text-lg">
-                      {need.title || "Untitled"}:{" "}
-                    </span>
-                    {need.description || "No description provided"}
-                    {Array.isArray(need.needTypes) &&
-                      need.needTypes.length > 0 && (
-                        <>
-                          {" "}
-                          This need includes{" "}
-                          {need.needTypes.map((type, index) => (
-                            <span key={type} className="font-medium">
-                              {type}
-                              {index < need.needTypes.length - 1 ? ", " : "."}
-                            </span>
-                          ))}
-                        </>
-                      )}
-                    {need.needTypes?.includes("money") && need.targetMoney && (
-                      <>
-                        {" "}
-                        The target amount is{" "}
-                        <span className="font-semibold">
-                          ${need.targetMoney}
-                        </span>
-                        .
-                      </>
-                    )}
-                    The current status is{" "}
-                    <span
-                      className={`font-semibold ${
-                        need.status === "Fulfilled"
-                          ? "text-green-600"
-                          : need.status === "Expired"
-                          ? "text-red-600"
-                          : "text-blue-600"
-                      }`}
-                    >
-                      {need.status || "Unknown"}
-                    </span>{" "}
-                    with an urgency level of{" "}
-                    <span className="font-medium">
-                      {need.urgencyLevel || "Not specified"}
-                    </span>
-                    .
-                    <button
-                      onClick={() => openDetailsModal(need)}
-                      className="ml-2 flex cursor-pointer items-center gap-1 text-yellow-500 hover:text-yellow-600"
-                    >
-                      see more <FaEye />
-                    </button>
-                  </p>
-                </div>
-              </div>
-            ))}
+
+        {showNeedForm && (
+          <div className="mb-8 bg-white rounded-lg shadow-md p-6">
+            <NgoNeedForm
+              onSubmit={handleAddNeed}
+              onCancel={() => setShowNeedForm(false)}
+            />
           </div>
+        )}
 
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex justify-center mt-6">
-              <nav className="flex items-center gap-1">
-                <button
-                  onClick={prevPage}
-                  disabled={currentPage === 1}
-                  className={`px-3 py-1 rounded ${
-                    currentPage === 1
-                      ? "text-gray-400 cursor-not-allowed"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
+        {needs.length === 0 ? (
+          <div className="bg-white rounded-lg shadow-md p-8 text-center">
+            <h3 className="text-lg font-medium text-gray-600 mb-2">
+              No needs posted yet
+            </h3>
+            <p className="text-gray-500 mb-4">
+              Start by posting your first need to get donations
+            </p>
+            <button
+              onClick={() => setShowNeedForm(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Post a Need
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {needs.map((need) => (
+                <div
+                  key={need._id}
+                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-100"
                 >
-                  <FaChevronLeft />
-                </button>
+                  {need.beneficiaryInfo.pictures?.length > 0 && (
+                    <div className="h-48 overflow-hidden">
+                      <img
+                        src={`http://localhost:5000/uploads/${need.beneficiaryInfo.pictures[0].replace(
+                          /\\/g,
+                          "/"
+                        )}`}
+                        alt="Need"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="p-5">
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="text-lg font-bold text-gray-800">
+                        {need.title || "Untitled Need"}
+                      </h3>
+                      <span
+                        className={`px-2 py-1 text-xs rounded-full ${
+                          need.status === "Fulfilled"
+                            ? "bg-green-100 text-green-800"
+                            : need.status === "Expired"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-blue-100 text-blue-800"
+                        }`}
+                      >
+                        {need.status}
+                      </span>
+                    </div>
 
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  // Show first pages, current page, and last pages
-                  let pageNum;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
+                    <p className="text-gray-600 mb-4 line-clamp-3">
+                      {need.description || "No description provided"}
+                    </p>
 
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => paginate(pageNum)}
-                      className={`px-3 py-1 rounded ${
-                        currentPage === pageNum
-                          ? "bg-blue-500 text-white"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-
-                {totalPages > 5 && currentPage < totalPages - 2 && (
-                  <span className="px-2">...</span>
-                )}
-
-                {totalPages > 5 && currentPage < totalPages - 2 && (
-                  <button
-                    onClick={() => paginate(totalPages)}
-                    className={`px-3 py-1 rounded ${
-                      currentPage === totalPages
-                        ? "bg-blue-500 text-white"
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    {totalPages}
-                  </button>
-                )}
-
-                <button
-                  onClick={nextPage}
-                  disabled={currentPage === totalPages}
-                  className={`px-3 py-1 rounded ${
-                    currentPage === totalPages
-                      ? "text-gray-400 cursor-not-allowed"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  <FaChevronRight />
-                </button>
-              </nav>
-            </div>
-          )}
-        </>
-      )}
-
-      {showDetailsModal && selectedNeed && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <h2 className="text-2xl font-bold text-gray-800">
-                  {selectedNeed.title}
-                </h2>
-                <button
-                  onClick={closeDetailsModal}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <FaTimes size={24} />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Left Column */}
-                <div>
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                      Description
-                    </h3>
-                    <p className="text-gray-600">{selectedNeed.description}</p>
-                  </div>
-
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                      Need Types
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedNeed.needTypes?.map((type) => (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {need.needTypes?.map((type) => (
                         <span
                           key={type}
-                          className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                          className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded"
                         >
                           {type}
                         </span>
                       ))}
                     </div>
-                  </div>
 
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                      Status & Urgency
-                    </h3>
-                    <div className="flex gap-4">
-                      <div>
-                        <span className="font-medium">Status:</span>{" "}
-                        <span
-                          className={`font-semibold ${
-                            selectedNeed.status === "Fulfilled"
-                              ? "text-green-600"
-                              : selectedNeed.status === "Expired"
-                              ? "text-red-600"
-                              : "text-blue-600"
-                          }`}
-                        >
-                          {selectedNeed.status}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="font-medium">Urgency:</span>{" "}
-                        <span className="font-semibold">
-                          {selectedNeed.urgencyLevel}
-                        </span>
-                      </div>
+                    <div className="flex justify-between items-center">
+                      <span
+                        className={`text-sm font-medium ${
+                          need.urgencyLevel === "High"
+                            ? "text-red-500"
+                            : need.urgencyLevel === "Medium"
+                            ? "text-yellow-500"
+                            : "text-green-500"
+                        }`}
+                      >
+                        {need.urgencyLevel}
+                      </span>
+                      <button
+                        onClick={() => openDetailsModal(need)}
+                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      >
+                        View Details <FaEye className="ml-1" />
+                      </button>
                     </div>
                   </div>
+                </div>
+              ))}
+            </div>
 
-                  {selectedNeed.needTypes?.includes("money") && (
-                    <div className="mb-6">
-                      <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                        Financial Target
-                      </h3>
-                      <p className="text-gray-600">
-                        ${selectedNeed.targetMoney}
-                      </p>
-                    </div>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex justify-center">
+                <nav className="inline-flex rounded-md shadow-sm">
+                  <button
+                    onClick={prevPage}
+                    disabled={currentPage === 1}
+                    className={`px-3 py-2 rounded-l-md ${
+                      currentPage === 1
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    <FaChevronLeft />
+                  </button>
+
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => paginate(pageNum)}
+                        className={`px-4 py-2 ${
+                          currentPage === pageNum
+                            ? "bg-blue-600 text-white"
+                            : "bg-white text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+
+                  {totalPages > 5 && currentPage < totalPages - 2 && (
+                    <span className="px-4 py-2 bg-white text-gray-700">
+                      ...
+                    </span>
                   )}
+
+                  {totalPages > 5 && currentPage < totalPages - 2 && (
+                    <button
+                      onClick={() => paginate(totalPages)}
+                      className={`px-4 py-2 ${
+                        currentPage === totalPages
+                          ? "bg-blue-600 text-white"
+                          : "bg-white text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      {totalPages}
+                    </button>
+                  )}
+
+                  <button
+                    onClick={nextPage}
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-2 rounded-r-md ${
+                      currentPage === totalPages
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    <FaChevronRight />
+                  </button>
+                </nav>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Need Details Modal */}
+        {showDetailsModal && selectedNeed && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-start border-b pb-4 mb-4">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-800">
+                      {selectedNeed.title}
+                    </h2>
+                    <div className="flex items-center gap-4 mt-2">
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          selectedNeed.status === "Fulfilled"
+                            ? "bg-green-100 text-green-800"
+                            : selectedNeed.status === "Expired"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-blue-100 text-blue-800"
+                        }`}
+                      >
+                        {selectedNeed.status}
+                      </span>
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          selectedNeed.urgencyLevel === "High"
+                            ? "bg-red-100 text-red-800"
+                            : selectedNeed.urgencyLevel === "Medium"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-green-100 text-green-800"
+                        }`}
+                      >
+                        {selectedNeed.urgencyLevel} Priority
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={closeDetailsModal}
+                    className="text-gray-500 hover:text-gray-700 p-1"
+                  >
+                    <FaTimes size={24} />
+                  </button>
                 </div>
 
-                {/* Right Column */}
-                <div>
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                      Beneficiary Information
-                    </h3>
-                    <p className="text-gray-600">
-                      <span className="font-medium">Number:</span>{" "}
-                      {selectedNeed.beneficiaryInfo?.numberOfBeneficiaries}
-                    </p>
-                    {selectedNeed.beneficiaryInfo?.location && (
-                      <div className="mt-2">
-                        <p className="font-medium">Location:</p>
-                        <p className="text-gray-600">
-                          {selectedNeed.beneficiaryInfo.location.address}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          Lat: {selectedNeed.beneficiaryInfo.location.latitude},
-                          Lng: {selectedNeed.beneficiaryInfo.location.longitude}
-                        </p>
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div>
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                        Description
+                      </h3>
+                      <p className="text-gray-600 whitespace-pre-line">
+                        {selectedNeed.description}
+                      </p>
+                    </div>
+
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                        Need Types
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedNeed.needTypes?.map((type) => (
+                          <span
+                            key={type}
+                            className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium"
+                          >
+                            {type}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {selectedNeed.needTypes?.includes("money") && (
+                      <div className="mb-6">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                          Financial Target
+                        </h3>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <p className="text-2xl font-bold text-blue-600">
+                            ${selectedNeed.targetMoney}
+                          </p>
+                        </div>
                       </div>
                     )}
                   </div>
 
-                  {selectedNeed.beneficiaryInfo.pictures?.length > 0 && (
+                  <div>
                     <div className="mb-6">
-                      <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                        Images
+                      <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                        Beneficiary Information
                       </h3>
-                      <div className="grid grid-cols-3 gap-2">
-                        {selectedNeed.beneficiaryInfo.pictures.map(
-                          (pic, index) => (
-                            <div key={index} className="relative">
-                              <img
-                                src={`http://localhost:5000/uploads/${pic.replace(
-                                  /\\/g,
-                                  "/"
-                                )}`}
-                                alt={`Need ${pic.replace(/\\/g, "/")}`}
-                                className="w-full h-24 object-cover rounded"
-                              />
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm text-gray-500">Number</p>
+                            <p className="font-medium">
+                              {
+                                selectedNeed.beneficiaryInfo
+                                  ?.numberOfBeneficiaries
+                              }
+                            </p>
+                          </div>
+                          {selectedNeed.beneficiaryInfo?.location && (
+                            <div>
+                              <p className="text-sm text-gray-500">Location</p>
+                              <p className="font-medium">
+                                {selectedNeed.beneficiaryInfo.location.address}
+                              </p>
                             </div>
-                          )
-                        )}
+                          )}
+                        </div>
                       </div>
                     </div>
-                  )}
 
-                  {/* Material Categories */}
-                  {selectedNeed.categories?.material?.length > 0 && (
-                    <div className="mb-6">
-                      <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                        Material Needs
-                      </h3>
-                      <div className="space-y-2">
-                        {selectedNeed.categories.material.map(
-                          (category, index) => (
-                            <div key={index} className="p-3 bg-gray-50 rounded">
-                              <p>
-                                <span className="font-medium">Category:</span>{" "}
-                                {category.categoryName}
-                              </p>
-                              <p>
-                                <span className="font-medium">
-                                  Sub-category:
-                                </span>{" "}
-                                {category.subCategoryName}
-                              </p>
-                              <p>
-                                <span className="font-medium">
-                                  Amount Needed:
-                                </span>{" "}
-                                {category.targetAmountNeeded}
-                              </p>
-                            </div>
-                          )
-                        )}
+                    {selectedNeed.beneficiaryInfo.pictures?.length > 0 && (
+                      <div className="mb-6">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                          Images
+                        </h3>
+                        <div className="grid grid-cols-3 gap-3">
+                          {selectedNeed.beneficiaryInfo.pictures.map(
+                            (pic, index) => (
+                              <div
+                                key={index}
+                                className="rounded-lg overflow-hidden"
+                              >
+                                <img
+                                  src={`http://localhost:5000/uploads/${pic.replace(
+                                    /\\/g,
+                                    "/"
+                                  )}`}
+                                  alt={`Need ${index + 1}`}
+                                  className="w-full h-24 object-cover"
+                                />
+                              </div>
+                            )
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Service Categories */}
-                  {selectedNeed.categories?.service?.length > 0 && (
-                    <div className="mb-6">
-                      <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                        Service Needs
-                      </h3>
-                      <div className="space-y-2">
-                        {selectedNeed.categories.service.map(
-                          (category, index) => (
-                            <div key={index} className="p-3 bg-gray-50 rounded">
-                              <p>
-                                <span className="font-medium">Category:</span>{" "}
-                                {category.categoryName}
-                              </p>
-                              <p>
-                                <span className="font-medium">
-                                  Sub-category:
-                                </span>{" "}
-                                {category.subCategoryName}
-                              </p>
-                              <p>
-                                <span className="font-medium">Vacancy:</span>{" "}
-                                {category.vacancy}
-                              </p>
-                            </div>
-                          )
-                        )}
+                    {selectedNeed.categories?.material?.length > 0 && (
+                      <div className="mb-6">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                          Material Needs
+                        </h3>
+                        <div className="space-y-3">
+                          {selectedNeed.categories.material.map(
+                            (category, index) => (
+                              <div
+                                key={index}
+                                className="bg-gray-50 p-3 rounded-lg"
+                              >
+                                <p className="font-medium text-gray-700">
+                                  {category.categoryName} (
+                                  {category.subCategoryName})
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Amount needed: {category.targetAmountNeeded}
+                                </p>
+                              </div>
+                            )
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+
+                    {selectedNeed.categories?.service?.length > 0 && (
+                      <div className="mb-6">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                          Service Needs
+                        </h3>
+                        <div className="space-y-3">
+                          {selectedNeed.categories.service.map(
+                            (category, index) => (
+                              <div
+                                key={index}
+                                className="bg-gray-50 p-3 rounded-lg"
+                              >
+                                <p className="font-medium text-gray-700">
+                                  {category.categoryName} (
+                                  {category.subCategoryName})
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Vacancy: {category.vacancy}
+                                </p>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              <div className="mt-6 pt-4 border-t flex justify-end">
-                <button
-                  onClick={closeDetailsModal}
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-                >
-                  Close
-                </button>
+                <div className="mt-6 pt-4 border-t flex justify-end">
+                  <button
+                    onClick={closeDetailsModal}
+                    className="px-5 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

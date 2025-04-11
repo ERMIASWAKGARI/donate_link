@@ -1,5 +1,3 @@
-import React from "react";
-
 function VolunteerApplication({ volunteers }) {
   return (
     <div className="mt-6">

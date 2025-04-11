@@ -22,11 +22,11 @@ router.get("/services/all", needsController.getAllServiceNeeds);
 
 // Material Donation Routes
 router.post("/material",authMiddleware("individual_donor" || "organization_donor"),uploadNeedPictures, donateItems.createMaterialDonation);
-router.get("/material/:id", donateItems.getMaterialDonation);
+router.get("/material/:ngoId/:needId", donateItems.getMaterialDonation);
 router.put("/material/:id", donateItems.updateMaterialDonation);
 
 // Service Donation Routes
 router.post("/service", authMiddleware("individual_donor" || "organization_donor" || "volunteer"), serviceApplication.serviceApplication);
-// router.get("/service/:id", serviceApplication.getServiceDonation);
+router.get("/service/:ngoId/:needId", serviceApplication.getServiceDonations);
 // router.put("/service/:id", serviceApplication.updateServiceDonation);
 module.exports = router;
