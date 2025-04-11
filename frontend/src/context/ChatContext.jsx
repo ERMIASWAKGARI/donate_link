@@ -33,21 +33,41 @@ export const ChatProvider = ({ children }) => {
       try {
         if (!Array.isArray(convs)) return 0;
 
+        const currentUserId = user?._id?.toString();
+
         const count = convs.reduce((total, conv) => {
           const lastMessage = conv?.lastMessage;
 
-          // Add proper null checks
+          // Skip if no last message
+          if (!lastMessage) return total;
+
+          // Get sender ID - handle both populated object and raw ID
+          const senderId =
+            lastMessage.sender?._id?.toString() ||
+            lastMessage.sender?.toString();
+
+          // Skip if we can't determine sender
+          if (!senderId) {
+            console.warn(
+              "Could not determine sender for message:",
+              lastMessage._id
+            );
+            return total;
+          }
+
+          // Message is unread if:
+          // 1. Current user didn't send it
+          // 2. Current user hasn't read it
           const isUnread =
-            lastMessage &&
-            lastMessage.sender &&
-            !lastMessage.readBy?.includes(user?._id) &&
-            lastMessage.sender._id !== user?._id;
+            senderId !== currentUserId &&
+            !lastMessage.readBy?.includes(currentUserId);
 
           console.log(`[Unread Calc] Conv ${conv._id}:`, {
-            lastMsgId: lastMessage?._id,
-            sender: lastMessage?.sender?._id,
+            lastMsgId: lastMessage._id,
+            sender: senderId,
             isUnread,
-            currentUser: user?._id,
+            currentUser: currentUserId,
+            readBy: lastMessage.readBy,
           });
 
           return isUnread ? total + 1 : total;
@@ -198,22 +218,35 @@ export const ChatProvider = ({ children }) => {
         }
       );
 
-      // Updated data extraction to match backend response
       const conversationsData = data?.message?.conversations || [];
 
       if (!Array.isArray(conversationsData)) {
         throw new Error("Invalid conversations data format");
       }
 
-      console.log("Fetched conversations:", conversationsData); // Debug log
+      // Ensure lastMessage.sender is properly formatted
+      const normalizedConversations = conversationsData.map((conv) => {
+        if (conv.lastMessage) {
+          return {
+            ...conv,
+            lastMessage: {
+              ...conv.lastMessage,
+              // Normalize sender to always be an object with _id
+              sender: conv.lastMessage.sender?._id
+                ? conv.lastMessage.sender
+                : { _id: conv.lastMessage.sender },
+            },
+          };
+        }
+        return conv;
+      });
 
-      setConversations(conversationsData);
-      setUnreadCount(calculateUnreadCount(conversationsData));
-      return conversationsData;
+      setConversations(normalizedConversations);
+      setUnreadCount(calculateUnreadCount(normalizedConversations));
+      return normalizedConversations;
     } catch (error) {
       console.error("Fetch error:", error);
       setConversationsError(error);
-      // Don't reset conversations state here
       throw error;
     } finally {
       setIsLoadingConversations(false);
