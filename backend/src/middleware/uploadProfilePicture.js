@@ -5,7 +5,7 @@ const AppError = require('../utils/appError');
 // Storage configuration for profile pictures
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/profile-pictures/'); // Store in a separate folder
+    cb(null, 'uploads/'); // Store in a separate folder
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
