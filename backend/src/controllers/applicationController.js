@@ -1,0 +1,204 @@
+const asyncWrapper = require("../middleware/asyncWrapper");
+const AppError = require("../utils/appError");
+const sendSuccessResponse = require("../utils/responseHelper");
+const Application = require("../models/applicationModel");
+const Needs = require("../models/needsModel");
+const User = require("../models/User");
+
+// @desc    Get all applications for a specific need
+// @route   GET /api/needs/:needId/applications
+// @access  Private (NGO)
+
+exports.createApplication = asyncWrapper(async (req, res, next) => {
+  const { needId } = req.params;
+  const userId = req.user._id;
+
+  const {
+    motivation,
+    startDate,
+    endDate,
+    hoursPerWeek,
+    category,
+    subCategory,
+  } = req.body;
+
+  // Validate the need exists
+  const need = await Needs.findById(needId);
+  if (!need) {
+    return next(new AppError("Need not found", 404));
+  }
+
+  // Check if the user already applied
+  const existingApplication = await Application.findOne({
+    need: needId,
+    applicant: userId,
+  });
+
+  if (existingApplication) {
+    return next(new AppError("You have already applied for this need", 400));
+  }
+
+  // Create the new application
+  const newApplication = await Application.create({
+    applicant: userId,
+    need: needId,
+    category,
+    subCategory,
+    motivation,
+    startDate,
+    endDate,
+    hoursPerWeek,
+    status: "Submitted",
+  });
+
+  return sendSuccessResponse(res, 201, {
+    message: "Application submitted successfully",
+    application: newApplication,
+  });
+});
+exports.getNeedApplications = asyncWrapper(async (req, res, next) => {
+  const { needId } = req.params;
+  const { status, search } = req.query;
+
+  // Verify the need exists and belongs to the NGO
+  const need = await Needs.findOne({
+    _id: needId,
+    ngo: req.user._id,
+  });
+
+  if (!need) {
+    return next(new AppError("Need not found or unauthorized", 404));
+  }
+
+  // Build query
+  const query = {
+    need: needId,
+    ...(status && status !== "all" && { status }),
+    ...(search && {
+      $or: [
+        { "applicant.name": { $regex: search, $options: "i" } },
+        { motivation: { $regex: search, $options: "i" } },
+      ],
+    }),
+  };
+
+  const applications = await Application.find(query)
+    .populate({
+      path: "applicant",
+      select: "name email profilePicture skills availability",
+    })
+    .sort({ createdAt: -1 });
+
+  sendSuccessResponse(res, 200, {
+    count: applications.length,
+    applications,
+  });
+});
+
+// @desc    Update application status
+// @route   PATCH /api/applications/:id
+// @access  Private (NGO)
+exports.updateApplicationStatus = asyncWrapper(async (req, res, next) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  // Verify the application exists and belongs to the NGO's need
+  const application = await Application.findOne({
+    _id: id,
+    need: { $in: await Needs.find({ ngo: req.user._id }).distinct("_id") },
+  });
+
+  if (!application) {
+    return next(new AppError("Application not found or unauthorized", 404));
+  }
+
+  // Update status
+  application.status = status;
+  await application.save();
+
+  // Populate applicant info
+  const populatedApp = await Application.findById(application._id).populate({
+    path: "applicant",
+    select: "name email",
+  });
+
+  sendSuccessResponse(res, 200, {
+    application: populatedApp,
+  });
+});
+
+// @desc    Bulk update application statuses
+// @route   PATCH /api/applications/bulk
+// @access  Private (NGO)
+exports.bulkUpdateApplications = asyncWrapper(async (req, res, next) => {
+  const { ids, status } = req.body;
+
+  if (!ids || !ids.length) {
+    return next(new AppError("No application IDs provided", 400));
+  }
+
+  // Verify all applications belong to needs owned by this NGO
+  const needs = await Needs.find({ ngo: req.user._id }).distinct("_id");
+
+  const { modifiedCount } = await Application.updateMany(
+    {
+      _id: { $in: ids },
+      need: { $in: needs },
+    },
+    { status }
+  );
+
+  if (modifiedCount === 0) {
+    return next(new AppError("No applications found or unauthorized", 404));
+  }
+
+  const applications = await Application.find({ _id: { $in: ids } }).populate({
+    path: "applicant",
+    select: "name email",
+  });
+
+  sendSuccessResponse(res, 200, {
+    modifiedCount,
+    applications,
+  });
+});
+
+// @desc    Get all needs for an NGO with application counts
+// @route   GET /api/ngos/:ngoId/needs
+// @access  Private (NGO)
+exports.getNgoNeeds = asyncWrapper(async (req, res, next) => {
+  const { ngoId } = req.params;
+
+  // Verify the requesting user is the NGO
+  if (req.user._id.toString() !== ngoId && req.user.role !== "admin") {
+    return next(new AppError("Not authorized", 401));
+  }
+
+  const needs = await Needs.aggregate([
+    { $match: { ngo: mongoose.Types.ObjectId(ngoId) } },
+    {
+      $lookup: {
+        from: "applications",
+        localField: "_id",
+        foreignField: "need",
+        as: "applications",
+      },
+    },
+    {
+      $project: {
+        title: 1,
+        description: 1,
+        status: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        applicationsCount: { $size: "$applications" },
+      },
+    },
+    { $sort: { createdAt: -1 } },
+  ]);
+
+  sendSuccessResponse(res, 200, {
+    count: needs.length,
+    needs,
+  });
+});

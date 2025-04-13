@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const applicationSchema = new mongoose.Schema(
   {
     applicant: {
@@ -26,7 +27,7 @@ const applicationSchema = new mongoose.Schema(
       maxlength: 1000,
       trim: true,
     },
-   
+
     startDate: {
       type: Date,
       required: true,
@@ -49,3 +50,6 @@ const applicationSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+const Application = mongoose.model("Application", applicationSchema);
+
+module.exports = Application;
