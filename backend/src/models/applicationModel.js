@@ -18,6 +18,7 @@ const ApplicationSchema = new mongoose.Schema(
       ref: "Needs",
       required: true,
     },
+  
     donationType: {
       type: String,
       enum: ["service"],
@@ -36,8 +37,6 @@ const ApplicationSchema = new mongoose.Schema(
           required: true,
           maxlength: 50,
         },
-      
-    
         startDate: {
           type: Date,
           required: true,
@@ -63,6 +62,11 @@ const ApplicationSchema = new mongoose.Schema(
     message: {
       type: String,
       default: "",
+    },
+    status: {
+      type: String,
+      enum: ["submitted", "accepted", "rejected"],
+      default: "submitted",
     },
   },
   {

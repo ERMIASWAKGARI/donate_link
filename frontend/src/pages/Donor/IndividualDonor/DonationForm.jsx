@@ -431,7 +431,7 @@ const DonationForm = ({ need, onSubmit }) => {
           )}
 
           {/* Service Donation Form */}
-          {formData.type === "service" && formData.services.length > 0 && (
+          {formData.type === "service" && formData.services?.length > 0 && (
             <div className="mb-6 space-y-4">
               <h4 className="font-medium text-gray-700 mb-2">Service Items</h4>
               {formData.services.map((item, index) => (

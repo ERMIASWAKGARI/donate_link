@@ -2,12 +2,7 @@ import { useState } from "react";
 import NeedInformation from "./NeedInformation";
 import MapComponent from "./MapComponent";
 import DonationForm from "./DonationForm";
-import {
-  FaTimes,
-  FaMapMarkerAlt,
-  FaHandHoldingHeart,
-  FaMoneyBillWave,
-} from "react-icons/fa";
+import { FaTimes, FaMapMarkerAlt } from "react-icons/fa";
 import { IoMdTime } from "react-icons/io";
 
 const NeedDetail = ({ need, onClose }) => {
@@ -47,7 +42,7 @@ const NeedDetail = ({ need, onClose }) => {
             </button>
           </div>
           <div className="flex flex-wrap gap-2 mt-2">
-            <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-sm flex items-center">
+            <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-black flex items-center">
               <FaMapMarkerAlt className="mr-1" />{" "}
               {need.beneficiaryInfo?.location?.address ||
                 "Location not specified"}

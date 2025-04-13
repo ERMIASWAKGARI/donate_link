@@ -26,5 +26,6 @@ router.put("/material/:id", donateItems.updateMaterialDonation);
 // Service Donation Routes
 router.post("/service", authMiddleware("individual_donor" || "organization_donor" || "volunteer"), serviceApplication.serviceApplication);
 router.get("/service/:ngoId/:needId", serviceApplication.getServiceDonations);
+router.put("/service/:id",authMiddleware("ngo"), serviceApplication.updateApplcationStatus);
 // router.put("/service/:id", serviceApplication.updateServiceDonation);
 module.exports = router;
