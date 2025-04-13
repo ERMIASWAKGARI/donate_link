@@ -193,7 +193,7 @@ getAllServiceNeeds = async (req, res) => {
 
     // 7. EXECUTE QUERY
     const needs = await Need.find(query)
-      .populate("NGO", "name email")
+      .populate("NGO", "name email phone")
       .sort(sortOption)
       .skip(skip)
       .limit(limit)

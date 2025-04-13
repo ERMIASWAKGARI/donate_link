@@ -1,7 +1,5 @@
-// models/ServiceDonation.js
 const mongoose = require("mongoose");
-
-const ApplicationSchema = new mongoose.Schema(
+const applicationSchema = new mongoose.Schema(
   {
     NGO: {
       type: mongoose.Schema.Types.ObjectId,
@@ -20,47 +18,17 @@ const ApplicationSchema = new mongoose.Schema(
     },
     donationType: {
       type: String,
-      enum: ["service"],
-      default: "service",
+      maxlength: 1000,
+      trim: true,
+    },
+
+    startDate: {
+      type: Date,
       required: true,
     },
-    services: [
-      {
-        categoryName: {
-          type: String,
-          required: true,
-          maxlength: 50,
-        },
-        subCategoryName: {
-          type: String,
-          required: true,
-          maxlength: 50,
-        },
-      
-    
-        startDate: {
-          type: Date,
-          required: true,
-        },
-        endDate: {
-          type: Date,
-          required: true,
-          validate: {
-            validator: function (v) {
-              return v > this.startDate;
-            },
-            message: "End date must be after start date",
-          },
-        },
-        hoursPerWeek: {
-          type: Number,
-          required: true,
-          min: 1,
-          max: 168, // 24*7
-        },
-      },
-    ],
-    message: {
+    endDate: Date,
+    hoursPerWeek: Number,
+    status: {
       type: String,
       default: "",
     },
@@ -69,5 +37,8 @@ const ApplicationSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+const Application = mongoose.model("Application", applicationSchema);
+
+module.exports = Application;
 
 module.exports = mongoose.model("Application", ApplicationSchema);

@@ -1,359 +1,288 @@
-import { useEffect, useState } from "react";
-import axiosInstance from "../../config/axiosConfig";
-import { useUser } from "../../context/UserContext";
-import Profile from "../../pages/Profile";
-import ChatModal from "../ChatModal";
+// components/applications/ApplicationsDashboard.jsx
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import axios from "axios";
+import DataTable from "../../ui/DataTable";
+import Badge from "../../ui/Badge";
+import Avatar from "../../ui/Avatar";
+import ApplicationDetailModal from "./ApplicationDetailModal";
+import NeedsSelector from "./NeedsSelector";
 
-function VolunteerApplication() {
+const VolunteerApplications = () => {
+  const { ngoId } = useParams();
+  const [needs, setNeeds] = useState([]);
+  const [selectedNeed, setSelectedNeed] = useState(null);
+  const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [serviceNeeds, setServiceNeeds] = useState([]);
-  const [selectedNeed, setSelectedNeed] = useState("");
-  const [volunteers, setVolunteers] = useState([]);
-  const [showProfileModal, setShowProfileModal] = useState(false);
-  const [selectedVolunteer, setSelectedVolunteer] = useState(null);
-  const { user } = useUser();
-  const ngoId = user._id;
-  const [profileLoading, setProfileLoading] = useState(false);
-  const [volunteerDetails, setVolunteerDetails] = useState(null);
-  const [showChatModal, setShowChatModal] = useState(false);
-  // Update the handleViewProfile function
-  const handleViewProfile = async (volunteer) => {
-    try {
-      setProfileLoading(true);
-      setSelectedVolunteer(volunteer);
+  const [error, setError] = useState(null);
+  const [selectedApplication, setSelectedApplication] = useState(null);
+  const [filters, setFilters] = useState({
+    status: "all",
+    search: "",
+  });
 
-      // Fetch the full user details
-      const response = await axiosInstance.get(
-        `/users/${volunteer.donorId._id}`
-      );
-      console.log("Volunteer details:", response.data.data);
-
-      setVolunteerDetails(response.data.data);
-
-      setShowProfileModal(true);
-    } catch (error) {
-      console.error("Error fetching volunteer details:", error);
-    } finally {
-      setProfileLoading(false);
-    }
-  };
+  // Fetch NGO needs
   useEffect(() => {
-    const fetchServiceNeeds = async () => {
+    const fetchNeeds = async () => {
       try {
-        const response = await axiosInstance.get("donation/services");
-        setLoading(false);
-        if (response.data.success) {
-          setServiceNeeds(response.data.data);
+        const { data } = await axios.get(`/api/ngos/${ngoId}/needs`);
+        setNeeds(data.needs);
+        if (data.needs.length > 0) {
+          setSelectedNeed(data.needs[0]._id);
         }
-      } catch (error) {
-        console.error("Error fetching service needs:", error);
+      } catch (err) {
+        setError(err.response?.data?.message || "Failed to fetch needs");
+      }
+    };
+    fetchNeeds();
+  }, [ngoId]);
+
+  // Fetch applications when need changes
+  useEffect(() => {
+    if (!selectedNeed) return;
+
+    const fetchApplications = async () => {
+      setLoading(true);
+      try {
+        const { data } = await axios.get(
+          `/api/needs/${selectedNeed}/applications`,
+          {
+            params: {
+              status: filters.status !== "all" ? filters.status : undefined,
+              search: filters.search || undefined,
+            },
+          }
+        );
+        setApplications(data.applications);
+      } catch (err) {
+        setError(err.response?.data?.message || "Failed to fetch applications");
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchServiceNeeds();
-  }, []);
+    fetchApplications();
+  }, [selectedNeed, filters]);
 
-  const fetchVolunteers = async (needId) => {
+  const updateApplicationStatus = async (applicationId, status) => {
     try {
-      setLoading(true);
-      const response = await axiosInstance.get(
-        `donation/service/${ngoId}/${needId}`
+      await axios.patch(`/api/applications/${applicationId}`, { status });
+      setApplications((prev) =>
+        prev.map((app) =>
+          app._id === applicationId ? { ...app, status } : app
+        )
       );
-      setVolunteers(response.data.donations || []);
-    } catch (error) {
-      console.error("Error fetching volunteers:", error);
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to update status");
     }
   };
 
-  const handleNeedChange = (event) => {
-    const needId = event.target.value;
-    setSelectedNeed(needId);
-    if (needId) fetchVolunteers(needId);
-  };
-
-  const handleAccept = async (volunteerId) => {
+  const bulkUpdateStatus = async (applicationIds, status) => {
     try {
-      const response = await axiosInstance.post(
-        `donation/accept/${volunteerId}`
+      await axios.patch("/api/applications/bulk", {
+        ids: applicationIds,
+        status,
+      });
+      setApplications((prev) =>
+        prev.map((app) =>
+          applicationIds.includes(app._id) ? { ...app, status } : app
+        )
       );
-      if (response.data.success) {
-        if (selectedNeed) fetchVolunteers(selectedNeed);
-      }
-    } catch (error) {
-      console.error("Error accepting volunteer:", error);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to bulk update");
     }
   };
 
-  const handleReject = async (volunteerId) => {
-    try {
-      const response = await axiosInstance.post(
-        `donation/reject/${volunteerId}`
-      );
-      if (response.data.success) {
-        if (selectedNeed) fetchVolunteers(selectedNeed);
-      }
-    } catch (error) {
-      console.error("Error rejecting volunteer:", error);
-    }
-  };
-
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="bg-white rounded-xl shadow-md p-6 mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">
-          Volunteer Management
-        </h1>
-
-        <div className="mb-8">
-          <label
-            htmlFor="service-need"
-            className="block text-lg font-semibold text-gray-700 mb-3"
-          >
-            Select Service Need
-          </label>
-          <select
-            id="service-need"
-            value={selectedNeed}
-            onChange={handleNeedChange}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
-          >
-            <option value="">-- Select a service need --</option>
-            {serviceNeeds.map((need) => (
-              <option key={need._id} value={need._id}>
-                {need.title} ({need.urgencyLevel})
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {selectedNeed && (
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">
-              Volunteer Applications
-            </h2>
-            <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
-              {volunteers.length}{" "}
-              {volunteers.length === 1 ? "application" : "applications"}
-            </span>
+  const columns = [
+    {
+      header: "Volunteer",
+      accessor: "volunteer",
+      sortable: true,
+      cell: ({ volunteer }) => (
+        <div className="flex items-center">
+          <Avatar src={volunteer.profilePicture} name={volunteer.name} />
+          <div className="ml-3">
+            <p className="font-medium text-gray-900">{volunteer.name}</p>
+            <p className="text-sm text-gray-500">{volunteer.email}</p>
           </div>
-
-          {loading ? (
-            <div className="flex justify-center items-center h-40">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
-            </div>
-          ) : volunteers.length > 0 ? (
-            <div className="space-y-4">
-              {volunteers.map((volunteer) => (
-                <div
-                  key={volunteer._id}
-                  className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition"
-                >
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-                        {volunteer.donorId.name}
-                        <span className="text-sm font-normal bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                          {volunteer.services[0].categoryName}
-                        </span>
-                      </h3>
-                      <p className="text-gray-600 mt-1">{volunteer.message}</p>
-
-                      <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
-                        <div>
-                          <span className="text-gray-500">Subcategory:</span>
-                          <span className="ml-2 font-medium">
-                            {volunteer.services[0].subCategoryName}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Duration:</span>
-                          <span className="ml-2 font-medium">
-                            {new Date(
-                              volunteer.services[0].startDate
-                            ).toLocaleDateString()}{" "}
-                            -{" "}
-                            {new Date(
-                              volunteer.services[0].endDate
-                            ).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Hours/Week:</span>
-                          <span className="ml-2 font-medium">
-                            {volunteer.services[0].hoursPerWeek}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Status:</span>
-                          <span className="ml-2 font-medium capitalize">
-                            {volunteer.status || "pending"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 shrink-0">
-                      <button
-                        onClick={() => handleViewProfile(volunteer)}
-                        className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition flex items-center justify-center gap-1"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                          <path
-                            fillRule="evenodd"
-                            d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        Profile
-                      </button>
-                      <button
-                        onClick={() => setShowChatModal(true)}
-                        className="px-4 py-2 bg-yellow-50 text-yellow-600 rounded-lg hover:bg-yellow-100 transition flex items-center justify-center gap-1"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm2 0v10h12V5H4zm3 3h6v2H7V8zm0 4h4v2H7v-2z" />
-                        </svg>
-                        Contact
-                      </button>
-                      <button
-                        onClick={() => handleAccept(volunteer._id)}
-                        className="px-4 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition flex items-center justify-center gap-1"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        Accept
-                      </button>
-                      <button
-                        onClick={() => handleReject(volunteer._id)}
-                        className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition flex items-center justify-center gap-1"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        Reject
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-16 w-16 mx-auto text-gray-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1}
-                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <h3 className="mt-4 text-lg font-medium text-gray-900">
-                No applications yet
-              </h3>
-              <p className="mt-1 text-gray-500">
-                Volunteers haven't applied to this need yet. Check back later.
-              </p>
-            </div>
+        </div>
+      ),
+    },
+    {
+      header: "Skills",
+      accessor: "skills",
+      cell: ({ skills }) => (
+        <div className="flex flex-wrap gap-1">
+          {skills.slice(0, 3).map((skill) => (
+            <Badge key={skill} color="blue">
+              {skill}
+            </Badge>
+          ))}
+          {skills.length > 3 && (
+            <Badge color="gray">+{skills.length - 3}</Badge>
           )}
         </div>
-      )}
+      ),
+    },
+    {
+      header: "Status",
+      accessor: "status",
+      sortable: true,
+      cell: ({ status }) => (
+        <Badge
+          color={
+            status === "approved"
+              ? "green"
+              : status === "rejected"
+              ? "red"
+              : "yellow"
+          }
+        >
+          {status}
+        </Badge>
+      ),
+    },
+    {
+      header: "Applied",
+      accessor: "appliedAt",
+      sortable: true,
+      cell: ({ appliedAt }) => new Date(appliedAt).toLocaleDateString(),
+    },
+    {
+      header: "Actions",
+      cell: (row) => (
+        <div className="flex space-x-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              updateApplicationStatus(row._id, "approved");
+            }}
+            className="text-green-600 hover:text-green-900"
+            disabled={row.status === "approved"}
+          >
+            Approve
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              updateApplicationStatus(row._id, "rejected");
+            }}
+            className="text-red-600 hover:text-red-900"
+            disabled={row.status === "rejected"}
+          >
+            Reject
+          </button>
+        </div>
+      ),
+    },
+  ];
 
-      {/* Profile Modal */}
-      {showProfileModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center z-50 transition-all duration-300">
-          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg mx-4 border border-gray-100 transform transition-all duration-300 scale-95 hover:scale-100">
-            <button
-              onClick={() => {
-                setShowProfileModal(false);
-                setVolunteerDetails(null);
-              }}
-              className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100"
-            >
+  const bulkActions = [
+    {
+      label: "Approve Selected",
+      action: (ids) => bulkUpdateStatus(ids, "approved"),
+    },
+    {
+      label: "Reject Selected",
+      action: (ids) => bulkUpdateStatus(ids, "rejected"),
+    },
+  ];
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6 text-center">
+        <p className="text-red-500">{error}</p>
+        <button
+          onClick={() => setError(null)}
+          className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">
+            Volunteer Applications
+          </h1>
+
+          <NeedsSelector
+            needs={needs}
+            selectedNeed={selectedNeed}
+            onSelectNeed={setSelectedNeed}
+          />
+        </div>
+
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="relative flex-1">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+                className="h-5 w-5 text-gray-400"
+                fill="currentColor"
+                viewBox="0 0 20 20"
               >
                 <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
+                  fillRule="evenodd"
+                  d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                  clipRule="evenodd"
                 />
               </svg>
-            </button>
-            <div className="max-h-[80vh] overflow-y-auto custom-scrollbar pr-2">
-              {profileLoading ? (
-                <div className="flex justify-center items-center h-40">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
-                </div>
-              ) : volunteerDetails ? (
-                <Profile
-                  user={volunteerDetails}
-                  // volunteerApplication={selectedVolunteer}
-                />
-              ) : (
-                <div className="text-center py-12 text-gray-500">
-                  Failed to load profile details
-                </div>
-              )}
             </div>
+            <input
+              type="text"
+              placeholder="Search volunteers..."
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              value={filters.search}
+              onChange={(e) =>
+                setFilters({ ...filters, search: e.target.value })
+              }
+            />
           </div>
-        </div>
-      )}
 
-      {/* Chat Modal */}
-      {showChatModal && (
-        <ChatModal
-          onClose={() => setShowChatModal(false)}
-          showChatModal={showChatModal}
+          <select
+            className="block w-full sm:w-auto pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+            value={filters.status}
+            onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+          >
+            <option value="all">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+          </div>
+        ) : applications.length === 0 ? (
+          <div className="bg-white rounded-lg shadow p-6 text-center">
+            <p className="text-gray-500">No applications found for this need</p>
+          </div>
+        ) : (
+          <DataTable
+            columns={columns}
+            data={applications}
+            onRowClick={setSelectedApplication}
+            selectable
+            bulkActions={bulkActions}
+          />
+        )}
+      </div>
+
+      {selectedApplication && (
+        <ApplicationDetailModal
+          application={selectedApplication}
+          onClose={() => setSelectedApplication(null)}
+          onStatusUpdate={updateApplicationStatus}
         />
       )}
     </div>
   );
-}
+};
 
-export default VolunteerApplication;
+export default VolunteerApplications;

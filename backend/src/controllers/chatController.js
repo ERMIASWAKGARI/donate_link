@@ -93,6 +93,12 @@ exports.sendMessage = asyncWrapper(async (req, res, next) => {
   const { conversationId, content, attachments = [] } = req.body;
   const userId = req.user._id;
 
+  console.log("[SendMessage] Starting with:", {
+    conversationId,
+    content: content?.trim(),
+    attachmentsCount: attachments.length,
+    userId,
+  });
   // Validation
   if (!conversationId)
     return next(new AppError("Conversation ID is required", 400));
@@ -108,13 +114,18 @@ exports.sendMessage = asyncWrapper(async (req, res, next) => {
   if (!conversation) {
     return next(new AppError("Conversation not found or unauthorized", 404));
   }
-
+  console.log("[SendMessage] Creating message with sender:", userId);
   // Create and save message
   const message = await Message.create({
     conversationId,
     sender: userId,
     content: content?.trim(),
     attachments,
+  });
+
+  console.log("[SendMessage] Message created:", {
+    messageId: message._id,
+    sender: message.sender,
   });
 
   // Update conversation
@@ -132,22 +143,31 @@ exports.sendMessage = asyncWrapper(async (req, res, next) => {
       populate: { path: "participants", select: "_id" },
     });
 
+  console.log("[SendMessage] Populated message:", {
+    id: populatedMessage._id,
+    sender: populatedMessage.sender?._id,
+    senderName: populatedMessage.sender?.name,
+    participants: populatedMessage.conversationId.participants.map(
+      (p) => p._id
+    ),
+  });
   // Real-time emission
   const io = getIO();
-
+  console.log("[SendMessage] Emitting newMessage to room:", conversationId);
   // 1. Emit to conversation room
   io.to(conversationId).emit("newMessage", populatedMessage);
 
   // 2. Notify participants about unread count
   populatedMessage.conversationId.participants.forEach((participant) => {
     if (participant._id.toString() !== userId.toString()) {
+      console.log("[SendMessage] Sending unreadUpdate to:", participant._id);
       io.to(participant._id.toString()).emit("unreadUpdate", {
         conversationId,
         increment: 1,
       });
     }
   });
-
+  console.log("[SendMessage] Successfully sent message");
   sendSuccessResponse(res, 201, {
     status: "success",
     message: populatedMessage, // Directly send the message here
@@ -163,6 +183,11 @@ exports.markAsRead = asyncWrapper(async (req, res, next) => {
   const { messageIds } = req.body;
   const userId = req.user._id;
 
+  console.log("[MarkAsRead] Starting with:", {
+    messageIds,
+    userId,
+  });
+
   if (!messageIds?.length) {
     return next(new AppError("No message IDs provided", 400));
   }
@@ -173,12 +198,21 @@ exports.markAsRead = asyncWrapper(async (req, res, next) => {
     sender: { $ne: userId }, // Exclude messages sent by the user
   });
 
+  console.log("[MarkAsRead] Found messages:", {
+    count: incomingMessages.length,
+    messages: incomingMessages.map((m) => ({
+      id: m._id,
+      sender: m.sender,
+      readBy: m.readBy,
+    })),
+  });
+
   const incomingMessageIds = incomingMessages.map((msg) => msg._id);
 
   if (!incomingMessageIds.length) {
     return next(new AppError("No incoming messages to mark as read", 400));
   }
-
+  console.log("[MarkAsRead] Marking messages as read...");
   // 2. Mark only incoming messages as read
   const result = await Message.updateMany(
     {
@@ -190,10 +224,10 @@ exports.markAsRead = asyncWrapper(async (req, res, next) => {
       $push: { readBy: userId },
     }
   );
-
+  console.log("[MarkAsRead] Update result:", result);
   // 3. Real-time updates
   const io = getIO();
-
+  console.log("[MarkAsRead] Emitting messagesRead to user:", userId);
   // Emit to the current user's socket
   io.to(userId.toString()).emit("messagesRead", {
     messageIds: incomingMessageIds,
@@ -220,6 +254,7 @@ exports.markAsRead = asyncWrapper(async (req, res, next) => {
     if (conversation) {
       conversation.participants.forEach((participant) => {
         if (participant._id.toString() !== userId.toString()) {
+          console.log("[MarkAsRead] Sending unreadUpdate to:", participant._id);
           io.to(participant._id.toString()).emit("unreadUpdate", {
             conversationId: convId,
             increment: -incomingMessageIds.length,
@@ -228,7 +263,7 @@ exports.markAsRead = asyncWrapper(async (req, res, next) => {
       });
     }
   });
-
+  console.log("[MarkAsRead] Completed successfully");
   sendSuccessResponse(res, 200, {
     success: true,
     modifiedCount: result.modifiedCount,
