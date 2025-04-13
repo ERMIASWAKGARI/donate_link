@@ -213,11 +213,48 @@ getAllServiceNeeds = async (req, res) => {
     });
   }
 };
+//get all NGO service needs
+const getAllNGOServiceNeeds = async (req, res) => {
+  try {
+   
+
+    // Validate input
+   console.log("request of user",req.user);
+
+    // Find the specific need for the given NGO
+    const need = await Need.find({ NGO: req.user?._id, needTypes: ["service"] })
+      .populate("NGO", "name email"); // Populate NGO basic info
+
+    if (!need || need.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "Service need not found for the specified NGO",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: need,
+    });
+  } catch (error) {
+    console.error("Error fetching NGO service need:", error);
+    if (error.kind === "ObjectId") {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid NGO ID or Need ID",
+      });
+    }
+    res.status(500).json({
+      success: false,
+      error: "Server error",
+    });
+  }
+};
 // Get all needs (with optional filtering)
 // In your backend route file (e.g., donationRoutes.js)
 const getAllNeeds = async (req, res) => {
   try {
-    console.log("here the request comes", req.query);
+  
     const { page = 1, limit = 10, search = "", category = "all" } = req.query;
 
     const query = {
@@ -322,7 +359,7 @@ getNeedsByNgo = async (req, res) => {
 };
 
 // Get single need by ID
-getNeedById = async (req, res) => {
+ const getNeedById = async (req, res) => {
   try {
     const need = await Need.findById(req.params.id)
       .populate("NGO", "name email") // Populate NGO basic info
@@ -357,6 +394,7 @@ module.exports = {
   getNeedById,
   getNeedsByNgo,
   getAllServiceNeeds,
+  getAllNGOServiceNeeds,
   getAllNeeds,
   postNgosNeed,
 };
