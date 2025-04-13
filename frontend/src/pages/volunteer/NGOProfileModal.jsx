@@ -8,6 +8,7 @@ import {
   FaMapMarkerAlt,
   FaGlobe,
   FaSpinner,
+  FaPhone,
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 
@@ -70,12 +71,19 @@ const NGOProfileModal = ({ ngo, onClose, onMessageClick }) => {
             <div>
               <h2 className="text-2xl font-bold text-gray-800">{ngo.name}</h2>
               <p className="text-gray-600">{ngo.email}</p>
-              {ngo.phone && <p className="text-gray-600">{ngo.phone}</p>}
+              {/* {ngo.phone && <p className="text-gray-600">{ngo.phone}</p>} */}
             </div>
           </div>
 
           {/* Details */}
+
           <div className="space-y-3 mb-6">
+            <div className="flex items-center gap-2">
+              <FaPhone className="text-gray-400" />
+              <span className="text-gray-700">
+                {ngo.phone || "No website provided"}
+              </span>
+            </div>
             <div className="flex items-center gap-2">
               <FaGlobe className="text-gray-400" />
               <span className="text-gray-700">

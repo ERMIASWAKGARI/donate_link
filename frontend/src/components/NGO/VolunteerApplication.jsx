@@ -39,7 +39,7 @@ function VolunteerApplication() {
   };
 
   useEffect(() => {
-    const fetchServiceNeeds = async () => {
+    const fetchNeeds = async () => {
       try {
         const response = await axiosInstance.get("donation/services");
         if (response.data.success) {
@@ -57,22 +57,26 @@ function VolunteerApplication() {
   const fetchVolunteers = async (needId) => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(
-        `donation/service/${ngoId}/${needId}`
-      );
-      setVolunteers(response.data.donations || []);
-    } catch (error) {
-      console.error("Error fetching volunteers:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      try {
+        const { data } = await axios.get(
+          `/api/needs/${selectedNeed}/applications`,
+          {
+            params: {
+              status: filters.status !== "all" ? filters.status : undefined,
+              search: filters.search || undefined,
+            },
+          }
+        );
+        setApplications(data.applications);
+      } catch (err) {
+        setError(err.response?.data?.message || "Failed to fetch applications");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleNeedChange = (event) => {
-    const needId = event.target.value;
-    setSelectedNeed(needId);
-    if (needId) fetchVolunteers(needId);
-  };
+    fetchApplications();
+  }, [selectedNeed, filters]);
 
   const confirmAction = (type, volunteerId) => {
     setActionType(type);
@@ -488,6 +492,6 @@ function VolunteerApplication() {
       />
     </div>
   );
-}
+};
 
-export default VolunteerApplication;
+export default VolunteerApplications;

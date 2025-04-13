@@ -26,24 +26,6 @@ const ServiceNeedsList = () => {
   const [showChatModal, setShowChatModal] = useState(false);
   const [chatModalReady, setChatModalReady] = useState(false);
 
-  useEffect(() => {
-    console.log("ChatModal mounted - Current visibility:", showChatModal);
-    console.log("DOM check:", document.querySelector(".ChatModal"));
-
-    // if (showChatModal) {
-    //   const interval = setInterval(() => {
-    //     const modal = document.querySelector(".ChatModal");
-    //     console.log("Current modal state:", {
-    //       exists: !!modal,
-    //       visible: modal?.offsetParent !== null,
-    //       styles: modal ? window.getComputedStyle(modal) : null,
-    //     });
-    //   }, 1000);
-
-    //   return () => clearInterval(interval);
-    // }
-  }, [showChatModal]);
-
   // Fetch service needs
   useEffect(() => {
     const fetchServiceNeeds = async () => {
@@ -70,33 +52,6 @@ const ServiceNeedsList = () => {
     fetchServiceNeeds();
   }, [searchTerm, filters]);
 
-  useEffect(() => {
-    console.log("showChatModal state:", showChatModal);
-  }, [showChatModal]);
-
-  useEffect(() => {
-    console.log("ChatModal visibility changed to:", showChatModal);
-  }, [showChatModal]);
-
-  // Add this effect to handle the modal sequence
-  useEffect(() => {
-    if (chatModalReady) {
-      setShowChatModal(true);
-      setChatModalReady(false);
-    }
-  }, [chatModalReady]);
-
-  // Update the onMessageClick handler
-  const handleMessageClick = () => {
-    setChatModalReady(true);
-  };
-
-  // In ServiceNeedsList
-  // const handleMessageClick = () => {
-  //   console.log("Opening chat modal...");
-  //   setShowChatModal(true); // No other logic here
-  // };
-
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };
@@ -117,14 +72,20 @@ const ServiceNeedsList = () => {
     setSearchTerm("");
   };
 
-  const handleApply = (needId) => {
-    console.log("Applying for need:", needId);
-    // Add your application logic here
-  };
-
   const handleNGOProfileClick = (ngo) => {
     setSelectedNGO(ngo);
   };
+
+  const handleMessageClick = () => {
+    setChatModalReady(true);
+  };
+
+  useEffect(() => {
+    if (chatModalReady) {
+      setShowChatModal(true);
+      setChatModalReady(false);
+    }
+  }, [chatModalReady]);
 
   if (loading) {
     return (
@@ -147,15 +108,6 @@ const ServiceNeedsList = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          Service Opportunities
-        </h1>
-        <p className="text-gray-600">
-          Find and contribute to service needs in your community
-        </p>
-      </div> */}
-
       {/* Search and Filter Section */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -310,7 +262,7 @@ const ServiceNeedsList = () => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleApply(need._id)}
+                    onClick={() => setSelectedNeed(need)}
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors"
                   >
                     Apply
@@ -330,29 +282,24 @@ const ServiceNeedsList = () => {
         />
       )}
 
-      <div>
-        {/* Profile modal */}
-        {/* NGO Profile Modal */}
-        {selectedNGO && (
-          <NGOProfileModal
-            ngo={selectedNGO}
-            onClose={() => setSelectedNGO(null)}
-            onMessageClick={handleMessageClick}
-          />
-        )}
+      {/* NGO Profile Modal */}
+      {selectedNGO && (
+        <NGOProfileModal
+          ngo={selectedNGO}
+          onClose={() => setSelectedNGO(null)}
+          onMessageClick={handleMessageClick}
+        />
+      )}
 
-        {/* Chat Modal - Only appears after message click */}
-        {showChatModal && (
-          <ChatModal
-            onClose={() => setShowChatModal(false)}
-            showChatModal={true}
-          />
-        )}
-      </div>
+      {/* Chat Modal */}
+      {showChatModal && (
+        <ChatModal
+          onClose={() => setShowChatModal(false)}
+          showChatModal={true}
+        />
+      )}
     </div>
   );
 };
-
-ServiceNeedsList.propTypes = {};
 
 export default ServiceNeedsList;
