@@ -144,7 +144,13 @@ function PostedNeeds() {
             onClick={() => setShowNeedForm(!showNeedForm)}
             className="flex items-center gap-2 px-4 py-2 bg-primary-button text-gray-800 rounded-lg hover:bg-opacity-90 transition-colors"
           >
-            <FaPlus /> Post New Need
+            {showNeedForm ? (
+              "Cancel"
+            ) : (
+              <>
+                <FaPlus /> Post New Need
+              </>
+            )}
           </button>
         </div>
 

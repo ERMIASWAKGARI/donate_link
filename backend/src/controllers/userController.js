@@ -273,6 +273,17 @@ const getUserProfile = asyncWrapper(async (req, res) => {
 
   sendSuccessResponse(res, 200, 'User profile retrieved successfully.', user);
 });
+const getUserById = asyncWrapper(async (req, res) => {
+  const user = await User.findById(req.params.id).select('-password -tokenVersion -emailVerificationToken -__v');
+
+  if (!user) {
+    throw new AppError('User not found.', 404);
+  }
+
+  sendSuccessResponse(res, 200, 'User profile retrieved successfully.', user);
+});
+
+
 
 const updateUserProfile = asyncWrapper(async (req, res) => {
   const { email, phone, ...updates } = req.body;
@@ -505,6 +516,7 @@ const softDeleteUserAccount = asyncWrapper(async (req, res) => {
 module.exports = {
   registerUser,
   getUserProfile,
+  getUserById,
   updateUserProfile,
   deactivateAccount,
   reactivateAccount,

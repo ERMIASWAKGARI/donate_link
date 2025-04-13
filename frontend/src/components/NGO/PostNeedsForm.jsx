@@ -306,7 +306,7 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
                   onClick={() => handleNeedTypeChange(type)}
                   className={`px-4 py-2 rounded-full text-sm font-medium ${
                     formData.needTypes.includes(type)
-                      ? "bg-yellow-400 text-white"
+                      ? "bg-primary text-white"
                       : "bg-gray-200 text-gray-700"
                   }`}
                 >
@@ -429,7 +429,7 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
               <button
                 type="button"
                 onClick={() => setShowMap(true)}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                className="px-4 py-2 bg-primary text-white rounded hover:bg-blue-600"
               >
                 Select Location on Map
               </button>
@@ -605,7 +605,7 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
             <button
               type="button"
               onClick={() => addCategory("material")}
-              className="flex items-center px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+              className="flex items-center px-3 py-1 bg-primary text-white rounded hover:bg-blue-600 text-sm"
             >
               <FaPlus className="mr-1" /> Add Material Category
             </button>
@@ -703,7 +703,7 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
             <button
               type="button"
               onClick={() => addCategory("service")}
-              className="flex items-center px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+              className="flex items-center px-3 py-1 bg-primary text-white rounded hover:bg-blue-600 text-sm"
             >
               <FaPlus className="mr-1" /> Add Service Category
             </button>
@@ -721,7 +721,7 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
           </button>
           <button
             type="submit"
-            className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="px-6 py-2 bg-primary text-white rounded hover:bg-blue-600"
             disabled={isSubmitting}
           >
             {isSubmitting ? "Processing..." : "Post Need"}

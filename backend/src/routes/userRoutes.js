@@ -11,6 +11,7 @@ const {
   softDeleteUserAccount,
   reactivateAccount,
   recoverAccount,
+  getUserById,
 } = require('../controllers/userController');
 const uploadVerificationDocsMiddleware = require('../middleware/fileUpload');
 const uploadProfilePictureMiddleware = require('../middleware/uploadProfilePicture');
@@ -38,5 +39,6 @@ router.patch(
   uploadVerificationDocsMiddleware,
   uploadVerificationDocs
 );
+router.get("/:id",protect,getUserById);
 
 module.exports = router;

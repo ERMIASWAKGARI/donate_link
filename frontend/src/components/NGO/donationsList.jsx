@@ -144,7 +144,7 @@ const DonationsList = () => {
             className={`flex-1 p-2 rounded-lg transition-colors ${
               selectedCategory === category
                 ? "bg-primary text-white"
-                : "bg-primary-button hover:bg-yellow-400"
+                : "bg-gray-200 hover:bg-gray-300"
             }`}
           >
             {category.charAt(0).toUpperCase() + category.slice(1)}
