@@ -1,5 +1,11 @@
 import { useState, useContext } from "react";
-
+import {
+  FaHandHoldingHeart,
+  FaMoneyBillWave,
+  FaBoxOpen,
+  FaClock,
+  FaCalendarAlt,
+} from "react-icons/fa";
 import Axios from "../../../config/axiosConfig";
 import MaterialDonationForm from "./MatterialDonationForm";
 import { UserContext } from "../../../context/UserContext";
@@ -9,6 +15,7 @@ const DonationForm = ({ need, onSubmit }) => {
   const [success, setSuccess] = useState(null);
   const { user } = useContext(UserContext);
   // Initialize form data based on need types
+  console.log("need", need);
   const [formData, setFormData] = useState({
     type: need.needTypes.includes("money") ? "money" : need.needTypes[0],
     amount: "",
@@ -167,8 +174,8 @@ const DonationForm = ({ need, onSubmit }) => {
       // Submit based on donation type
       let response;
       if (formData.type === "money") {
-        response = await axios.post("/api/donations/money", {
-          NGO: need.NGO,
+        response = await Axios.post("/donation/money", {
+          NGO: need.NGO._id,
           donorId: user._id,
           needId: need._id,
           amount: parseFloat(formData.amount),
@@ -176,7 +183,7 @@ const DonationForm = ({ need, onSubmit }) => {
         });
       } else if (formData.type === "material") {
         const formDataToSend = new FormData();
-        formDataToSend.append("NGO", need.NGO);
+        formDataToSend.append("NGO", need.NGO._id);
         formDataToSend.append("donorId", user._id);
         formDataToSend.append("needId", need._id);
         formDataToSend.append("message", formData.message || "");
@@ -219,16 +226,16 @@ const DonationForm = ({ need, onSubmit }) => {
           });
         }
 
-        response = await Axios.post("/api/donations/material", formDataToSend, {
+        response = await Axios.post("donation/material", formDataToSend, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         });
       } else if (formData.type === "service") {
         response = await Axios.post("/donation/service", {
-          NGO: need.NGO,
-          donorId: user._id,
-          needId: need._id,
+          NGO: need?.NGO?._id,
+          donorId: user?._id,
+          needId: need?._id,
           services: formData.services.map((s) => ({
             categoryName: s.categoryName,
             subCategoryName: s.subCategoryName,
@@ -260,133 +267,200 @@ const DonationForm = ({ need, onSubmit }) => {
       setIsSubmitting(false);
     }
   };
-
   return (
-    <div className="bg-white p-6 rounded-lg shadow border">
-      <h3 className="text-xl font-semibold text-gray-800 mb-4">
-        Make a Donation
-      </h3>
+    <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+      <div className="bg-primary p-4 text-white">
+        <h3 className="text-xl font-bold flex items-center">
+          <FaHandHoldingHeart className="mr-2" />
+          Make a Donation
+        </h3>
+      </div>
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>
-      )}
-
-      {success && (
-        <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
-          {success}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit}>
-        {/* Donation Type Selection */}
-        <div className="mb-4">
-          <label className="block text-gray-700 mb-2">Donation Type</label>
-          <div className="space-y-2">
-            {need.needTypes.includes("money") && (
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="type"
-                  value="money"
-                  checked={formData.type === "money"}
-                  onChange={handleChange}
-                  className="mr-2"
-                />
-                Monetary Donation
-              </label>
-            )}
-            {need.needTypes.includes("material") && (
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="type"
-                  value="material"
-                  checked={formData.type === "material"}
-                  onChange={handleChange}
-                  className="mr-2"
-                />
-                Material Donation
-              </label>
-            )}
-            {need.needTypes.includes("service") && (
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="type"
-                  value="service"
-                  checked={formData.type === "service"}
-                  onChange={handleChange}
-                  className="mr-2"
-                />
-                Service Donation
-              </label>
-            )}
-          </div>
-        </div>
-
-        {/* Money Donation Form */}
-        {formData.type === "money" && (
-          <div className="mb-4">
-            <label className="block text-gray-700 mb-2">Amount ($)</label>
-            <input
-              type="number"
-              name="amount"
-              value={formData.amount}
-              onChange={handleChange}
-              min="1"
-              step="0.01"
-              className="w-full p-2 border rounded"
-              required
-            />
-            {need.targetMoney && (
-              <p className="text-sm text-gray-500 mt-1">
-                Target: ${need.targetMoney.toLocaleString()}
-              </p>
-            )}
+      <div className="p-5">
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center">
+            <svg
+              className="w-5 h-5 mr-2"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z"
+                clipRule="evenodd"
+              />
+            </svg>
+            {error}
           </div>
         )}
 
-        {/* Material Donation Form */}
-        {formData.type === "material" && formData.materials.length > 0 && (
-          <MaterialDonationForm
-            materials={formData.materials}
-            location={formData.location}
-            onMaterialChange={handleMaterialChange}
-            onLocationChange={handleLocationChange}
-            handleFileUpload={handleFileUpload}
-            removePicture={removePicture}
-            formData={formData}
-          />
+        {success && (
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center">
+            <svg
+              className="w-5 h-5 mr-2"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clipRule="evenodd"
+              />
+            </svg>
+            {success}
+          </div>
         )}
 
-        {/* Service Donation Form */}
-        {formData.type === "service" && formData.services.length > 0 && (
-          <div className="mb-4">
-            <h4 className="font-medium text-gray-700 mb-2">Service Items</h4>
+        <form onSubmit={handleSubmit}>
+          {/* Donation Type Selection */}
+          <div className="mb-6">
+            <label className="block text-gray-700 font-medium mb-3">
+              Donation Type
+            </label>
             <div className="space-y-3">
+              {need.needTypes.includes("money") && (
+                <label className="flex items-center p-3 border rounded-lg hover:bg-primary/10 cursor-pointer transition-colors">
+                  <input
+                    type="radio"
+                    name="type"
+                    value="money"
+                    checked={formData.type === "money"}
+                    onChange={handleChange}
+                    className="mr-3 h-5 w-5 text-primary"
+                  />
+                  <div>
+                    <div className="flex items-center font-medium">
+                      <FaMoneyBillWave className="mr-2 text-primary" />
+                      Monetary Donation
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Contribute financially to this cause
+                    </p>
+                  </div>
+                </label>
+              )}
+              {need?.needTypes.includes("material") && (
+                <label className="flex items-center p-3 border rounded-lg hover:bg-primary/10 cursor-pointer transition-colors">
+                  <input
+                    type="radio"
+                    name="type"
+                    value="material"
+                    checked={formData.type === "material"}
+                    onChange={handleChange}
+                    className="mr-3 h-5 w-5 text-primary"
+                  />
+                  <div>
+                    <div className="flex items-center font-medium">
+                      <FaBoxOpen className="mr-2 text-primary" />
+                      Material Donation
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Donate physical items needed
+                    </p>
+                  </div>
+                </label>
+              )}
+              {need.needTypes.includes("service") && (
+                <label className="flex items-center p-3 border rounded-lg hover:bg-primary/10 cursor-pointer transition-colors">
+                  <input
+                    type="radio"
+                    name="type"
+                    value="service"
+                    checked={formData.type === "service"}
+                    onChange={handleChange}
+                    className="mr-3 h-5 w-5 text-primary"
+                  />
+                  <div>
+                    <div className="flex items-center font-medium">
+                      <FaClock className="mr-2 text-primary" />
+                      Service Donation
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Volunteer your time and skills
+                    </p>
+                  </div>
+                </label>
+              )}
+            </div>
+          </div>
+
+          {/* Money Donation Form */}
+          {formData.type === "money" && (
+            <div className="mb-6 bg-primary/10 p-4 rounded-lg">
+              <label className="block text-gray-700 font-medium mb-2">
+                Amount ($)
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                  $
+                </span>
+                <input
+                  type="number"
+                  name="amount"
+                  value={formData.amount}
+                  onChange={handleChange}
+                  min="1"
+                  step="0.01"
+                  className="w-full pl-8 p-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                  required
+                  placeholder="Enter amount"
+                />
+              </div>
+              {need.targetMoney && (
+                <p className="text-sm text-gray-600 mt-2">
+                  Target:{" "}
+                  <span className="font-semibold">
+                    ${need.targetMoney.toLocaleString()}
+                  </span>
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Material Donation Form */}
+          {formData.type === "material" && formData.materials.length > 0 && (
+            <MaterialDonationForm
+              materials={formData.materials}
+              location={formData.location}
+              onMaterialChange={handleMaterialChange}
+              onLocationChange={handleLocationChange}
+              handleFileUpload={handleFileUpload}
+              removePicture={removePicture}
+              formData={formData}
+            />
+          )}
+
+          {/* Service Donation Form */}
+          {formData.type === "service" && formData.services.length > 0 && (
+            <div className="mb-6 space-y-4">
+              <h4 className="font-medium text-gray-700 mb-2">Service Items</h4>
               {formData.services.map((item, index) => (
-                <div key={index} className="border p-3 rounded">
-                  <p className="font-medium">
+                <div
+                  key={index}
+                  className="bg-gray-50 p-4 rounded-lg border border-gray-200"
+                >
+                  <p className="font-medium text-primary">
                     {item.categoryName} - {item.subCategoryName}
                   </p>
-                  <div className="mt-2 space-y-3">
+                  <div className="mt-3 space-y-4">
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         Motivation
                       </label>
                       <textarea
                         name="motivation"
                         value={item.motivation}
                         onChange={(e) => handleServiceChange(index, e)}
-                        className="w-full p-2 border rounded"
-                        rows="2"
+                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                        rows="3"
                         required
                         placeholder="Why do you want to provide this service?"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-gray-600 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                          <FaCalendarAlt className="mr-2 text-gray-500" />
                           Start Date
                         </label>
                         <input
@@ -394,13 +468,14 @@ const DonationForm = ({ need, onSubmit }) => {
                           name="startDate"
                           value={item.startDate}
                           onChange={(e) => handleServiceChange(index, e)}
-                          className="w-full p-2 border rounded"
+                          className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                           required
                           min={new Date().toISOString().split("T")[0]}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-gray-600 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                          <FaCalendarAlt className="mr-2 text-gray-500" />
                           End Date
                         </label>
                         <input
@@ -408,7 +483,7 @@ const DonationForm = ({ need, onSubmit }) => {
                           name="endDate"
                           value={item.endDate}
                           onChange={(e) => handleServiceChange(index, e)}
-                          className="w-full p-2 border rounded"
+                          className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                           required
                           min={
                             item.startDate ||
@@ -418,7 +493,8 @@ const DonationForm = ({ need, onSubmit }) => {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-600 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                        <FaClock className="mr-2 text-gray-500" />
                         Hours Per Week
                       </label>
                       <input
@@ -426,9 +502,9 @@ const DonationForm = ({ need, onSubmit }) => {
                         name="hoursPerWeek"
                         value={item.hoursPerWeek}
                         onChange={(e) => handleServiceChange(index, e)}
-                        className="w-full p-2 border rounded"
+                        className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                         min="1"
-                        max="168" // 24*7
+                        max="168"
                         required
                       />
                     </div>
@@ -436,30 +512,62 @@ const DonationForm = ({ need, onSubmit }) => {
                 </div>
               ))}
             </div>
+          )}
+
+          {/* Message */}
+          <div className="mb-6">
+            <label className="block text-gray-700 font-medium mb-2">
+              Message (Optional)
+            </label>
+            <textarea
+              name="message"
+              value={formData.message}
+              onChange={handleChange}
+              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+              rows="3"
+              placeholder="Add any additional information about your donation..."
+            />
           </div>
-        )}
 
-        {/* Message */}
-        <div className="mb-4">
-          <label className="block text-gray-700 mb-2">Message (Optional)</label>
-          <textarea
-            name="message"
-            value={formData.message}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-            rows="3"
-            placeholder="Add any additional information about your donation..."
-          />
-        </div>
-
-        <button
-          type="submit"
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded disabled:opacity-50"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Submitting..." : "Submit Donation"}
-        </button>
-      </form>
+          <button
+            type="submit"
+            className={`w-full py-3 px-4 rounded-lg font-bold text-white transition-colors ${
+              isSubmitting
+                ? "bg-primary/70 cursor-not-allowed"
+                : "bg-primary-button hover:bg-yellow-400"
+            }`}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <span className="flex items-center justify-center">
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Processing...
+              </span>
+            ) : (
+              "Submit Donation"
+            )}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

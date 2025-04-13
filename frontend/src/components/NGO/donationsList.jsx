@@ -36,7 +36,7 @@ const DonationsList = () => {
       }
     };
     fetchNeeds();
-  }, [user._id, currentPage, itemsPerPage]);
+  }, [user?._id, currentPage, itemsPerPage]);
 
   // Fetch donations for selected need
   useEffect(() => {
@@ -45,7 +45,6 @@ const DonationsList = () => {
 
       try {
         if (selectedCategory === "items") {
-          // Only fetch material donations when items category is selected
           const materialResponse = await AxiosInstance.get(
             `donation/material/${selectedNeed.NGO}/${selectedNeed._id}`,
             {
@@ -62,7 +61,6 @@ const DonationsList = () => {
             materials: materialResponse.data.data.donations || [],
           }));
         } else if (selectedCategory === "service") {
-          // Only fetch service applications when service category is selected
           const serviceResponse = await AxiosInstance.get(
             `donation/service/${selectedNeed.NGO}/${selectedNeed._id}`,
             {
@@ -76,7 +74,6 @@ const DonationsList = () => {
             services: serviceResponse.data.donations || [],
           }));
         }
-        // Money donations would be handled separately when implemented
       } catch (error) {
         console.error("Error fetching donations:", error);
       }
@@ -102,7 +99,7 @@ const DonationsList = () => {
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="p-2 disabled:opacity-50"
+              className="p-2 disabled:opacity-50 bg-primary text-white rounded"
             >
               <FaChevronLeft />
             </button>
@@ -114,7 +111,7 @@ const DonationsList = () => {
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
               disabled={currentPage === totalPages}
-              className="p-2 disabled:opacity-50"
+              className="p-2 disabled:opacity-50 bg-primary text-white rounded"
             >
               <FaChevronRight />
             </button>
@@ -146,8 +143,8 @@ const DonationsList = () => {
             onClick={() => setSelectedCategory(category)}
             className={`flex-1 p-2 rounded-lg transition-colors ${
               selectedCategory === category
-                ? "bg-blue-500 text-white"
-                : "bg-gray-100 hover:bg-gray-200"
+                ? "bg-primary text-white"
+                : "bg-primary-button hover:bg-yellow-400"
             }`}
           >
             {category.charAt(0).toUpperCase() + category.slice(1)}

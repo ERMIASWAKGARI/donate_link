@@ -12,14 +12,12 @@ router.post(
   uploadNeedPictures, // Add the upload middleware
   needsController.postNgosNeed
 );
-
+router.get("/services",authMiddleware("ngo"), needsController.getAllNGOServiceNeeds);
+router.get("/services/all", needsController.getAllServiceNeeds);
 // Other routes remain the same
 router.get("/getAllNeeds", needsController.getAllNeeds);
 router.get("/ngo/:ngoId", needsController.getNeedsByNgo);
 router.get("/:id", needsController.getNeedById);
-
-router.get("/services/all", needsController.getAllServiceNeeds);
-
 // Material Donation Routes
 router.post("/material",authMiddleware("individual_donor" || "organization_donor"),uploadNeedPictures, donateItems.createMaterialDonation);
 router.get("/material/:ngoId/:needId", donateItems.getMaterialDonation);

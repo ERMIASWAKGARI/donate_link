@@ -127,7 +127,7 @@ function PostedNeeds() {
           <p className="text-red-500 font-medium">{error}</p>
           <button
             onClick={fetchNeeds}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90"
           >
             Retry
           </button>
@@ -143,7 +143,7 @@ function PostedNeeds() {
           <h1 className="text-2xl font-bold text-gray-800">Posted Needs</h1>
           <button
             onClick={() => setShowNeedForm(!showNeedForm)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-primary-button text-gray-800 rounded-lg hover:bg-opacity-90 transition-colors"
           >
             <FaPlus /> Post New Need
           </button>
@@ -168,7 +168,7 @@ function PostedNeeds() {
             </p>
             <button
               onClick={() => setShowNeedForm(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="px-4 py-2 bg-primary-button text-gray-800 rounded hover:bg-opacity-90"
             >
               Post a Need
             </button>
@@ -204,7 +204,7 @@ function PostedNeeds() {
                             ? "bg-green-100 text-green-800"
                             : need.status === "Expired"
                             ? "bg-red-100 text-red-800"
-                            : "bg-blue-100 text-blue-800"
+                            : "bg-primary text-white"
                         }`}
                       >
                         {need.status}
@@ -240,7 +240,7 @@ function PostedNeeds() {
                       </span>
                       <button
                         onClick={() => openDetailsModal(need)}
-                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium"
+                        className="flex items-center gap-1 text-primary hover:text-opacity-90 text-sm font-medium"
                       >
                         View Details <FaEye className="ml-1" />
                       </button>
@@ -284,7 +284,7 @@ function PostedNeeds() {
                         onClick={() => paginate(pageNum)}
                         className={`px-4 py-2 ${
                           currentPage === pageNum
-                            ? "bg-blue-600 text-white"
+                            ? "bg-primary text-white"
                             : "bg-white text-gray-700 hover:bg-gray-50"
                         }`}
                       >
@@ -304,7 +304,7 @@ function PostedNeeds() {
                       onClick={() => paginate(totalPages)}
                       className={`px-4 py-2 ${
                         currentPage === totalPages
-                          ? "bg-blue-600 text-white"
+                          ? "bg-primary text-white"
                           : "bg-white text-gray-700 hover:bg-gray-50"
                       }`}
                     >
@@ -346,7 +346,7 @@ function PostedNeeds() {
                             ? "bg-green-100 text-green-800"
                             : selectedNeed.status === "Expired"
                             ? "bg-red-100 text-red-800"
-                            : "bg-blue-100 text-blue-800"
+                            : "bg-primary text-white"
                         }`}
                       >
                         {selectedNeed.status}
@@ -391,7 +391,7 @@ function PostedNeeds() {
                         {selectedNeed.needTypes?.map((type) => (
                           <span
                             key={type}
-                            className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium"
+                            className="px-3 py-1 bg-primary-button text-gray-800 rounded-full text-sm font-medium"
                           >
                             {type}
                           </span>
@@ -405,7 +405,7 @@ function PostedNeeds() {
                           Financial Target
                         </h3>
                         <div className="bg-gray-50 p-4 rounded-lg">
-                          <p className="text-2xl font-bold text-blue-600">
+                          <p className="text-2xl font-bold text-primary">
                             ${selectedNeed.targetMoney}
                           </p>
                         </div>

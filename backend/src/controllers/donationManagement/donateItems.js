@@ -5,7 +5,7 @@ const asyncWrapper = require('../../middleware/asyncWrapper');
 // Create material donation
 const createMaterialDonation = async (req, res) => {
   try {
-    console.log("here the request is",req.body);
+
     const { NGO, donorId, needId, materials, location, message } = req.body;
     
     // Validate required fields
