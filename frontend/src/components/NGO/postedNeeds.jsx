@@ -2,7 +2,6 @@ import { useState, useContext, useEffect } from "react";
 import {
   FaPlus,
   FaEye,
-  FaTrash,
   FaTimes,
   FaChevronLeft,
   FaChevronRight,

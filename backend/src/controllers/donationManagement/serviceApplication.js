@@ -48,7 +48,7 @@ const getServiceDonations = async (req, res) => {
   console.log("getServiceDonations", req.params);
   try {
     const { ngoId, needId } = req.params;
-    const donations = await Application.find({ needId,NGO:ngoId });
+    const donations = await Application.find({ needId, NGO: ngoId }).populate({ path: 'donorId', select: 'name email' });
     res.status(200).json({ donations });
   } catch (error) {
     res.status(500).json({ message: 'Failed to get service donations', error: error.message });
