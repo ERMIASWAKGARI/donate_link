@@ -1,22 +1,28 @@
 const mongoose = require("mongoose");
 const applicationSchema = new mongoose.Schema(
   {
-    NGO: {
+    applicant: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-    },
-    donorId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+    }, // The applicant (volunteer or NGO)
+
+    category: {
+      type: String,
       required: true,
     },
-    needId: {
+
+    subCategory: {
+      type: String,
+      required: true,
+    },
+
+    need: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Needs",
       required: true,
-    },
-    donationType: {
+    }, // The need being applied for
+    motivation: {
       type: String,
       maxlength: 1000,
       trim: true,
@@ -30,12 +36,19 @@ const applicationSchema = new mongoose.Schema(
     hoursPerWeek: Number,
     status: {
       type: String,
-      default: "",
+      enum: [
+        "Submitted",
+        "Under Review",
+        "Interview Scheduled",
+        "Approved",
+        "Rejected",
+        "On Hold",
+        "Withdrawn",
+      ],
+      default: "Submitted",
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 const Application = mongoose.model("Application", applicationSchema);
 
