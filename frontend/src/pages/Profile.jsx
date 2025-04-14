@@ -108,31 +108,29 @@ const Profile = ({ user, volunteerApplication }) => {
               <div>
                 <p className="text-sm text-gray-500">Category</p>
                 <p className="text-gray-700">
-                  {volunteerApplication.services[0].categoryName}
+                  {volunteerApplication?.categoryName}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Subcategory</p>
                 <p className="text-gray-700">
-                  {volunteerApplication.services[0].subCategoryName}
+                  {volunteerApplication?.subCategoryName}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Availability</p>
                 <p className="text-gray-700">
                   {new Date(
-                    volunteerApplication.services[0].startDate
+                    volunteerApplication.startDate
                   ).toLocaleDateString()}{" "}
                   -{" "}
-                  {new Date(
-                    volunteerApplication.services[0].endDate
-                  ).toLocaleDateString()}
+                  {new Date(volunteerApplication.endDate).toLocaleDateString()}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Hours/Week</p>
                 <p className="text-gray-700">
-                  {volunteerApplication.services[0].hoursPerWeek}
+                  {volunteerApplication.hoursPerWeek}
                 </p>
               </div>
             </div>

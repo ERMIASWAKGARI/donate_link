@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "@headlessui/react": "^2.2.1",
-    "react-hook-form": "^7.55.0"
-  }
-}

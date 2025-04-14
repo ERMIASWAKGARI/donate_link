@@ -218,8 +218,7 @@ const getAllNGOServiceNeeds = async (req, res) => {
   try {
    
 
-    // Validate input
-   console.log("request of user",req.user);
+
 
     // Find the specific need for the given NGO
     const need = await Need.find({ NGO: req.user?._id, needTypes: ["service"] })

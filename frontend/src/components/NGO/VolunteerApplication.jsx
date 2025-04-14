@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../../config/axiosConfig";
-import { useUser } from "../../context/UserContext";
 import Profile from "../../pages/Profile";
 import ChatModal from "../ChatModal";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,24 +12,28 @@ function VolunteerApplication() {
   const [volunteers, setVolunteers] = useState([]);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [selectedVolunteer, setSelectedVolunteer] = useState(null);
-  const { user } = useUser();
-  const ngoId = user._id;
   const [profileLoading, setProfileLoading] = useState(false);
   const [volunteerDetails, setVolunteerDetails] = useState(null);
   const [showChatModal, setShowChatModal] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [actionType, setActionType] = useState("");
   const [currentVolunteerId, setCurrentVolunteerId] = useState("");
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+
+  const toggleDropdown = (id) => {
+    setOpenDropdownId(openDropdownId === id ? null : id);
+  };
 
   const handleViewProfile = async (volunteer) => {
     try {
       setProfileLoading(true);
       setSelectedVolunteer(volunteer);
       const response = await axiosInstance.get(
-        `/users/${volunteer.donorId._id}`
+        `/users/${volunteer.applicant._id}`
       );
       setVolunteerDetails(response.data.data);
       setShowProfileModal(true);
+      setOpenDropdownId(null); // Close dropdown when opening profile
     } catch (error) {
       console.error("Error fetching volunteer details:", error);
     } finally {
@@ -39,7 +42,7 @@ function VolunteerApplication() {
   };
 
   useEffect(() => {
-    const fetchServiceNeeds = async () => {
+    const getServiceNeeds = async () => {
       try {
         const response = await axiosInstance.get("donation/services");
         if (response.data.success) {
@@ -51,15 +54,13 @@ function VolunteerApplication() {
         setLoading(false);
       }
     };
-    fetchServiceNeeds();
+    getServiceNeeds();
   }, []);
 
-  const fetchVolunteers = async (needId) => {
+  const getApplications = async (need) => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(
-        `donation/service/${ngoId}/${needId}`
-      );
+      const response = await axiosInstance.get(`donation/service/${need}`);
       setVolunteers(response.data.donations || []);
     } catch (error) {
       console.error("Error fetching volunteers:", error);
@@ -71,13 +72,14 @@ function VolunteerApplication() {
   const handleNeedChange = (event) => {
     const needId = event.target.value;
     setSelectedNeed(needId);
-    if (needId) fetchVolunteers(needId);
+    if (needId) getApplications(needId);
   };
 
   const confirmAction = (type, volunteerId) => {
     setActionType(type);
     setCurrentVolunteerId(volunteerId);
     setShowConfirmation(true);
+    setOpenDropdownId(null); // Close dropdown when confirming action
   };
 
   const handleApplicationStatus = async (confirmed) => {
@@ -92,7 +94,7 @@ function VolunteerApplication() {
         { status: actionType }
       );
       if (response.data.success && selectedNeed) {
-        fetchVolunteers(selectedNeed);
+        getApplications(selectedNeed);
       }
     } catch (error) {
       console.error(`Error updating volunteer status to ${actionType}:`, error);
@@ -119,7 +121,6 @@ function VolunteerApplication() {
           </p>
         </div>
 
-        {/* Service Need Selection */}
         <div className="bg-white rounded-2xl shadow-xl p-6 mb-10 border border-gray-100">
           <div className="mb-6">
             <label
@@ -161,7 +162,6 @@ function VolunteerApplication() {
           </div>
         </div>
 
-        {/* Volunteers List */}
         {selectedNeed && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -198,13 +198,72 @@ function VolunteerApplication() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-all duration-300"
+                    className="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-all duration-300 relative"
                   >
+                    {/* Action Dropdown Button */}
+                    <div className="absolute top-4 right-4">
+                      <button
+                        onClick={() => toggleDropdown(volunteer._id)}
+                        className="p-1 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                      >
+                        <svg
+                          className="h-5 w-5 text-gray-500"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                          />
+                        </svg>
+                      </button>
+
+                      {/* Dropdown Menu */}
+                      {openDropdownId === volunteer._id && (
+                        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                          <button
+                            onClick={() => handleViewProfile(volunteer)}
+                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            View Profile
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowChatModal(true);
+                              setOpenDropdownId(null);
+                            }}
+                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            Contact
+                          </button>
+                          <button
+                            onClick={() =>
+                              confirmAction("accepted", volunteer._id)
+                            }
+                            className="block w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-gray-100"
+                          >
+                            Accept
+                          </button>
+                          <button
+                            onClick={() =>
+                              confirmAction("rejected", volunteer._id)
+                            }
+                            className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                       <div className="flex-1">
                         <div className="flex items-center space-x-4 mb-4">
                           <div className="flex-shrink-0">
-                            {volunteer.donorId.profilePicture ? (
+                            {volunteer?.applicant?.profilePicture ? (
                               <img
                                 className="h-12 w-12 rounded-full object-cover"
                                 src={volunteer.donorId.profilePicture}
@@ -212,13 +271,13 @@ function VolunteerApplication() {
                               />
                             ) : (
                               <div className="h-12 w-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
-                                {volunteer.donorId.name.charAt(0)}
+                                {volunteer?.applicant?.name.charAt(0)}
                               </div>
                             )}
                           </div>
                           <div>
                             <h3 className="text-lg font-bold text-gray-900">
-                              {volunteer.donorId.name}
+                              {volunteer.applicant.name}
                             </h3>
                             <p className="text-sm text-gray-500 capitalize">
                               {volunteer.status || "pending"}
@@ -237,8 +296,8 @@ function VolunteerApplication() {
                                 Service
                               </h4>
                               <p className="mt-1 font-medium">
-                                {volunteer.services[0].categoryName} •{" "}
-                                {volunteer.services[0].subCategoryName}
+                                {volunteer.categoryName} •{" "}
+                                {volunteer.subCategoryName}
                               </p>
                             </div>
                             <div className="bg-gray-50 p-3 rounded-lg">
@@ -247,11 +306,11 @@ function VolunteerApplication() {
                               </h4>
                               <p className="mt-1 font-medium">
                                 {new Date(
-                                  volunteer.services[0].startDate
+                                  volunteer.startDate
                                 ).toLocaleDateString()}{" "}
                                 -{" "}
                                 {new Date(
-                                  volunteer.services[0].endDate
+                                  volunteer.endDate
                                 ).toLocaleDateString()}
                               </p>
                             </div>
@@ -260,95 +319,10 @@ function VolunteerApplication() {
                                 Commitment
                               </h4>
                               <p className="mt-1 font-medium">
-                                {volunteer.services[0].hoursPerWeek} hours/week
+                                {volunteer.hoursPerWeek} hours/week
                               </p>
                             </div>
                           </div>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col space-y-3 min-w-[200px]">
-                        <button
-                          onClick={() => handleViewProfile(volunteer)}
-                          className="group flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
-                        >
-                          <svg
-                            className="-ml-1 mr-2 h-5 w-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                            />
-                          </svg>
-                          View Profile
-                        </button>
-                        <button
-                          onClick={() => setShowChatModal(true)}
-                          className="group flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200"
-                        >
-                          <svg
-                            className="-ml-1 mr-2 h-5 w-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                            />
-                          </svg>
-                          Contact
-                        </button>
-                        <div className="grid grid-cols-2 gap-3">
-                          <button
-                            onClick={() =>
-                              confirmAction("accepted", volunteer._id)
-                            }
-                            className="group flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200"
-                          >
-                            <svg
-                              className="-ml-1 mr-2 h-5 w-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
-                            Accept
-                          </button>
-                          <button
-                            onClick={() =>
-                              confirmAction("rejected", volunteer._id)
-                            }
-                            className="group flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200"
-                          >
-                            <svg
-                              className="-ml-1 mr-2 h-5 w-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M6 18L18 6M6 6l12 12"
-                              />
-                            </svg>
-                            Reject
-                          </button>
                         </div>
                       </div>
                     </div>
@@ -381,111 +355,98 @@ function VolunteerApplication() {
             )}
           </motion.div>
         )}
-      </motion.div>
 
-      {/* Profile Modal */}
-      <AnimatePresence>
+        {/* Profile Modal */}
         {showProfileModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 overflow-y-auto"
-          >
-            {/* Backdrop */}
+          <AnimatePresence>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-gray-500 bg-opacity-75 backdrop-blur-sm"
+              className="fixed inset-0 bg-gray-500 bg-opacity-75 backdrop-blur-sm z-40"
               onClick={() => {
                 setShowProfileModal(false);
                 setVolunteerDetails(null);
               }}
             />
-
-            {/* Modal content */}
-            <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0 relative z-50">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="inline-block align-bottom bg-white rounded-2xl shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="modal-headline"
-              >
-                <div className="px-6 pt-6 pb-4 flex justify-between items-center border-b border-gray-100">
-                  <h3
-                    className="text-2xl font-bold text-gray-900"
-                    id="modal-headline"
-                  >
-                    Volunteer Profile
-                  </h3>
-                  <button
-                    onClick={() => {
-                      setShowProfileModal(false);
-                      setVolunteerDetails(null);
-                    }}
-                    className="text-gray-400 hover:text-gray-500 focus:outline-none"
-                  >
-                    <svg
-                      className="h-6 w-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
-
-                <div className="px-6 py-4 max-h-[70vh] overflow-y-auto">
-                  {profileLoading ? (
-                    <div className="flex justify-center items-center h-40">
-                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
-                    </div>
-                  ) : volunteerDetails ? (
-                    <Profile
-                      user={volunteerDetails}
-                      volunteerApplication={selectedVolunteer}
-                    />
-                  ) : (
-                    <div className="text-center py-12 text-gray-500">
-                      Failed to load profile details
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
+          </AnimatePresence>
         )}
-      </AnimatePresence>
 
-      {/* Chat Modal */}
-      {showChatModal && (
-        <ChatModal
-          onClose={() => setShowChatModal(false)}
-          showChatModal={showChatModal}
+        {showProfileModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
+            >
+              <div className="px-6 pt-6 pb-4 flex justify-between items-center border-b border-gray-100">
+                <h3 className="text-2xl font-bold text-gray-900">
+                  Volunteer Profile
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowProfileModal(false);
+                    setVolunteerDetails(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-500 focus:outline-none"
+                >
+                  <svg
+                    className="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="px-6 py-4 max-h-[70vh] overflow-y-auto">
+                {profileLoading ? (
+                  <div className="flex justify-center items-center h-40">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
+                  </div>
+                ) : volunteerDetails ? (
+                  <Profile
+                    user={volunteerDetails}
+                    volunteerApplication={selectedVolunteer}
+                  />
+                ) : (
+                  <div className="text-center py-12 text-gray-500">
+                    Failed to load profile details
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Chat Modal */}
+        {showChatModal && (
+          <ChatModal
+            onClose={() => setShowChatModal(false)}
+            showChatModal={showChatModal}
+          />
+        )}
+
+        {/* Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showConfirmation}
+          onClose={() => {
+            setShowConfirmation(false);
+            setActionType("");
+            setCurrentVolunteerId("");
+          }}
+          onConfirm={handleApplicationStatus}
+          actionType={actionType}
         />
-      )}
-
-      {/* Confirmation Modal */}
-      <ConfirmationModal
-        isOpen={showConfirmation}
-        onClose={() => {
-          setShowConfirmation(false);
-          setActionType("");
-          setCurrentVolunteerId("");
-        }}
-        onConfirm={handleApplicationStatus}
-        actionType={actionType}
-      />
+      </motion.div>
     </div>
   );
 }

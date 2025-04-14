@@ -26,13 +26,12 @@ const DonationForm = ({ need, onSubmit }) => {
         quantity: "",
       })) || [],
     services:
-      need.categories.service?.map((item) => ({
-        categoryName: item.categoryName,
-        subCategoryName: item.subCategoryName,
-        commitment: "",
+      need?.categories?.service?.map((item) => ({
+        category: item.categoryName, // Changed from categoryName to category
+        subCategory: item.subCategoryName, // Changed from subCategoryName to subCategory
         motivation: "",
         startDate: "",
-        endDate: "",
+        endDate: null, // Made optional to match model
         hoursPerWeek: "",
       })) || [],
     message: "",
@@ -232,19 +231,37 @@ const DonationForm = ({ need, onSubmit }) => {
           },
         });
       } else if (formData.type === "service") {
+        // Validate each service field according to model requirements
+        for (const service of formData.services) {
+          if (!service.motivation || service.motivation.length > 1000) {
+            throw new Error(
+              "Motivation is required and must be less than 1000 characters"
+            );
+          }
+          if (!service.startDate) {
+            throw new Error("Start date is required for each service");
+          }
+          if (
+            service.endDate &&
+            new Date(service.endDate) <= new Date(service.startDate)
+          ) {
+            throw new Error("End date must be after start date if provided");
+          }
+          if (!service.hoursPerWeek || isNaN(service.hoursPerWeek)) {
+            throw new Error("Hours per week must be a valid number");
+          }
+        }
+
         response = await Axios.post("/donation/service", {
-          NGO: need?.NGO?._id,
-          donorId: user?._id,
-          needId: need?._id,
-          services: formData.services.map((s) => ({
-            categoryName: s.categoryName,
-            subCategoryName: s.subCategoryName,
-            commitment: s.commitment,
-            motivation: s.motivation,
-            startDate: s.startDate,
-            endDate: s.endDate,
-            hoursPerWeek: parseInt(s.hoursPerWeek),
-          })),
+          applicant: user?._id, // Changed from donorId to applicant
+          need: need?._id, // Changed from needId to need
+          category: formData.services[0].category, // Using first service's category
+          subCategory: formData.services[0].subCategory, // Using first service's subCategory
+          motivation: formData.services[0].motivation, // Using first service's motivation
+          startDate: formData.services[0].startDate,
+          endDate: formData.services[0].endDate || null,
+          hoursPerWeek: parseInt(formData.services[0].hoursPerWeek),
+          status: "Submitted", // Added default status
           message: formData.message || "",
         });
       }
@@ -392,7 +409,7 @@ const DonationForm = ({ need, onSubmit }) => {
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                  $
+                  <FaMoneyBillWave className="text-gray-500" />
                 </span>
                 <input
                   type="number"
@@ -433,19 +450,21 @@ const DonationForm = ({ need, onSubmit }) => {
           {/* Service Donation Form */}
           {formData.type === "service" && formData.services?.length > 0 && (
             <div className="mb-6 space-y-4">
-              <h4 className="font-medium text-gray-700 mb-2">Service Items</h4>
+              <h4 className="font-medium text-gray-700 mb-2">
+                Service Application
+              </h4>
               {formData.services.map((item, index) => (
                 <div
                   key={index}
                   className="bg-gray-50 p-4 rounded-lg border border-gray-200"
                 >
                   <p className="font-medium text-primary">
-                    {item.categoryName} - {item.subCategoryName}
+                    {item.category} - {item.subCategory}
                   </p>
                   <div className="mt-3 space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Motivation
+                        Motivation (Max 1000 characters)
                       </label>
                       <textarea
                         name="motivation"
@@ -453,15 +472,16 @@ const DonationForm = ({ need, onSubmit }) => {
                         onChange={(e) => handleServiceChange(index, e)}
                         className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                         rows="3"
-                        required
+                        maxLength="1000"
                         placeholder="Why do you want to provide this service?"
+                        required
                       />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
                           <FaCalendarAlt className="mr-2 text-gray-500" />
-                          Start Date
+                          Start Date*
                         </label>
                         <input
                           type="date"
@@ -476,15 +496,14 @@ const DonationForm = ({ need, onSubmit }) => {
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
                           <FaCalendarAlt className="mr-2 text-gray-500" />
-                          End Date
+                          End Date (Optional)
                         </label>
                         <input
                           type="date"
                           name="endDate"
-                          value={item.endDate}
+                          value={item.endDate || ""}
                           onChange={(e) => handleServiceChange(index, e)}
                           className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                          required
                           min={
                             item.startDate ||
                             new Date().toISOString().split("T")[0]
@@ -495,7 +514,7 @@ const DonationForm = ({ need, onSubmit }) => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
                         <FaClock className="mr-2 text-gray-500" />
-                        Hours Per Week
+                        Hours Per Week*
                       </label>
                       <input
                         type="number"
@@ -505,6 +524,7 @@ const DonationForm = ({ need, onSubmit }) => {
                         className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                         min="1"
                         max="168"
+                        placeholder="Enter hours per week"
                         required
                       />
                     </div>
