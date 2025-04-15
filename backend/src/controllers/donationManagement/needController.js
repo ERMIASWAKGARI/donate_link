@@ -3,7 +3,10 @@ const path = require("path");
 const uploadNeedPictures = require("../../middleware/uploadNeedPictures");
 const AppError = require("../../utils/appError");
 const APIFeatures = require("../../utils/apiFeatures"); // Adjust path as needed
-// const Application = require("../../models/applicationModel");
+const socketIO = require("../../utils/socketConfig"); // Adjust path as needed
+const onlineUsers = socketIO.onlineUsers; // Adjust path as needed
+const io=socketIO.getIO; // Adjust path as needed
+console.log("onlineUsers", onlineUsers,io);
 
 // Helper function to handle the upload
 const handleUpload = (req, res) => {
