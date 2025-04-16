@@ -7,7 +7,7 @@ const socketIO = require("../../utils/socketConfig"); // Adjust path as needed
 const onlineUsers = socketIO.onlineUsers; // Adjust path as needed
 const io=socketIO.getIO; // Adjust path as needed
 console.log("onlineUsers", onlineUsers,io);
-
+const sendNotificationToGroup=require("../../utils/socketConfig").sendNotificationToGroup; // Adjust path as needed
 // Helper function to handle the upload
 const handleUpload = (req, res) => {
   return new Promise((resolve, reject) => {
@@ -120,7 +120,9 @@ const postNgosNeed = async (req, res, next) => {
         })),
       },
     });
-
+    
+    sendNotificationToGroup("role_ngo", "newNeed", need);
+             
     // Validate the document against the schema
     const validationError = need.validateSync();
     if (validationError) {

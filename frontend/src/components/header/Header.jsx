@@ -6,12 +6,25 @@ import logo from "../../assets/logo.png";
 import { UserContext } from "../../context/UserContext";
 import DesktopNav from "./DesktopNav";
 import MobileMenu from "./MobileMenu";
-
+import { useChat } from "../../context/ChatContext";
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { user, logout } = useContext(UserContext);
+  const { socket } = useChat();
+  console.log("socket", socket);
+  useEffect(() => {
+    if (!socket) return;
 
+    socket.on("newNeed", (data) => {
+      console.log("New need received:", data);
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off("newNeed");
+    };
+  }, [socket]);
   const handleLogout = () => {
     logout();
     navigate("/login");

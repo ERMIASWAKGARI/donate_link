@@ -100,6 +100,7 @@ export const ChatProvider = ({ children }) => {
       auth: {
         token: localStorage.getItem("accessToken"),
       },
+      autoConnect: true,
     });
 
     newSocket.on("connect", () => {
@@ -486,6 +487,7 @@ export const ChatProvider = ({ children }) => {
         fetchConversations,
         startConversation,
         fetchMessages,
+        socket,
         sendMessage,
         markMessagesAsRead,
         setActiveConversation: (conversation) => {

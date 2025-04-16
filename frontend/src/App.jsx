@@ -32,8 +32,6 @@ function App() {
       <div className="pb-16">
         <UserProvider>
           <ChatProvider>
-            {" "}
-            {/* Move ChatProvider here to wrap everything */}
             <ScrollToTop />
             <ToastContainer />
             <Routes>

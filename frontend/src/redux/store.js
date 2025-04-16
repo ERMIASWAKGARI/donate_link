@@ -4,6 +4,7 @@ import needReducer from "./needSlice";
 export const store = configureStore({
   reducer: {
     needs: needReducer,
+    
     // ...other reducers
   },
 });

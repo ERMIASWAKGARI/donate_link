@@ -20,14 +20,19 @@ const initializeSocket = (server) => {
       if (!token) return next(new Error("Unauthorized"));
       next();
     });
-
+socket.emit("newNeed","")
     // Handle user online status
     socket.on("userOnline", (userId) => {
       onlineUsers.set(userId, socket.id);
       socket.join(userId); // Join user's personal room
       console.log(`User ${userId} is online`);
     });
-
+//join room based on user role 
+    socket.on("joinRoleRoom", (role) => {
+      const roleRoom = `role_${role}`;
+      socket.join(roleRoom);
+      console.log(`Socket ${socket.id} joined role room ${roleRoom}`);
+    });
     // Handle conversation joining
     socket.on("joinConversation", (conversationId) => {
       socket.join(conversationId);
@@ -56,5 +61,11 @@ const getIO = () => {
   if (!io) throw new Error("Socket.IO not initialized");
   return io;
 };
-
-module.exports = { initializeSocket, getIO, onlineUsers };
+//send notification to the group of users based on their role
+const sendNotificationToGroup = (room, event, data) => {
+  //from the role of the user send only to the those online users
+  
+  io.to(room).emit(event, data);
+  console.log(`Notification sent to room ${room}: ${event}`, data);
+};
+module.exports = {sendNotificationToGroup, initializeSocket, getIO, onlineUsers };

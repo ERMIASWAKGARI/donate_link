@@ -1,6 +1,6 @@
 const Notification = require('../models/notificationModel');
 const { getIO, onlineUsers } = require('../utils/socketConfig');
-
+console.log("onlineUsers", onlineUsers);
 // Function to Create and Emit Notification
 const sendNotification = async (recipientId, message, type) => {
   console.log('Sending notification to:', recipientId, message, type);
