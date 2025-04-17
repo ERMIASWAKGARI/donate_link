@@ -1,11 +1,13 @@
 /* eslint-disable react/prop-types */
 import { AnimatePresence, motion } from "framer-motion";
-import { Bell, ChevronDown, MessageSquare } from "lucide-react";
+import { ChevronDown, MessageSquare } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useChat } from "../../context/ChatContext";
 import { headerLinks } from "./HeaderConfig";
 import ProfileDropdown from "./ProfileDropdown";
+import NotificationDropdown from "../NotificationDropdown";
+// import { useSocket } from "../context/SocketContext";
 
 import ChatModal from "../ChatModal"; // Import the ChatModal component
 
@@ -14,6 +16,7 @@ const DesktopNav = ({ user, handleLogout }) => {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [showChatModal, setShowChatModal] = useState(false);
   const { unreadCount } = useChat();
+  // const socket = useSocket();
 
   const dropdownRefs = {
     howItWorks: useRef(null),
@@ -290,16 +293,9 @@ const DesktopNav = ({ user, handleLogout }) => {
       </div>
 
       {/* Notification Icon */}
-      <motion.button
-        className="relative p-2 hover:text-yellow-400 transition"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        onClick={() => setActiveDropdown(null)} // Close dropdowns when clicking notifications
-      >
-        <Bell size={20} />
-        <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-      </motion.button>
-
+      <NotificationDropdown
+        onNotificationClick={() => setActiveDropdown(null)}
+      />
       {/* Profile Dropdown */}
       <ProfileDropdown
         user={user}

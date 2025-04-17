@@ -24,6 +24,8 @@ export const ChatProvider = ({ children }) => {
   const [conversationsError, setConversationsError] = useState(null);
   const [typingStatus, setTypingStatus] = useState({});
   const typingTimeoutRef = useRef(null);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationUnreadCount, setNotificationUnreadCount] = useState(0);
 
   const { user } = useUser();
 
@@ -62,18 +64,18 @@ export const ChatProvider = ({ children }) => {
             senderId !== currentUserId &&
             !lastMessage.readBy?.includes(currentUserId);
 
-          console.log(`[Unread Calc] Conv ${conv._id}:`, {
-            lastMsgId: lastMessage._id,
-            sender: senderId,
-            isUnread,
-            currentUser: currentUserId,
-            readBy: lastMessage.readBy,
-          });
+          // console.log(`[Unread Calc] Conv ${conv._id}:`, {
+          //   lastMsgId: lastMessage._id,
+          //   sender: senderId,
+          //   isUnread,
+          //   currentUser: currentUserId,
+          //   readBy: lastMessage.readBy,
+          // });
 
           return isUnread ? total + 1 : total;
         }, 0);
 
-        console.log(`[Unread Calc] Total unread: ${count}`);
+        // console.log(`[Unread Calc] Total unread: ${count}`);
         return count;
       } catch (error) {
         console.error("Error calculating unread count:", error);
@@ -123,13 +125,13 @@ export const ChatProvider = ({ children }) => {
     if (!socket) return undefined;
 
     const handleNewMessage = (message) => {
-      console.log("[Socket] New message received:", {
-        id: message._id,
-        sender: message.sender?._id,
-        isCurrentUser: message.sender?._id.toString() !== user?._id.toString(),
-        currentConversation: activeConversation?._id,
-        messageConversation: message.conversationId?._id,
-      });
+      // console.log("[Socket] New message received:", {
+      //   id: message._id,
+      //   sender: message.sender?._id,
+      //   isCurrentUser: message.sender?._id.toString() !== user?._id.toString(),
+      //   currentConversation: activeConversation?._id,
+      //   messageConversation: message.conversationId?._id,
+      // });
       if (!message?.sender) return; // Add this line
       try {
         if (activeConversation?._id === message?.conversationId?._id) {
@@ -155,7 +157,7 @@ export const ChatProvider = ({ children }) => {
           activeConversation?._id !== message?.conversationId?._id &&
           message?.sender?._id !== user?._id;
 
-        console.log("[Socket] Should increment unread?", shouldIncrement);
+        // console.log("[Socket] Should increment unread?", shouldIncrement);
 
         if (shouldIncrement) {
           setUnreadCount((prev) => {
@@ -342,7 +344,7 @@ export const ChatProvider = ({ children }) => {
   }, []);
   const sendMessage = useCallback(
     async (conversationId, content, attachments = []) => {
-      console.log("[Send] Attempting to send message...");
+      // console.log("[Send] Attempting to send message...");
       try {
         const { data } = await axios.post(
           `${API_BASE_URL}/api/chat/messages`,
@@ -356,11 +358,11 @@ export const ChatProvider = ({ children }) => {
         );
 
         const responseMessage = data.message || data.data?.message;
-        console.log("[Send] Message sent successfully:", {
-          id: responseMessage._id,
-          sender: responseMessage.sender?._id,
-          isCurrentUser: responseMessage.sender?._id === user?._id,
-        });
+        // console.log("[Send] Message sent successfully:", {
+        //   id: responseMessage._id,
+        //   sender: responseMessage.sender?._id,
+        //   isCurrentUser: responseMessage.sender?._id === user?._id,
+        // });
 
         if (!responseMessage) {
           throw new Error(data?.message || "Failed to send message");
@@ -377,7 +379,7 @@ export const ChatProvider = ({ children }) => {
         );
 
         if (socket) {
-          console.log("[Send] Emitting via socket");
+          // console.log("[Send] Emitting via socket");
           socket.emit("sendMessage", responseMessage);
         }
 
@@ -474,6 +476,113 @@ export const ChatProvider = ({ children }) => {
     },
     [socket]
   );
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewNotification = (notification) => {
+      setNotifications((prev) => [notification, ...prev]);
+      setNotificationUnreadCount((prev) => prev + 1);
+
+      // Browser notification
+      if (Notification.permission === "granted") {
+        new Notification("New Notification", {
+          body: notification.message,
+        });
+      }
+    };
+
+    socket.on("newNotification", handleNewNotification);
+
+    return () => {
+      socket.off("newNotification", handleNewNotification);
+    };
+  }, [socket]);
+
+  // Fetch notifications with proper data structure handling
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const { data } = await axios.get(`${API_BASE_URL}/api/notifications`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      });
+
+      if (data?.data?.notifications) {
+        setNotifications(data.data.notifications);
+        setNotificationUnreadCount(data.data.unreadCount || 0);
+      }
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      if (error.response?.status === 401) {
+        // Handle unauthorized error
+        console.error("Authentication expired, please log in again");
+      }
+    }
+  }, []);
+
+  // Mark single notification as read
+  const markNotificationAsRead = useCallback(async (notificationId) => {
+    try {
+      await axios.patch(
+        `${API_BASE_URL}/api/notifications/${notificationId}`,
+        {}, // Empty body
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        }
+      );
+
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === notificationId ? { ...n, seen: true } : n))
+      );
+      setNotificationUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      if (error.response?.status === 401) {
+        // Handle unauthorized error
+        console.error("Authentication expired, please log in again");
+      }
+    }
+  }, []);
+
+  // Mark all notifications as read
+  const markAllNotificationsAsRead = useCallback(async () => {
+    try {
+      const response = await axios.patch(
+        `${API_BASE_URL}/api/notifications/mark-all-read`,
+        {}, // Empty body
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+
+      if (response.status === 200) {
+        setNotifications((prev) => prev.map((n) => ({ ...n, seen: true })));
+        setNotificationUnreadCount(0);
+      }
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+
+      // Handle specific error cases
+      if (error.response) {
+        if (error.response.status === 401) {
+          localStorage.removeItem("accessToken");
+          window.location.href = "/login";
+        } else if (error.response.status === 500) {
+          // Try optimistic update if server fails
+          setNotifications((prev) => prev.map((n) => ({ ...n, seen: true })));
+          setNotificationUnreadCount(0);
+          console.warn("Server error but updated UI optimistically");
+        }
+      }
+    }
+  }, []);
   return (
     <ChatContext.Provider
       value={{
@@ -488,6 +597,11 @@ export const ChatProvider = ({ children }) => {
         fetchMessages,
         sendMessage,
         markMessagesAsRead,
+        notifications,
+        notificationUnreadCount,
+        fetchNotifications,
+        markNotificationAsRead,
+        markAllNotificationsAsRead,
         setActiveConversation: (conversation) => {
           if (
             conversation?.lastMessage &&

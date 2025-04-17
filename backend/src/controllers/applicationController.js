@@ -1,8 +1,11 @@
+const { getIO } = require("../utils/socketConfig");
 const asyncWrapper = require("../middleware/asyncWrapper");
 const AppError = require("../utils/appError");
 const sendSuccessResponse = require("../utils/responseHelper");
 const Application = require("../models/applicationModel");
 const Needs = require("../models/needsModel");
+const Notification = require("../models/notificationModel");
+
 const User = require("../models/User");
 
 // @desc    Get all applications for a specific need
@@ -12,7 +15,6 @@ const User = require("../models/User");
 exports.createApplication = asyncWrapper(async (req, res, next) => {
   const { needId } = req.params;
   const userId = req.user._id;
-
   const {
     motivation,
     startDate,
@@ -22,23 +24,20 @@ exports.createApplication = asyncWrapper(async (req, res, next) => {
     subCategory,
   } = req.body;
 
-  // Validate the need exists
-  const need = await Needs.findById(needId);
-  if (!need) {
-    return next(new AppError("Need not found", 404));
-  }
+  // Validate need exists with NGO
+  const need = await Needs.findById(needId).populate("NGO");
+  if (!need) return next(new AppError("Need not found", 404));
+  if (!need.NGO) return next(new AppError("Need has no associated NGO", 400));
 
-  // Check if the user already applied
+  // Prevent duplicate applications
   const existingApplication = await Application.findOne({
     need: needId,
     applicant: userId,
   });
-
-  if (existingApplication) {
+  if (existingApplication)
     return next(new AppError("You have already applied for this need", 400));
-  }
 
-  // Create the new application
+  // Create application
   const newApplication = await Application.create({
     applicant: userId,
     need: needId,
@@ -50,6 +49,47 @@ exports.createApplication = asyncWrapper(async (req, res, next) => {
     hoursPerWeek,
     status: "Submitted",
   });
+
+  // Notification handling
+  try {
+    const notification = await Notification.create({
+      recipient: need.NGO._id,
+      sender: userId,
+      message: `New application for "${need.title}" from ${req.user.name}`,
+      type: "application",
+      seen: false,
+      metadata: {
+        applicationId: newApplication._id,
+        needId: need._id,
+        applicantId: userId,
+      },
+    });
+
+    // Real-time notification
+    const io = getIO();
+    if (io) {
+      const ngoRoom = need.NGO._id.toString();
+
+      // Direct emission to NGO's room
+      io.to(ngoRoom).emit("newNotification", {
+        _id: notification._id,
+        message: notification.message,
+        type: notification.type,
+        createdAt: notification.createdAt,
+        seen: notification.seen,
+        metadata: notification.metadata,
+      });
+
+      // Broadcast for other services if needed
+      io.emit("applicationActivity", {
+        needId: need._id,
+        applicationId: newApplication._id,
+      });
+    }
+  } catch (err) {
+    console.error("Notification processing failed:", err);
+    // Continue even if notification fails
+  }
 
   return sendSuccessResponse(res, 201, {
     message: "Application submitted successfully",

@@ -11,6 +11,7 @@ const AppError = require("./utils/appError");
 const donationRoutes = require("./routes/donationRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const applicationRoutes = require("./routes/applicationRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 const path = require("path");
 
 dotenv.config();
@@ -64,6 +65,7 @@ app.use("/api/organization", donation);
 app.use("/api/chat", chatRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/application", applicationRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.all("*", (req, res, next) => {
   next(new AppError(`Cannot find ${req.originalUrl} on this server!`, 404));
 });
