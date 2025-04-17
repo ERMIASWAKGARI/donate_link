@@ -1,11 +1,11 @@
-import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import logo from "../../assets/logo.png";
-import { UserContext } from "../../context/UserContext";
-import DesktopNav from "./DesktopNav";
-import MobileMenu from "./MobileMenu";
+import { AnimatePresence, motion } from 'framer-motion';
+import { Menu, X } from 'lucide-react';
+import { useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import logo from '../../assets/logo.png';
+import { UserContext } from '../../context/UserContext';
+import DesktopNav from './DesktopNav';
+import MobileMenu from './MobileMenu';
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -14,18 +14,18 @@ const Header = () => {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate('/login');
   };
 
   useEffect(() => {
     if (menuOpen) {
-      document.body.classList.add("overflow-hidden");
+      document.body.classList.add('overflow-hidden');
     } else {
-      document.body.classList.remove("overflow-hidden");
+      document.body.classList.remove('overflow-hidden');
     }
 
     return () => {
-      document.body.classList.remove("overflow-hidden");
+      document.body.classList.remove('overflow-hidden');
     };
   }, [menuOpen]);
 
@@ -34,7 +34,7 @@ const Header = () => {
       className="bg-[#008080] text-white z-50 sticky top-0 shadow-lg"
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
@@ -42,7 +42,7 @@ const Header = () => {
           <motion.div
             className="flex items-center cursor-pointer"
             whileHover={{ scale: 1.05 }}
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate('/dashboard')}
           >
             <img src={logo} alt="Logo" className="h-10 w-auto" />
             <span className="ml-2 text-yellow-400 font-bold text-xl">

@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 // SocketContext.js
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
 import { useUser } from './UserContext';
 
@@ -12,23 +12,31 @@ export const SocketProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const { user } = useUser();
 
-  // Socket event handlers
-  const [eventHandlers, setEventHandlers] = useState({});
+  // Replace eventHandlers state with a ref
+  const eventHandlersRef = useRef({});
 
   // Register event handlers
   const on = (eventName, handler) => {
-    setEventHandlers((prev) => ({
-      ...prev,
-      [eventName]: [...(prev[eventName] || []), handler],
-    }));
+    if (!eventHandlersRef.current[eventName]) {
+      eventHandlersRef.current[eventName] = [];
+    }
+    eventHandlersRef.current[eventName].push(handler);
+
+    if (socket) {
+      socket.on(eventName, handler);
+    }
   };
 
   // Unregister event handlers
   const off = (eventName, handler) => {
-    setEventHandlers((prev) => ({
-      ...prev,
-      [eventName]: (prev[eventName] || []).filter((h) => h !== handler),
-    }));
+    const handlers = eventHandlersRef.current[eventName];
+    if (!handlers) return;
+
+    eventHandlersRef.current[eventName] = handlers.filter((h) => h !== handler);
+
+    if (socket) {
+      socket.off(eventName, handler);
+    }
   };
 
   // Emit events
@@ -40,7 +48,7 @@ export const SocketProvider = ({ children }) => {
 
   // Initialize socket connection
   useEffect(() => {
-    if (!user?._id) return undefined;
+    if (!user?._id) return;
 
     const newSocket = io(API_BASE_URL, {
       query: { userId: user._id },
@@ -73,25 +81,6 @@ export const SocketProvider = ({ children }) => {
       setIsConnected(false);
     };
   }, [user]);
-
-  // Register/unregister event handlers
-  useEffect(() => {
-    if (!socket) return;
-
-    Object.entries(eventHandlers).forEach(([eventName, handlers]) => {
-      handlers.forEach((handler) => {
-        socket.on(eventName, handler);
-      });
-    });
-
-    return () => {
-      Object.entries(eventHandlers).forEach(([eventName, handlers]) => {
-        handlers.forEach((handler) => {
-          socket.off(eventName, handler);
-        });
-      });
-    };
-  }, [socket, eventHandlers]);
 
   return (
     <SocketContext.Provider

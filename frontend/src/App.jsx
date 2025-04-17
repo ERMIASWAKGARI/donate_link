@@ -24,6 +24,7 @@ import VolunteerDashboard from './pages/volunteer/VolunteerDashboard';
 // import UserProfile from "./components/header/UserProfile";
 import { Provider } from 'react-redux';
 import { ChatProvider } from './context/ChatContext';
+import { NotificationProvider } from './context/NotificationContext';
 import { SocketProvider } from './context/SocketContext';
 import UserProfilePage from './pages/profile/UserProfilePage';
 import { store } from './redux/store';
@@ -35,52 +36,57 @@ function App() {
         <UserProvider>
           <SocketProvider>
             <ChatProvider>
-              {' '}
-              {/* Move ChatProvider here to wrap everything */}
-              <ScrollToTop />
-              <ToastContainer />
-              <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/verify-email" element={<VerifyEmail />} />
-                <Route path="/verify-otp" element={<VerifyOtp />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
+              <NotificationProvider>
+                {' '}
+                {/* Move ChatProvider here to wrap everything */}
+                <ScrollToTop />
+                <ToastContainer />
+                <Routes>
+                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/verify-email" element={<VerifyEmail />} />
+                  <Route path="/verify-otp" element={<VerifyOtp />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
 
-                <Route element={<PrivateRoute />}>
-                  <Route
-                    path="/donor/dashboard"
-                    element={<IndividualDashboard />}
-                  />
-                </Route>
-                <Route element={<PrivateRoute />}>
-                  <Route path="/donor/NeedDetail" element={<NeedDetail />} />
-                </Route>
+                  <Route element={<PrivateRoute />}>
+                    <Route
+                      path="/donor/dashboard"
+                      element={<IndividualDashboard />}
+                    />
+                  </Route>
+                  <Route element={<PrivateRoute />}>
+                    <Route path="/donor/NeedDetail" element={<NeedDetail />} />
+                  </Route>
 
-                {/* Corrected: Just the Route component */}
-                <Route path="/chat" element={<ChatModal />} />
+                  {/* Corrected: Just the Route component */}
+                  <Route path="/chat" element={<ChatModal />} />
 
-                <Route element={<PrivateRoute />}>
-                  <Route path="/ngo/dashboard" element={<NgoDashboard />} />
-                </Route>
+                  <Route element={<PrivateRoute />}>
+                    <Route path="/ngo/dashboard" element={<NgoDashboard />} />
+                  </Route>
 
-                <Route element={<PrivateRoute />}>
-                  <Route
-                    path="/volunteer/dashboard"
-                    element={<VolunteerDashboard />}
-                  />
-                </Route>
+                  <Route element={<PrivateRoute />}>
+                    <Route
+                      path="/volunteer/dashboard"
+                      element={<VolunteerDashboard />}
+                    />
+                  </Route>
 
-                <Route element={<PrivateRoute />}>
-                  <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                  <Route path="/admin/users" element={<Users />} />
-                  <Route path="/admin/users/:id" element={<UserDetail />} />
-                  <Route path="/post-donation" element={<DonationForm />} />
-                  <Route path="/profile" element={<UserProfilePage />} />
-                </Route>
-                <Route path="*" element={<NotFoundPage />} />
-              </Routes>
+                  <Route element={<PrivateRoute />}>
+                    <Route
+                      path="/admin/dashboard"
+                      element={<AdminDashboard />}
+                    />
+                    <Route path="/admin/users" element={<Users />} />
+                    <Route path="/admin/users/:id" element={<UserDetail />} />
+                    <Route path="/post-donation" element={<DonationForm />} />
+                    <Route path="/profile" element={<UserProfilePage />} />
+                  </Route>
+                  <Route path="*" element={<NotFoundPage />} />
+                </Routes>
+              </NotificationProvider>
             </ChatProvider>
           </SocketProvider>
         </UserProvider>

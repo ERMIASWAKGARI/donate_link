@@ -4,37 +4,41 @@ const AppError = require('../utils/appError');
 const APIFeatures = require('../utils/apiFeatures');
 
 exports.getNotifications = asyncWrapper(async (req, res) => {
-  const baseQuery = { recipient: req.user.id };
+  const { seen, page = 1, limit = 5 } = req.query;
+  console.log('Fetching notifications:', req.query);
 
-  if (req.query.seen === 'false') {
+  const baseQuery = { recipient: req.user.id };
+  if (seen === 'false') {
     baseQuery.seen = false;
   }
 
-  const features = new APIFeatures(Notification.find(baseQuery), req.query)
-    .filter()
-    .sort()
-    .limit()
-    .paginate();
+  // Calculate skip value for pagination
+  const skip = (page - 1) * limit;
 
-  const notifications = await features.executeQuery();
+  // Get paginated notifications
+  const notifications = await Notification.find(baseQuery)
+    .sort({ createdAt: -1 }) // Newest first
+    .skip(skip)
+    .limit(limit);
 
+  // Count total matching notifications
   const total = await Notification.countDocuments(baseQuery);
-  const page = parseInt(req.query.page, 10) || 1;
-  const limit = parseInt(req.query.limit, 10) || 5;
+
+  // Count unread notifications (for the badge)
+  const unreadCount = await Notification.countDocuments({
+    recipient: req.user.id,
+    seen: false,
+  });
 
   res.status(200).json({
     status: 'success',
-    results: notifications.length,
-    page,
-    limit,
-    total,
-    hasMore: page * limit < total,
     data: {
       notifications,
-      unreadCount: await Notification.countDocuments({
-        recipient: req.user.id,
-        seen: false,
-      }),
+      unreadCount,
+      total,
+      currentPage: Number(page),
+      totalPages: Math.ceil(total / limit),
+      hasMore: page * limit < total,
     },
   });
 });
