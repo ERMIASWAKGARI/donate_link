@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { FiBell, FiLogOut, FiMenu, FiUser } from 'react-icons/fi';
+import { FiLogOut, FiMenu, FiUser } from 'react-icons/fi';
+import NotificationBell from '../../../components/NotificationBell';
 import { useUser } from '../../../context/UserContext';
 
 const TopNav = () => {
@@ -9,12 +10,13 @@ const TopNav = () => {
   const toggleDropdown = () => setShowDropdown(!showDropdown);
 
   const handleLogout = () => {
-    logout(); // Call the logout function
-    window.location.href = '/login'; // Redirect to login page
+    logout();
+    window.location.href = '/login';
   };
 
   return (
     <header className="bg-white shadow-sm h-16 flex items-center justify-between px-6 relative z-10">
+      {/* Left: Logo/Menu */}
       <div className="flex items-center">
         <button className="md:hidden mr-4 text-gray-600 hover:text-indigo-600">
           <FiMenu size={24} />
@@ -22,12 +24,12 @@ const TopNav = () => {
         <h2 className="text-lg font-semibold text-gray-800">Admin Dashboard</h2>
       </div>
 
-      <div className="flex items-center space-x-4">
-        <button className="p-2 rounded-full hover:bg-gray-100 text-gray-600 hover:text-indigo-600">
-          <FiBell size={20} />
-        </button>
+      {/* Right: Actions */}
+      <div className="flex items-center">
+        <NotificationBell />
 
-        <div className="relative">
+        {/* Spacer */}
+        <div className="ml-4 relative">
           <button
             className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-full transition"
             onClick={toggleDropdown}
@@ -53,7 +55,7 @@ const TopNav = () => {
                 className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                 onClick={() => {
                   setShowDropdown(false);
-                  // Navigate to profile or open modal
+                  // Add profile navigation here
                 }}
               >
                 <FiUser className="mr-2" /> Profile
