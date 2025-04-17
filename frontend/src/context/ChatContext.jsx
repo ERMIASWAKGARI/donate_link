@@ -1,31 +1,32 @@
+import axios from 'axios';
+import PropTypes from 'prop-types';
 import {
   createContext,
-  useContext,
-  useState,
-  useEffect,
   useCallback,
+  useContext,
+  useEffect,
   useRef,
-} from "react";
-import axios from "axios";
-import PropTypes from "prop-types";
-import io from "socket.io-client"; // Fixed import
-import { useUser } from "./UserContext";
+  useState,
+} from 'react';
+import { useSocket } from './SocketContext';
+import { useUser } from './UserContext';
 
 const ChatContext = createContext();
-const API_BASE_URL = import.meta.env.BACKEND_URL || "http://localhost:5000";
+const API_BASE_URL = import.meta.env.BACKEND_URL || 'http://localhost:5000';
 
 export const ChatProvider = ({ children }) => {
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [socket, setSocket] = useState(null);
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
   const [conversationsError, setConversationsError] = useState(null);
   const [typingStatus, setTypingStatus] = useState({});
   const typingTimeoutRef = useRef(null);
+  const currentConversationId = useRef(null);
 
   const { user } = useUser();
+  const { isConnected, on, off, emit } = useSocket();
 
   // Enhanced unread count calculation (keep existing)
   const calculateUnreadCount = useCallback(
@@ -49,7 +50,7 @@ export const ChatProvider = ({ children }) => {
           // Skip if we can't determine sender
           if (!senderId) {
             console.warn(
-              "Could not determine sender for message:",
+              'Could not determine sender for message:',
               lastMessage._id
             );
             return total;
@@ -76,12 +77,13 @@ export const ChatProvider = ({ children }) => {
         console.log(`[Unread Calc] Total unread: ${count}`);
         return count;
       } catch (error) {
-        console.error("Error calculating unread count:", error);
+        console.error('Error calculating unread count:', error);
         return 0;
       }
     },
     [user?._id]
   );
+
   // Keep existing useEffect for unread count
   useEffect(() => {
     if (conversations) {
@@ -90,47 +92,21 @@ export const ChatProvider = ({ children }) => {
     }
   }, [conversations, calculateUnreadCount]);
 
-  // Enhanced socket initialization
+  // Enhanced socket event listeners using the new SocketContext
   useEffect(() => {
-    if (!user?._id) return undefined;
-
-    const newSocket = io(API_BASE_URL, {
-      query: { userId: user._id },
-      transports: ["websocket"],
-      auth: {
-        token: localStorage.getItem("accessToken"),
-      },
-    });
-
-    newSocket.on("connect", () => {
-      console.log("Socket connected:", newSocket.id);
-      newSocket.emit("userOnline", user._id);
-    });
-
-    newSocket.on("connect_error", (err) => {
-      console.error("Socket connection error:", err);
-    });
-
-    setSocket(newSocket);
-
-    return () => {
-      newSocket.disconnect();
-    };
-  }, [user]);
-
-  // Enhanced socket event listeners
-  useEffect(() => {
-    if (!socket) return undefined;
+    if (!isConnected) return undefined;
 
     const handleNewMessage = (message) => {
-      console.log("[Socket] New message received:", {
+      console.log('[Socket] New message received:', {
         id: message._id,
         sender: message.sender?._id,
         isCurrentUser: message.sender?._id.toString() !== user?._id.toString(),
         currentConversation: activeConversation?._id,
         messageConversation: message.conversationId?._id,
       });
-      if (!message?.sender) return; // Add this line
+
+      if (!message?.sender) return;
+
       try {
         if (activeConversation?._id === message?.conversationId?._id) {
           setMessages((prev) => [
@@ -155,21 +131,21 @@ export const ChatProvider = ({ children }) => {
           activeConversation?._id !== message?.conversationId?._id &&
           message?.sender?._id !== user?._id;
 
-        console.log("[Socket] Should increment unread?", shouldIncrement);
+        console.log('[Socket] Should increment unread?', shouldIncrement);
 
         if (shouldIncrement) {
           setUnreadCount((prev) => {
             console.log(
-              "[Socket] Incrementing unread from",
+              '[Socket] Incrementing unread from',
               prev,
-              "to",
+              'to',
               prev + 1
             );
             return prev + 1;
           });
         }
       } catch (error) {
-        console.error("Error handling new message:", error);
+        console.error('Error handling new message:', error);
       }
     };
 
@@ -185,27 +161,34 @@ export const ChatProvider = ({ children }) => {
       }
     };
 
-    socket.on("newMessage", handleNewMessage);
-    socket.on("unreadUpdate", handleUnreadUpdate);
-    socket.on("typing", handleTyping);
+    // Register event handlers using the new socket context
+    on('newMessage', handleNewMessage);
+    on('unreadUpdate', handleUnreadUpdate);
+    on('typing', handleTyping);
 
     return () => {
-      socket.off("newMessage", handleNewMessage);
-      socket.off("unreadUpdate", handleUnreadUpdate);
-      socket.off("typing", handleTyping);
+      off('newMessage', handleNewMessage);
+      off('unreadUpdate', handleUnreadUpdate);
+      off('typing', handleTyping);
     };
-  }, [socket, activeConversation, user?._id]);
+  }, [isConnected, activeConversation, user?._id, on, off]);
 
-  // Add conversation room joining
+  // Add a ref to track the current conversation
+
   useEffect(() => {
-    if (socket && activeConversation?._id) {
-      socket.emit("joinConversation", activeConversation._id);
+    if (isConnected && activeConversation?._id) {
+      // Only join if we're not already in this conversation
+      if (currentConversationId.current !== activeConversation._id) {
+        console.log('Joining conversation:', activeConversation._id);
+        emit('joinConversation', activeConversation._id);
+        currentConversationId.current = activeConversation._id;
+      }
     }
-  }, [socket, activeConversation]);
+  }, [isConnected, activeConversation?._id, emit]);
 
   // Enhanced fetchConversations with loading state and error handling
   const fetchConversations = useCallback(async () => {
-    if (!localStorage.getItem("accessToken")) return;
+    if (!localStorage.getItem('accessToken')) return;
 
     setIsLoadingConversations(true);
     try {
@@ -213,7 +196,7 @@ export const ChatProvider = ({ children }) => {
         `${API_BASE_URL}/api/chat/conversations`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
         }
       );
@@ -221,7 +204,7 @@ export const ChatProvider = ({ children }) => {
       const conversationsData = data?.message?.conversations || [];
 
       if (!Array.isArray(conversationsData)) {
-        throw new Error("Invalid conversations data format");
+        throw new Error('Invalid conversations data format');
       }
 
       // Ensure lastMessage.sender is properly formatted
@@ -245,7 +228,7 @@ export const ChatProvider = ({ children }) => {
       setUnreadCount(calculateUnreadCount(normalizedConversations));
       return normalizedConversations;
     } catch (error) {
-      console.error("Fetch error:", error);
+      console.error('Fetch error:', error);
       setConversationsError(error);
       throw error;
     } finally {
@@ -266,13 +249,13 @@ export const ChatProvider = ({ children }) => {
         `${API_BASE_URL}/api/chat/conversation/${participantId}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
         }
       );
 
       if (!data?.conversation) {
-        throw new Error(data?.message || "Failed to create conversation");
+        throw new Error(data?.message || 'Failed to create conversation');
       }
 
       // Update conversations list with the new conversation
@@ -283,7 +266,7 @@ export const ChatProvider = ({ children }) => {
 
       return data.conversation;
     } catch (error) {
-      console.error("Conversation error:", error);
+      console.error('Conversation error:', error);
       throw error;
     }
   }, []);
@@ -300,7 +283,7 @@ export const ChatProvider = ({ children }) => {
             setActiveConversation(conversations[0]);
           }
         } catch (error) {
-          console.error("Failed to initialize chat:", error);
+          console.error('Failed to initialize chat:', error);
         }
       }
     };
@@ -316,7 +299,7 @@ export const ChatProvider = ({ children }) => {
         `${API_BASE_URL}/api/chat/messages/${conversationId}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
         }
       );
@@ -335,35 +318,36 @@ export const ChatProvider = ({ children }) => {
       setMessages(sortedMessages);
       return sortedMessages;
     } catch (error) {
-      console.error("Error fetching messages:", error);
+      console.error('Error fetching messages:', error);
       setMessages([]);
       throw error;
     }
   }, []);
+
   const sendMessage = useCallback(
     async (conversationId, content, attachments = []) => {
-      console.log("[Send] Attempting to send message...");
+      console.log('[Send] Attempting to send message...');
       try {
         const { data } = await axios.post(
           `${API_BASE_URL}/api/chat/messages`,
           { conversationId, content, attachments },
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+              'Content-Type': 'application/json',
             },
           }
         );
 
         const responseMessage = data.message || data.data?.message;
-        console.log("[Send] Message sent successfully:", {
+        console.log('[Send] Message sent successfully:', {
           id: responseMessage._id,
           sender: responseMessage.sender?._id,
           isCurrentUser: responseMessage.sender?._id === user?._id,
         });
 
         if (!responseMessage) {
-          throw new Error(data?.message || "Failed to send message");
+          throw new Error(data?.message || 'Failed to send message');
         }
 
         // Update local state (no unread count change)
@@ -376,20 +360,20 @@ export const ChatProvider = ({ children }) => {
           )
         );
 
-        if (socket) {
-          console.log("[Send] Emitting via socket");
-          socket.emit("sendMessage", responseMessage);
+        if (isConnected) {
+          console.log('[Send] Emitting via socket');
+          emit('sendMessage', responseMessage);
         }
 
         return responseMessage;
       } catch (error) {
-        console.error("Send message error:", error);
+        console.error('Send message error:', error);
         throw error;
       }
     },
-    [socket]
+    [isConnected, emit, user?._id]
   );
-  // In your ChatContext
+
   const markMessagesAsRead = useCallback(
     async (messageIds) => {
       if (!Array.isArray(messageIds) || messageIds.length === 0 || !user?._id)
@@ -413,7 +397,7 @@ export const ChatProvider = ({ children }) => {
           { messageIds: incomingMessageIds },
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
             },
           }
         );
@@ -451,29 +435,31 @@ export const ChatProvider = ({ children }) => {
           })
         );
       } catch (error) {
-        console.error("Error marking messages as read:", error);
+        console.error('Error marking messages as read:', error);
       }
     },
     [user?._id, messages]
   );
+
   const handleTyping = useCallback(
     (conversationId, isTyping) => {
-      if (!socket || !conversationId) return;
+      if (!isConnected || !conversationId) return;
 
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
 
-      socket.emit("typing", { conversationId, isTyping });
+      emit('typing', { conversationId, isTyping });
 
       if (isTyping) {
         typingTimeoutRef.current = setTimeout(() => {
-          socket.emit("typing", { conversationId, isTyping: false });
+          emit('typing', { conversationId, isTyping: false });
         }, 3000);
       }
     },
-    [socket]
+    [isConnected, emit]
   );
+
   return (
     <ChatContext.Provider
       value={{
@@ -498,8 +484,7 @@ export const ChatProvider = ({ children }) => {
           }
           setActiveConversation(conversation);
         },
-        socketConnected: socket?.connected || false,
-
+        socketConnected: isConnected,
         typingStatus,
         handleTyping,
       }}
@@ -516,7 +501,7 @@ ChatProvider.propTypes = {
 export const useChat = () => {
   const context = useContext(ChatContext);
   if (context === undefined) {
-    throw new Error("useChat must be used within a ChatProvider");
+    throw new Error('useChat must be used within a ChatProvider');
   }
   return context;
 };
