@@ -1,14 +1,14 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-} from "react";
 import axios from "axios";
 import PropTypes from "prop-types";
-import io from "socket.io-client"; // Fixed import
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { useSocket } from "./SocketContext";
 import { useUser } from "./UserContext";
 
 const ChatContext = createContext();
@@ -19,13 +19,14 @@ export const ChatProvider = ({ children }) => {
   const [activeConversation, setActiveConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [socket, setSocket] = useState(null);
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
   const [conversationsError, setConversationsError] = useState(null);
   const [typingStatus, setTypingStatus] = useState({});
   const typingTimeoutRef = useRef(null);
+  const currentConversationId = useRef(null);
 
   const { user } = useUser();
+  const { isConnected, on, off, emit } = useSocket();
 
   // Enhanced unread count calculation (keep existing)
   const calculateUnreadCount = useCallback(
@@ -82,6 +83,7 @@ export const ChatProvider = ({ children }) => {
     },
     [user?._id]
   );
+
   // Keep existing useEffect for unread count
   useEffect(() => {
     if (conversations) {
@@ -90,38 +92,9 @@ export const ChatProvider = ({ children }) => {
     }
   }, [conversations, calculateUnreadCount]);
 
-  // Enhanced socket initialization
+  // Enhanced socket event listeners using the new SocketContext
   useEffect(() => {
-    if (!user?._id) return undefined;
-
-    const newSocket = io(API_BASE_URL, {
-      query: { userId: user._id },
-      transports: ["websocket"],
-      auth: {
-        token: localStorage.getItem("accessToken"),
-      },
-      autoConnect: true,
-    });
-
-    newSocket.on("connect", () => {
-      console.log("Socket connected:", newSocket.id);
-      newSocket.emit("userOnline", user._id);
-    });
-
-    newSocket.on("connect_error", (err) => {
-      console.error("Socket connection error:", err);
-    });
-
-    setSocket(newSocket);
-
-    return () => {
-      newSocket.disconnect();
-    };
-  }, [user]);
-
-  // Enhanced socket event listeners
-  useEffect(() => {
-    if (!socket) return undefined;
+    if (!isConnected) return undefined;
 
     const handleNewMessage = (message) => {
       console.log("[Socket] New message received:", {
@@ -131,7 +104,9 @@ export const ChatProvider = ({ children }) => {
         currentConversation: activeConversation?._id,
         messageConversation: message.conversationId?._id,
       });
-      if (!message?.sender) return; // Add this line
+
+      if (!message?.sender) return;
+
       try {
         if (activeConversation?._id === message?.conversationId?._id) {
           setMessages((prev) => [
@@ -186,23 +161,30 @@ export const ChatProvider = ({ children }) => {
       }
     };
 
-    socket.on("newMessage", handleNewMessage);
-    socket.on("unreadUpdate", handleUnreadUpdate);
-    socket.on("typing", handleTyping);
+    // Register event handlers using the new socket context
+    on("newMessage", handleNewMessage);
+    on("unreadUpdate", handleUnreadUpdate);
+    on("typing", handleTyping);
 
     return () => {
-      socket.off("newMessage", handleNewMessage);
-      socket.off("unreadUpdate", handleUnreadUpdate);
-      socket.off("typing", handleTyping);
+      off("newMessage", handleNewMessage);
+      off("unreadUpdate", handleUnreadUpdate);
+      off("typing", handleTyping);
     };
-  }, [socket, activeConversation, user?._id]);
+  }, [isConnected, activeConversation, user?._id, on, off]);
 
-  // Add conversation room joining
+  // Add a ref to track the current conversation
+
   useEffect(() => {
-    if (socket && activeConversation?._id) {
-      socket.emit("joinConversation", activeConversation._id);
+    if (isConnected && activeConversation?._id) {
+      // Only join if we're not already in this conversation
+      if (currentConversationId.current !== activeConversation._id) {
+        console.log("Joining conversation:", activeConversation._id);
+        emit("joinConversation", activeConversation._id);
+        currentConversationId.current = activeConversation._id;
+      }
     }
-  }, [socket, activeConversation]);
+  }, [isConnected, activeConversation?._id, emit]);
 
   // Enhanced fetchConversations with loading state and error handling
   const fetchConversations = useCallback(async () => {
@@ -341,6 +323,7 @@ export const ChatProvider = ({ children }) => {
       throw error;
     }
   }, []);
+
   const sendMessage = useCallback(
     async (conversationId, content, attachments = []) => {
       console.log("[Send] Attempting to send message...");
@@ -377,9 +360,9 @@ export const ChatProvider = ({ children }) => {
           )
         );
 
-        if (socket) {
+        if (isConnected) {
           console.log("[Send] Emitting via socket");
-          socket.emit("sendMessage", responseMessage);
+          emit("sendMessage", responseMessage);
         }
 
         return responseMessage;
@@ -388,9 +371,9 @@ export const ChatProvider = ({ children }) => {
         throw error;
       }
     },
-    [socket]
+    [isConnected, emit, user?._id]
   );
-  // In your ChatContext
+
   const markMessagesAsRead = useCallback(
     async (messageIds) => {
       if (!Array.isArray(messageIds) || messageIds.length === 0 || !user?._id)
@@ -457,24 +440,26 @@ export const ChatProvider = ({ children }) => {
     },
     [user?._id, messages]
   );
+
   const handleTyping = useCallback(
     (conversationId, isTyping) => {
-      if (!socket || !conversationId) return;
+      if (!isConnected || !conversationId) return;
 
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
 
-      socket.emit("typing", { conversationId, isTyping });
+      emit("typing", { conversationId, isTyping });
 
       if (isTyping) {
         typingTimeoutRef.current = setTimeout(() => {
-          socket.emit("typing", { conversationId, isTyping: false });
+          emit("typing", { conversationId, isTyping: false });
         }, 3000);
       }
     },
-    [socket]
+    [isConnected, emit]
   );
+
   return (
     <ChatContext.Provider
       value={{
@@ -500,8 +485,7 @@ export const ChatProvider = ({ children }) => {
           }
           setActiveConversation(conversation);
         },
-        socketConnected: socket?.connected || false,
-
+        socketConnected: isConnected,
         typingStatus,
         handleTyping,
       }}

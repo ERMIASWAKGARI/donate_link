@@ -6,7 +6,7 @@ import logo from "../../assets/logo.png";
 import { UserContext } from "../../context/UserContext";
 import DesktopNav from "./DesktopNav";
 import MobileMenu from "./MobileMenu";
-import { useChat } from "../../context/ChatContext";
+
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
