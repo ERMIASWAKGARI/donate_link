@@ -474,11 +474,11 @@ export const ChatProvider = ({ children }) => {
         fetchMessages,
         sendMessage,
         markMessagesAsRead,
-        notifications,
-        notificationUnreadCount,
-        fetchNotifications,
-        markNotificationAsRead,
-        markAllNotificationsAsRead,
+        // notifications,
+        // notificationUnreadCount,
+        // fetchNotifications,
+        // markNotificationAsRead,
+        // markAllNotificationsAsRead,
         setActiveConversation: (conversation) => {
           if (
             conversation?.lastMessage &&
