@@ -175,7 +175,7 @@ const uploadProfilePicture = asyncWrapper(async (req, res) => {
 
 const uploadVerificationDocs = asyncWrapper(async (req, res) => {
   const user = await User.findById(req.user._id).select(
-    '+ngoVerificationDocs +organizationVerificationDocs +volunteerVerificationDocs'
+    '+ngoVerificationDocs +organizationVerificationDocs +volunteerVerificationDocs +verificationStatus'
   );
 
   if (!user) throw new AppError('User not found.', 404);
@@ -238,6 +238,10 @@ const uploadVerificationDocs = asyncWrapper(async (req, res) => {
 
   // Update user document
   user[config.field] = processedDocs;
+
+  // Set verification status to pending
+  user.verificationStatus = 'pending';
+
   await user.save();
 
   // Notify admins
@@ -254,6 +258,7 @@ const uploadVerificationDocs = asyncWrapper(async (req, res) => {
   sendSuccessResponse(res, 200, 'Documents uploaded successfully!', {
     uploadedFiles: processedDocs,
     requiredDocuments: config.required,
+    verificationStatus: user.verificationStatus, // Include the new status in response
   });
 });
 

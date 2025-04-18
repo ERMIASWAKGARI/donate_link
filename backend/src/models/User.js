@@ -111,6 +111,11 @@ const userSchema = new mongoose.Schema(
     },
 
     isVerified: { type: Boolean },
+    verificationStatus: {
+      type: String,
+      enum: ['not_verified', 'pending', 'verified'],
+      default: 'not_verified',
+    },
 
     // VOLUNTEER FIELDS
     skills: { type: [String], default: undefined },

@@ -162,6 +162,7 @@ const verifyUser = asyncWrapper(async (req, res) => {
   }
 
   user.isVerified = true;
+  user.verificationStatus = 'verified';
   await user.save();
 
   sendNotification(
@@ -210,6 +211,7 @@ const rejectUserVerification = asyncWrapper(async (req, res) => {
   }
 
   user.isVerified = false;
+  user.verificationStatus = 'not_verified';
   await user.save();
 
   sendNotification(

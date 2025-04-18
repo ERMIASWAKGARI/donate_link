@@ -1,52 +1,31 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import {
+  BankOutlined,
   CalendarOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  CloseCircleOutlined,
   CloseOutlined,
   EditOutlined,
   EnvironmentOutlined,
-  GlobalOutlined,
   IdcardOutlined,
   MailOutlined,
   PhoneOutlined,
+  SafetyOutlined,
   SaveOutlined,
+  SolutionOutlined,
+  TeamOutlined,
   UploadOutlined,
   UserOutlined,
   VerifiedOutlined,
 } from '@ant-design/icons';
-import {
-  Avatar,
-  Badge,
-  Button,
-  Card,
-  DatePicker,
-  Divider,
-  Form,
-  Input,
-  message,
-  Progress,
-  Select,
-  Space,
-  Tag,
-  Tooltip,
-  Typography,
-  Upload,
-} from 'antd';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
-const { Title, Text } = Typography;
-const { Option } = Select;
-
-const API_BASE_URL = import.meta.env.BACKEND_URL || 'http://localhost:5000';
-
-const ProfileBasicInfo = ({ user, loading, setLoading, onProfileUpdate }) => {
-  const [form] = Form.useForm();
-  const [uploading, setUploading] = useState(false);
+const ProfileBasicInfo = ({ user, onProfileUpdate }) => {
   const [profileCompletion, setProfileCompletion] = useState(0);
   const [editingField, setEditingField] = useState(null);
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   // Calculate profile completion percentage
   useEffect(() => {
@@ -65,408 +44,539 @@ const ProfileBasicInfo = ({ user, loading, setLoading, onProfileUpdate }) => {
 
   const handleCancelEdit = () => {
     setEditingField(null);
-    form.resetFields();
   };
 
   const handleSaveField = async (fieldName) => {
     try {
       setLoading(true);
-      const values = await form.validateFields([fieldName]);
-
-      // Simulate API call with timeout
+      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      message.success(`${fieldName.replace(/_/g, ' ')} updated successfully`);
       setEditingField(null);
       onProfileUpdate?.();
     } catch (error) {
-      message.error(
-        error.response?.data?.message || `Failed to update ${fieldName}`
-      );
+      console.error(`Failed to update ${fieldName}`, error);
     } finally {
       setLoading(false);
     }
   };
 
-  const beforeUpload = (file) => {
-    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-    if (!isJpgOrPng) {
-      message.error('You can only upload JPG/PNG files!');
-      return Upload.LIST_IGNORE;
-    }
-    const isLt2M = file.size / 1024 / 1024 < 2;
-    if (!isLt2M) {
-      message.error('Image must be smaller than 2MB!');
-      return Upload.LIST_IGNORE;
-    }
-    return isJpgOrPng && isLt2M;
-  };
-
   const getRoleTagColor = () => {
     switch (user.role) {
       case 'admin':
-        return 'red';
+        return 'bg-red-100 text-red-800';
       case 'ngo':
-        return '#008080';
+        return 'bg-teal-100 text-teal-800';
       case 'volunteer':
-        return 'blue';
+        return 'bg-blue-100 text-blue-800';
       case 'organization_donor':
-        return 'green';
+        return 'bg-green-100 text-green-800';
       case 'individual_donor':
-        return 'orange';
+        return 'bg-amber-100 text-amber-800';
       default:
-        return 'gray';
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const renderSocialLinks = () => {
-    if (!user.socialLinks || !user.socialLinks.length) {
-      return <Text type="secondary">No social links added</Text>;
+  const getVerificationStatus = (status) => {
+    switch (status) {
+      case 'verified':
+        return {
+          color: 'bg-green-100 text-green-800',
+          icon: <CheckCircleOutlined className="text-green-500" />,
+          text: 'Verified',
+        };
+      case 'pending':
+        return {
+          color: 'bg-amber-100 text-amber-800',
+          icon: <ClockCircleOutlined className="text-amber-500" />,
+          text: 'Pending',
+        };
+      case 'not_verified':
+        return {
+          color: 'bg-red-100 text-red-800',
+          icon: <CloseCircleOutlined className="text-red-500" />,
+          text: 'Not Verified',
+        };
+      default:
+        return {
+          color: 'bg-gray-100 text-gray-800',
+          icon: null,
+          text: 'Unknown',
+        };
     }
-
-    return (
-      <Space wrap>
-        {user.socialLinks.map((link, index) => (
-          <Tag
-            key={index}
-            icon={<GlobalOutlined />}
-            color="#008080"
-            className="cursor-pointer hover:bg-teal-50"
-            onClick={() => window.open(link.url, '_blank')}
-          >
-            {link.platform}
-          </Tag>
-        ))}
-      </Space>
-    );
   };
 
   const renderEditButton = (fieldName) => (
-    <Button
-      type="text"
-      icon={<EditOutlined />}
+    <button
       onClick={() => setEditingField(fieldName)}
-      className="text-[#008080] hover:text-[#006666]"
-    />
+      className="text-teal-600 hover:text-teal-800 transition-colors"
+    >
+      <EditOutlined className="mr-1" />
+      Edit
+    </button>
   );
 
   const renderSaveCancelButtons = (fieldName) => (
-    <Space>
-      <Button
-        type="text"
-        icon={<CloseOutlined />}
+    <div className="flex space-x-2">
+      <button
         onClick={handleCancelEdit}
         disabled={loading}
-      />
-      <Button
-        type="text"
-        icon={<SaveOutlined />}
+        className="text-gray-500 hover:text-gray-700 disabled:opacity-50"
+      >
+        <CloseOutlined className="mr-1" />
+        Cancel
+      </button>
+      <button
         onClick={() => handleSaveField(fieldName)}
-        loading={loading}
-        className="text-[#008080] hover:text-[#006666]"
-      />
-    </Space>
+        disabled={loading}
+        className="text-teal-600 hover:text-teal-800 disabled:opacity-50"
+      >
+        <SaveOutlined className="mr-1" />
+        {loading ? 'Saving...' : 'Save'}
+      </button>
+    </div>
+  );
+
+  const renderField = (fieldName, label, value, editComponent) => (
+    <div className="mb-6">
+      <div className="flex justify-between items-start mb-1">
+        <label className="block text-sm font-medium text-gray-700">
+          {label}
+        </label>
+        {editingField === fieldName
+          ? renderSaveCancelButtons(fieldName)
+          : renderEditButton(fieldName)}
+      </div>
+
+      {editingField === fieldName ? (
+        editComponent
+      ) : (
+        <div className="mt-1 flex items-center">
+          <span className="text-gray-900">
+            {value || <span className="text-gray-400">Not provided</span>}
+          </span>
+        </div>
+      )}
+    </div>
   );
 
   return (
-    <Card>
-      <div className="text-center mb-6 relative">
-        <Badge
-          count={profileCompletion === 100 ? '✓' : `${profileCompletion}%`}
-          color={profileCompletion === 100 ? '#52c41a' : '#008080'}
-          offset={[-20, 80]}
-        >
-          <Upload
-            name="avatar"
-            showUploadList={false}
-            beforeUpload={beforeUpload}
-            disabled={uploading}
-            customRequest={async ({ file, onSuccess, onError }) => {
-              try {
-                setUploading(true);
-                await new Promise((resolve) => setTimeout(resolve, 1500));
-                message.success('Profile picture updated successfully');
-                onSuccess();
-                onProfileUpdate?.();
-              } catch (error) {
-                message.error(
-                  error.response?.data?.message || 'Failed to upload image'
-                );
-                onError();
-              } finally {
-                setUploading(false);
-              }
-            }}
-          >
-            <div className="relative inline-block group">
-              <Avatar
-                size={128}
-                src={
-                  user?.profilePicture
-                    ? `http://localhost:5000/uploads/${user.profilePicture}`
-                    : `https://ui-avatars.com/api/?name=${
-                        user?.name || 'User'
-                      }&background=008080&color=fff&size=128&bold=true`
-                }
-                icon={<UserOutlined />}
-                className="border-2 border-[#008080] hover:border-[#006666] transition-all duration-300"
-              />
-              <div className="absolute inset-0 bg-black bg-opacity-30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <UploadOutlined
-                  className="text-white text-xl"
-                  style={{ fontSize: 24 }}
-                />
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-white shadow-xl rounded-2xl overflow-hidden">
+          {/* Profile Header */}
+          <div className="bg-gradient-to-r from-teal-500 to-teal-600 p-6 text-white">
+            <div className="flex flex-col md:flex-row items-center">
+              <div className="relative group mb-4 md:mb-0 md:mr-6">
+                <div className="relative">
+                  <img
+                    className="h-32 w-32 rounded-full border-4 border-white border-opacity-80 shadow-md"
+                    src={
+                      user?.profilePicture
+                        ? `http://localhost:5000/uploads/${user.profilePicture}`
+                        : `https://ui-avatars.com/api/?name=${
+                            user?.name || 'User'
+                          }&background=ffffff&color=0891b2&size=256`
+                    }
+                    alt="Profile"
+                  />
+                  <button
+                    className="absolute inset-0 bg-black bg-opacity-30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    onClick={() => {
+                      /* Handle upload */
+                    }}
+                  >
+                    <UploadOutlined className="text-white text-2xl" />
+                  </button>
+                </div>
+                <div className="absolute -bottom-2 -right-2 bg-white rounded-full p-1 shadow-md">
+                  <div
+                    className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                      profileCompletion === 100
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-teal-100 text-teal-800'
+                    }`}
+                  >
+                    {profileCompletion === 100
+                      ? '✓ Complete'
+                      : `${profileCompletion}%`}
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center md:text-left">
+                <h1 className="text-2xl font-bold flex items-center justify-center md:justify-start">
+                  {user.name}
+                  {user.isVerified && (
+                    <VerifiedOutlined className="ml-2 text-yellow-300" />
+                  )}
+                </h1>
+                <div className="mt-2 flex flex-wrap justify-center md:justify-start gap-2">
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-semibold ${getRoleTagColor()}`}
+                  >
+                    {user.role.replace('_', ' ')}
+                  </span>
+                  {user.role !== 'admin' &&
+                    user.role !== 'individual_donor' && (
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center ${
+                          getVerificationStatus(user.verificationStatus).color
+                        }`}
+                      >
+                        {getVerificationStatus(user.verificationStatus).icon}
+                        <span className="ml-1">
+                          {getVerificationStatus(user.verificationStatus).text}
+                        </span>
+                      </span>
+                    )}
+                </div>
+
+                <div className="mt-4 w-full md:w-64">
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full ${
+                        profileCompletion === 100
+                          ? 'bg-green-500'
+                          : 'bg-teal-500'
+                      }`}
+                      style={{ width: `${profileCompletion}%` }}
+                    ></div>
+                  </div>
+                  <div className="text-xs text-white text-opacity-90 mt-1">
+                    Profile {profileCompletion}% complete
+                  </div>
+                </div>
               </div>
             </div>
-          </Upload>
-        </Badge>
-
-        <Title level={3} className="mt-4 mb-1 font-semibold text-[#008080]">
-          {user.name}
-          {user.isVerified && (
-            <Tooltip title="Verified Account">
-              <VerifiedOutlined className="ml-2 text-yellow-400" />
-            </Tooltip>
-          )}
-        </Title>
-
-        <div className="flex justify-center items-center gap-2 mb-3">
-          <Tag
-            color={getRoleTagColor()}
-            className="uppercase tracking-wide font-semibold"
-          >
-            {user.role.replace('_', ' ')}
-          </Tag>
-          {user.memberSince && (
-            <Tag color="default">
-              Member since {dayjs(user.memberSince).format('MMM YYYY')}
-            </Tag>
-          )}
-        </div>
-
-        <Progress
-          percent={profileCompletion}
-          size="small"
-          status={profileCompletion === 100 ? 'success' : 'active'}
-          showInfo={false}
-          strokeColor={profileCompletion === 100 ? '#52c41a' : '#008080'}
-          className="max-w-xs mx-auto"
-        />
-        <Text type="secondary" className="text-xs">
-          Profile {profileCompletion}% complete
-        </Text>
-      </div>
-
-      <Divider orientation="left" className="font-medium text-[#008080]">
-        Basic Information
-      </Divider>
-
-      <Form
-        form={form}
-        layout="vertical"
-        initialValues={{
-          name: user.name,
-          email: user.email,
-          phone: user.phone || '',
-          address: user.address || '',
-          bio: user.bio || '',
-          dob: user.dob ? dayjs(user.dob) : null,
-          gender: user.gender || '',
-        }}
-      >
-        <Form.Item
-          label="Full Name"
-          name="name"
-          rules={[{ required: true, message: 'Please input your name!' }]}
-        >
-          <div className="flex items-center justify-between">
-            {editingField === 'name' ? (
-              <Input
-                prefix={<UserOutlined className="text-gray-400" />}
-                placeholder="John Doe"
-                className="flex-1"
-              />
-            ) : (
-              <div className="profile-info-item flex items-center">
-                <UserOutlined className="mr-3 text-gray-500" />
-                <Text strong>{user.name}</Text>
-              </div>
-            )}
-            {editingField === 'name'
-              ? renderSaveCancelButtons('name')
-              : renderEditButton('name')}
           </div>
-        </Form.Item>
 
-        <Form.Item label="Email" name="email">
-          <div className="flex items-center justify-between">
-            <div className="profile-info-item flex items-center">
-              <MailOutlined className="mr-3 text-gray-500" />
-              <div className="flex items-center">
-                <Text>{user.email}</Text>
-                {user.isEmailVerified ? (
-                  <Tag
-                    color="green"
-                    icon={<VerifiedOutlined />}
-                    className="ml-2"
-                  >
-                    Verified
-                  </Tag>
-                ) : (
-                  <div className="flex items-center ml-2">
-                    <Tag color="orange">Not Verified</Tag>
-                    <Button
-                      type="link"
-                      size="small"
-                      onClick={() => message.info('Verification email sent')}
-                      className="ml-1 text-xs text-[#008080] hover:text-[#006666]"
-                    >
-                      Verify Now
-                    </Button>
+          {/* Profile Content */}
+          <div className="p-6 md:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column - Basic Info */}
+            <div className="lg:col-span-2">
+              <div className="bg-gray-50 p-6 rounded-xl">
+                <h2 className="text-lg font-semibold text-gray-800 mb-6 pb-2 border-b border-gray-200 flex items-center">
+                  <UserOutlined className="mr-2 text-teal-500" />
+                  Basic Information
+                </h2>
+
+                {/* Name */}
+                {renderField(
+                  'name',
+                  'Full Name',
+                  user.name,
+                  <input
+                    type="text"
+                    defaultValue={user.name}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                  />
+                )}
+
+                {/* Email */}
+                <div className="mb-6">
+                  <div className="flex justify-between items-start mb-1">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Email
+                    </label>
                   </div>
+                  <div className="mt-1 flex items-center">
+                    <MailOutlined className="text-gray-500 mr-2" />
+                    <span className="text-gray-900">{user.email}</span>
+                    {user.isEmailVerified ? (
+                      <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        <CheckCircleOutlined className="mr-1 text-green-500" />
+                        Verified
+                      </span>
+                    ) : (
+                      <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                        <CloseCircleOutlined className="mr-1 text-amber-500" />
+                        Not Verified
+                        <button
+                          onClick={() => {
+                            /* Handle verification */
+                          }}
+                          className="ml-2 text-amber-600 hover:text-amber-800 text-xs"
+                        >
+                          Verify Now
+                        </button>
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Phone */}
+                {renderField(
+                  'phone',
+                  'Phone Number',
+                  user.phone,
+                  <div className="relative rounded-md shadow-sm">
+                    <input
+                      type="tel"
+                      defaultValue={user.phone}
+                      className="block w-full rounded-md border-gray-300 pl-10 focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                      placeholder="+1 (555) 123-4567"
+                    />
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <PhoneOutlined className="text-gray-400" />
+                    </div>
+                  </div>
+                )}
+
+                {/* Verification Status */}
+                {user.role !== 'admin' &&
+                  user.role !== 'individual_donor' &&
+                  !user.isVerified && (
+                    <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                      <div className="flex items-start">
+                        <IdcardOutlined className="text-blue-500 mr-3 mt-0.5" />
+                        <div>
+                          <h4 className="text-sm font-medium text-blue-800">
+                            Account Verification:{' '}
+                            {
+                              getVerificationStatus(user.verificationStatus)
+                                .text
+                            }
+                          </h4>
+                          {user.verificationStatus === 'not_verified' && (
+                            <p className="mt-1 text-xs text-blue-600">
+                              Submit verification documents to get verified and
+                              access all features.
+                            </p>
+                          )}
+                          {user.verificationStatus === 'pending' && (
+                            <p className="mt-1 text-xs text-blue-600">
+                              Your documents are under review. This process
+                              typically takes 2-3 business days.
+                            </p>
+                          )}
+                          {user.verificationStatus === 'not_verified' && (
+                            <button className="mt-2 inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                              Submit Documents
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                {/* Date of Birth */}
+                {renderField(
+                  'dob',
+                  'Date of Birth',
+                  user.dob ? dayjs(user.dob).format('MMMM D, YYYY') : null,
+                  <div className="relative rounded-md shadow-sm">
+                    <input
+                      type="date"
+                      defaultValue={user.dob}
+                      className="block w-full rounded-md border-gray-300 pl-10 focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                    />
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <CalendarOutlined className="text-gray-400" />
+                    </div>
+                  </div>
+                )}
+
+                {/* Gender */}
+                {renderField(
+                  'gender',
+                  'Gender',
+                  user.gender ? user.gender.replace(/-/g, ' ') : null,
+                  <select
+                    defaultValue={user.gender}
+                    className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-teal-500 focus:outline-none focus:ring-teal-500 sm:text-sm"
+                  >
+                    <option value="">Select gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                    <option value="prefer-not-to-say">Prefer not to say</option>
+                  </select>
+                )}
+
+                {/* Address */}
+                {renderField(
+                  'address',
+                  'Address',
+                  user.address,
+                  <div className="relative rounded-md shadow-sm">
+                    <textarea
+                      defaultValue={user.address}
+                      rows={3}
+                      className="block w-full rounded-md border-gray-300 pl-10 focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                      placeholder="123 Main St, City, Country"
+                    />
+                    <div className="absolute top-3 left-3">
+                      <EnvironmentOutlined className="text-gray-400" />
+                    </div>
+                  </div>
+                )}
+
+                {/* Bio */}
+                {renderField(
+                  'bio',
+                  'About Me',
+                  user.bio,
+                  <textarea
+                    defaultValue={user.bio}
+                    rows={4}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                    placeholder="Tell us about yourself..."
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Right Column - Role Specific Info */}
+            <div>
+              <div className="bg-gray-50 p-6 rounded-xl sticky top-6">
+                {user.role === 'volunteer' && (
+                  <>
+                    <h2 className="text-lg font-semibold text-gray-800 mb-6 pb-2 border-b border-gray-200 flex items-center">
+                      <TeamOutlined className="mr-2 text-teal-500" />
+                      Volunteer Information
+                    </h2>
+
+                    {renderField(
+                      'skills',
+                      'Skills',
+                      user.skills?.join(', '),
+                      <select
+                        multiple
+                        defaultValue={user.skills}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                      >
+                        <option value="First Aid">First Aid</option>
+                        <option value="Teaching">Teaching</option>
+                        <option value="Construction">Construction</option>
+                        <option value="Medical">Medical</option>
+                        <option value="Translation">Translation</option>
+                      </select>
+                    )}
+
+                    {renderField(
+                      'availability',
+                      'Availability',
+                      user.availability,
+                      <select
+                        defaultValue={user.availability}
+                        className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-teal-500 focus:outline-none focus:ring-teal-500 sm:text-sm"
+                      >
+                        <option value="">Select availability</option>
+                        <option value="Weekdays">Weekdays</option>
+                        <option value="Weekends">Weekends</option>
+                        <option value="Both">Both</option>
+                      </select>
+                    )}
+                  </>
+                )}
+
+                {user.role === 'ngo' && (
+                  <>
+                    <h2 className="text-lg font-semibold text-gray-800 mb-6 pb-2 border-b border-gray-200 flex items-center">
+                      <BankOutlined className="mr-2 text-teal-500" />
+                      NGO Information
+                    </h2>
+
+                    {renderField(
+                      'organizationName',
+                      'Organization Name',
+                      user.organizationName,
+                      <input
+                        type="text"
+                        defaultValue={user.organizationName}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                      />
+                    )}
+
+                    {renderField(
+                      'missionStatement',
+                      'Mission Statement',
+                      user.missionStatement,
+                      <textarea
+                        defaultValue={user.missionStatement}
+                        rows={4}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                      />
+                    )}
+                  </>
+                )}
+
+                {(user.role === 'individual_donor' ||
+                  user.role === 'organization_donor') && (
+                  <>
+                    <h2 className="text-lg font-semibold text-gray-800 mb-6 pb-2 border-b border-gray-200 flex items-center">
+                      <SolutionOutlined className="mr-2 text-teal-500" />
+                      Donor Information
+                    </h2>
+
+                    {user.role === 'organization_donor' &&
+                      renderField(
+                        'organizationName',
+                        'Organization Name',
+                        user.organizationName,
+                        <input
+                          type="text"
+                          defaultValue={user.organizationName}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                        />
+                      )}
+
+                    {renderField(
+                      'preferredDonations',
+                      'Preferred Donations',
+                      user.preferredDonations?.join(', '),
+                      <select
+                        multiple
+                        defaultValue={user.preferredDonations}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                      >
+                        <option value="Money">Money</option>
+                        <option value="Food">Food</option>
+                        <option value="Clothing">Clothing</option>
+                        <option value="Medical Supplies">
+                          Medical Supplies
+                        </option>
+                        <option value="Other">Other</option>
+                      </select>
+                    )}
+                  </>
+                )}
+
+                {user.role === 'admin' && (
+                  <>
+                    <h2 className="text-lg font-semibold text-gray-800 mb-6 pb-2 border-b border-gray-200 flex items-center">
+                      <SafetyOutlined className="mr-2 text-teal-500" />
+                      Admin Information
+                    </h2>
+
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Admin Level
+                      </label>
+                      <div className="mt-1">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          {user.adminLevel || 'Standard'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Last System Action
+                      </label>
+                      <div className="mt-1 text-sm text-gray-900">
+                        {user.lastAction || 'No recent actions'}
+                      </div>
+                    </div>
+                  </>
                 )}
               </div>
             </div>
           </div>
-        </Form.Item>
-
-        <Form.Item
-          label="Phone Number"
-          name="phone"
-          rules={[
-            {
-              pattern: /^[0-9+\- ]+$/,
-              message: 'Please enter a valid phone number',
-            },
-          ]}
-        >
-          <div className="flex items-center justify-between">
-            {editingField === 'phone' ? (
-              <Input
-                prefix={<PhoneOutlined className="text-gray-400" />}
-                placeholder="+1 234 567 8900"
-                className="flex-1"
-              />
-            ) : (
-              <div className="profile-info-item flex items-center">
-                <PhoneOutlined className="mr-3 text-gray-500" />
-                <div className="flex items-center">
-                  <Text>{user.phone || 'Not provided'}</Text>
-                  {user.phone && user.isPhoneVerified && (
-                    <Tag
-                      color="green"
-                      icon={<VerifiedOutlined />}
-                      className="ml-2"
-                    >
-                      Verified
-                    </Tag>
-                  )}
-                </div>
-              </div>
-            )}
-            {editingField === 'phone'
-              ? renderSaveCancelButtons('phone')
-              : renderEditButton('phone')}
-          </div>
-        </Form.Item>
-
-        {/* Similar pattern for other fields */}
-        <Form.Item label="Date of Birth" name="dob">
-          <div className="flex items-center justify-between">
-            {editingField === 'dob' ? (
-              <DatePicker
-                style={{ width: '100%' }}
-                placeholder="Select your birth date"
-                suffixIcon={<CalendarOutlined className="text-gray-400" />}
-              />
-            ) : (
-              <div className="profile-info-item flex items-center">
-                <CalendarOutlined className="mr-3 text-gray-500" />
-                <Text>
-                  {user.dob
-                    ? dayjs(user.dob).format('MMMM D, YYYY')
-                    : 'Not provided'}
-                </Text>
-              </div>
-            )}
-            {editingField === 'dob'
-              ? renderSaveCancelButtons('dob')
-              : renderEditButton('dob')}
-          </div>
-        </Form.Item>
-
-        <Form.Item label="Gender" name="gender">
-          <div className="flex items-center justify-between">
-            {editingField === 'gender' ? (
-              <Select
-                placeholder="Select your gender"
-                style={{ width: '100%' }}
-              >
-                <Option value="male">Male</Option>
-                <Option value="female">Female</Option>
-                <Option value="other">Other</Option>
-                <Option value="prefer-not-to-say">Prefer not to say</Option>
-              </Select>
-            ) : (
-              <div className="profile-info-item flex items-center">
-                <IdcardOutlined className="mr-3 text-gray-500" />
-                <Text>
-                  {user.gender
-                    ? user.gender.replace(/-/g, ' ')
-                    : 'Not specified'}
-                </Text>
-              </div>
-            )}
-            {editingField === 'gender'
-              ? renderSaveCancelButtons('gender')
-              : renderEditButton('gender')}
-          </div>
-        </Form.Item>
-
-        <Form.Item label="Address" name="address">
-          <div className="flex items-center justify-between">
-            {editingField === 'address' ? (
-              <Input.TextArea
-                prefix={<EnvironmentOutlined className="text-gray-400" />}
-                placeholder="123 Main St, City, Country"
-                rows={2}
-                className="flex-1"
-              />
-            ) : (
-              <div className="profile-info-item flex items-start">
-                <EnvironmentOutlined className="mr-3 mt-1 text-gray-500" />
-                <Text>{user.address || 'Not provided'}</Text>
-              </div>
-            )}
-            {editingField === 'address'
-              ? renderSaveCancelButtons('address')
-              : renderEditButton('address')}
-          </div>
-        </Form.Item>
-
-        <Form.Item label="Bio" name="bio">
-          <div className="flex items-center justify-between">
-            {editingField === 'bio' ? (
-              <Input.TextArea
-                placeholder="Tell us about yourself..."
-                rows={3}
-                maxLength={200}
-                showCount
-                className="flex-1"
-              />
-            ) : (
-              <div className="profile-info-item flex items-start">
-                <UserOutlined className="mr-3 mt-1 text-gray-500" />
-                <Text>{user.bio || 'No bio added yet'}</Text>
-              </div>
-            )}
-            {editingField === 'bio'
-              ? renderSaveCancelButtons('bio')
-              : renderEditButton('bio')}
-          </div>
-        </Form.Item>
-      </Form>
-    </Card>
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -1,14 +1,12 @@
-import { Col, Row, Spin } from 'antd';
+import { Spin } from 'antd';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import Header from '../../components/header/Header';
 import ProfileBasicInfo from './../../components/profile/ProfileBasicInfo';
-import ProfileDetails from './../../components/profile/ProfileDetails';
 const API_BASE_URL = import.meta.env.BACKEND_URL || 'http://localhost:5000';
 
 const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('basic');
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
 
@@ -64,25 +62,14 @@ const ProfilePage = () => {
   return (
     <div>
       <Header />
-      <div className="min-h-screen py-10 px-4 bg-gray-50 flex justify-center">
-        <div className="w-full max-w-screen-xl">
-          <Row gutter={[24, 24]}>
-            <Col xs={24} md={8}>
-              <ProfileBasicInfo
-                user={user}
-                loading={loading}
-                setLoading={setLoading}
-                onProfileUpdate={handleProfileUpdate}
-              />
-            </Col>
-            <Col xs={24} md={16}>
-              <ProfileDetails
-                user={user}
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
-              />
-            </Col>
-          </Row>
+      <div className="min-h-screen py-12 px-4 bg-gray-100 flex justify-center">
+        <div className="w-full max-w-5xl space-y-10">
+          <ProfileBasicInfo
+            user={user}
+            loading={loading}
+            setLoading={setLoading}
+            onProfileUpdate={handleProfileUpdate}
+          />
         </div>
       </div>
     </div>
