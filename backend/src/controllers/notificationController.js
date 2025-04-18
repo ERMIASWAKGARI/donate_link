@@ -21,6 +21,8 @@ exports.getNotifications = asyncWrapper(async (req, res) => {
     .skip(skip)
     .limit(limit);
 
+  console.log('Notifications:', notifications);
+
   // Count total matching notifications
   const total = await Notification.countDocuments(baseQuery);
 

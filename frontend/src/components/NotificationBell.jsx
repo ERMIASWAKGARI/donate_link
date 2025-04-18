@@ -11,6 +11,7 @@ import {
   Tag,
 } from 'antd';
 import { useCallback, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../context/NotificationContext';
 
 const NotificationBell = () => {
@@ -32,6 +33,7 @@ const NotificationBell = () => {
 
   const [open, setOpen] = useState(false);
   const popoverRef = useRef(null);
+  const navigate = useNavigate();
 
   // Dropdown menu for "Mark All as Read"
   const menu = (
@@ -88,30 +90,136 @@ const NotificationBell = () => {
     [markAsRead, fetchNotifications, pagination.page, activeTab]
   );
 
+  // Helper function to format notification type for display
+  const formatNotificationType = (type) => {
+    const typeMap = {
+      'donation-request': 'Donation Request',
+      application: 'Application',
+      need: 'Need',
+      payment: 'Payment',
+      verification_docs_upload: 'Verification Docs',
+      verification_status_approved: 'Account verified',
+      verification_status_rejected: 'Account verification failed',
+      general: 'General',
+    };
+    return typeMap[type] || type;
+  };
+
+  // Helper function to get tag color based on type
+  const getTagColor = (type) => {
+    const colorMap = {
+      'donation-request': 'purple',
+      application: 'orange',
+      need: 'red',
+      payment: 'green',
+      verification_docs_upload: 'blue',
+      verification_status_approved: 'cyan',
+      verification_status_rejected: 'red',
+      general: 'default',
+    };
+    return colorMap[type] || 'default';
+  };
+
   const renderNotificationItem = useCallback(
     (item) => (
       <List.Item
         key={item._id}
-        onClick={() => handleNotificationClick(item)}
+        onClick={() => {
+          handleNotificationClick(item);
+          if (item.link) {
+            navigate(item.link);
+          }
+        }}
         style={{
           cursor: 'pointer',
           backgroundColor: item.seen ? '#fff' : '#f6ffed',
           padding: '12px 16px',
           borderLeft: item.seen ? 'none' : '3px solid #52c41a',
+          ':hover': {
+            backgroundColor: item.link ? '#f0f7ff' : undefined,
+          },
         }}
       >
         <List.Item.Meta
           title={
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ whiteSpace: 'normal' }}>{item.message}</span>
-              {!item.seen && <Tag color="green">New</Tag>}
             </div>
           }
-          description={new Date(item.createdAt).toLocaleString()}
+          description={
+            <div>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <div>{new Date(item.createdAt).toLocaleString()}</div>
+                <Tag color={getTagColor(item.type)}>
+                  {formatNotificationType(item.type)}
+                </Tag>
+              </div>
+              {item.link && item.type === 'verification_docs_upload' && (
+                <div style={{ marginTop: 4 }}>
+                  <Button
+                    type="link"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(item.link);
+                    }}
+                    style={{
+                      padding: 0,
+                      height: 'auto',
+                      color: '#1890ff',
+                    }}
+                  >
+                    Review Uploaded Documents
+                  </Button>
+                </div>
+              )}
+              {item.link && item.type === 'verification_status_approved' && (
+                <div style={{ marginTop: 4 }}>
+                  <Button
+                    type="link"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(item.link);
+                    }}
+                    style={{
+                      padding: 0,
+                      height: 'auto',
+                      color: '#1890ff',
+                    }}
+                  >
+                    Go to Profile
+                  </Button>
+                </div>
+              )}
+              {item.link && item.type === 'verification_status_rejected' && (
+                <div style={{ marginTop: 4 }}>
+                  <Button
+                    type="link"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(item.link);
+                    }}
+                    style={{
+                      padding: 0,
+                      height: 'auto',
+                      color: '#1890ff',
+                    }}
+                  >
+                    Go to Profile
+                  </Button>
+                </div>
+              )}
+            </div>
+          }
         />
       </List.Item>
     ),
-    [handleNotificationClick]
+    [handleNotificationClick, navigate]
   );
 
   const content = (
@@ -225,7 +333,9 @@ const NotificationBell = () => {
       }}
     >
       <Badge count={unreadCount}>
-        <BellOutlined style={{ fontSize: 20, cursor: 'pointer' }} />
+        <BellOutlined
+          style={{ fontSize: 20, cursor: 'pointer', color: 'white' }}
+        />
       </Badge>
     </Popover>
   );

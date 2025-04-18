@@ -99,7 +99,7 @@ export const NotificationProvider = ({ children }) => {
       console.error('No notification ID provided');
       return;
     }
-    console.log('Marking notification as read:', id);
+    // console.log('Marking notification as read:', id);
 
     try {
       const response = await axios.patch(
@@ -171,7 +171,7 @@ export const NotificationProvider = ({ children }) => {
 
     const handleNewNotification = (notification) => {
       // Ensure the notification has a proper ID
-      console.log('New notification received:', notification.id);
+      // console.log('New notification received:', notification.id);
       const completeNotification = {
         ...notification,
         _id: notification.id || `temp_${Date.now()}`,

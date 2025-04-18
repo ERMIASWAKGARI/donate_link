@@ -202,9 +202,11 @@ const ProfileBasicInfo = ({ user, loading, setLoading, onProfileUpdate }) => {
               <Avatar
                 size={128}
                 src={
-                  user.profilePicture
+                  user?.profilePicture
                     ? `http://localhost:5000/uploads/${user.profilePicture}`
-                    : `https://ui-avatars.com/api/?name=${user.name}&background=008080&color=fff&size=128&bold=true`
+                    : `https://ui-avatars.com/api/?name=${
+                        user?.name || 'User'
+                      }&background=008080&color=fff&size=128&bold=true`
                 }
                 icon={<UserOutlined />}
                 className="border-2 border-[#008080] hover:border-[#006666] transition-all duration-300"

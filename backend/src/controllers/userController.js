@@ -9,6 +9,7 @@ const sendOTP = require('../utils/sendOTP');
 const APIFeatures = require('../utils/apiFeatures');
 const { sendNotification } = require('../utils/notificationService');
 const JWT_SECRET = process.env.JWT_SECRET;
+const BACKEND_URL = process.env.BACKEND_URL;
 
 const {
   sendVerificationEmail,
@@ -245,7 +246,8 @@ const uploadVerificationDocs = asyncWrapper(async (req, res) => {
     sendNotification(
       admin._id,
       `New verification documents uploaded by ${user.name}`,
-      'verification_docs'
+      'verification_docs_upload',
+      `/admin/users/${user._id}`
     );
   });
 
