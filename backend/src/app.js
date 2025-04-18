@@ -65,7 +65,7 @@ app.use("/api/organization", donation);
 app.use("/api/chat", chatRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/application", applicationRoutes);
-app.use("/api/notifications", notificationRoutes);
+app.use("/api/notification", notificationRoutes);
 app.all("*", (req, res, next) => {
   next(new AppError(`Cannot find ${req.originalUrl} on this server!`, 404));
 });

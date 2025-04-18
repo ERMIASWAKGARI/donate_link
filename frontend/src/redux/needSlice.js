@@ -1,50 +1,50 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axiosInstance from "../config/axiosConfig";
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import axiosInstance from '../config/axiosConfig';
 
 export const fetchFilteredNeeds = createAsyncThunk(
-  "needs/fetchFiltered",
+  'needs/fetchFiltered',
   async (params = {}, { rejectWithValue, getState }) => {
     try {
       const {
-        searchTerm = "",
-        category = "all",
+        searchTerm = '',
+        category = 'all',
         page = 1,
         limit = 10,
         disableLoading = false, // New parameter to control loading state
       } = params;
-      
+
       let url = `/donation/getAllNeeds?page=${page}&limit=${limit}`;
 
       if (searchTerm) {
         url += `&search=${encodeURIComponent(searchTerm)}`;
       }
 
-      if (category !== "all") {
+      if (category !== 'all') {
         url += `&category=${encodeURIComponent(category)}`;
       }
 
       const response = await axiosInstance.get(url);
-      return { 
+      return {
         data: response.data,
-        disableLoading // Pass this flag to the reducer
+        disableLoading, // Pass this flag to the reducer
       };
     } catch (err) {
       return rejectWithValue(
-        err.response?.data?.message || "Failed to fetch needs"
+        err.response?.data?.message || 'Failed to fetch needs'
       );
     }
   }
 );
 
 const needSlice = createSlice({
-  name: "needs",
+  name: 'needs',
   initialState: {
     needs: [],
     loading: false,
     error: null,
     filters: {
-      searchTerm: "",
-      category: "all",
+      searchTerm: '',
+      category: 'all',
     },
     pagination: {
       currentPage: 1,
@@ -61,19 +61,19 @@ const needSlice = createSlice({
     },
     resetFilters: (state) => {
       state.filters = {
-        searchTerm: "",
-        category: "all",
+        searchTerm: '',
+        category: 'all',
       };
     },
     setLoading: (state, action) => {
       state.loading = action.payload;
-    }
+    },
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchFilteredNeeds.pending, (state, action) => {
         // Only set loading to true if disableLoading is not true
-        if (action.meta.arg?.searchTerm==="") {
+        if (action.meta.arg?.searchTerm === '') {
           state.loading = true;
         }
         state.error = null;

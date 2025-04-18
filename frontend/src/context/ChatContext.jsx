@@ -1,14 +1,14 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-} from "react";
 import axios from "axios";
 import PropTypes from "prop-types";
-import io from "socket.io-client"; // Fixed import
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { useSocket } from "./SocketContext";
 import { useUser } from "./UserContext";
 
 const ChatContext = createContext();
@@ -19,15 +19,14 @@ export const ChatProvider = ({ children }) => {
   const [activeConversation, setActiveConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [socket, setSocket] = useState(null);
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
   const [conversationsError, setConversationsError] = useState(null);
   const [typingStatus, setTypingStatus] = useState({});
   const typingTimeoutRef = useRef(null);
-  const [notifications, setNotifications] = useState([]);
-  const [notificationUnreadCount, setNotificationUnreadCount] = useState(0);
+  const currentConversationId = useRef(null);
 
   const { user } = useUser();
+  const { isConnected, on, off, emit } = useSocket();
 
   // Enhanced unread count calculation (keep existing)
   const calculateUnreadCount = useCallback(
@@ -84,6 +83,7 @@ export const ChatProvider = ({ children }) => {
     },
     [user?._id]
   );
+
   // Keep existing useEffect for unread count
   useEffect(() => {
     if (conversations) {
@@ -92,47 +92,21 @@ export const ChatProvider = ({ children }) => {
     }
   }, [conversations, calculateUnreadCount]);
 
-  // Enhanced socket initialization
+  // Enhanced socket event listeners using the new SocketContext
   useEffect(() => {
-    if (!user?._id) return undefined;
-
-    const newSocket = io(API_BASE_URL, {
-      query: { userId: user._id },
-      transports: ["websocket"],
-      auth: {
-        token: localStorage.getItem("accessToken"),
-      },
-    });
-
-    newSocket.on("connect", () => {
-      console.log("Socket connected:", newSocket.id);
-      newSocket.emit("userOnline", user._id);
-    });
-
-    newSocket.on("connect_error", (err) => {
-      console.error("Socket connection error:", err);
-    });
-
-    setSocket(newSocket);
-
-    return () => {
-      newSocket.disconnect();
-    };
-  }, [user]);
-
-  // Enhanced socket event listeners
-  useEffect(() => {
-    if (!socket) return undefined;
+    if (!isConnected) return undefined;
 
     const handleNewMessage = (message) => {
-      // console.log("[Socket] New message received:", {
-      //   id: message._id,
-      //   sender: message.sender?._id,
-      //   isCurrentUser: message.sender?._id.toString() !== user?._id.toString(),
-      //   currentConversation: activeConversation?._id,
-      //   messageConversation: message.conversationId?._id,
-      // });
-      if (!message?.sender) return; // Add this line
+      console.log("[Socket] New message received:", {
+        id: message._id,
+        sender: message.sender?._id,
+        isCurrentUser: message.sender?._id.toString() !== user?._id.toString(),
+        currentConversation: activeConversation?._id,
+        messageConversation: message.conversationId?._id,
+      });
+
+      if (!message?.sender) return;
+
       try {
         if (activeConversation?._id === message?.conversationId?._id) {
           setMessages((prev) => [
@@ -187,23 +161,30 @@ export const ChatProvider = ({ children }) => {
       }
     };
 
-    socket.on("newMessage", handleNewMessage);
-    socket.on("unreadUpdate", handleUnreadUpdate);
-    socket.on("typing", handleTyping);
+    // Register event handlers using the new socket context
+    on("newMessage", handleNewMessage);
+    on("unreadUpdate", handleUnreadUpdate);
+    on("typing", handleTyping);
 
     return () => {
-      socket.off("newMessage", handleNewMessage);
-      socket.off("unreadUpdate", handleUnreadUpdate);
-      socket.off("typing", handleTyping);
+      off("newMessage", handleNewMessage);
+      off("unreadUpdate", handleUnreadUpdate);
+      off("typing", handleTyping);
     };
-  }, [socket, activeConversation, user?._id]);
+  }, [isConnected, activeConversation, user?._id, on, off]);
 
-  // Add conversation room joining
+  // Add a ref to track the current conversation
+
   useEffect(() => {
-    if (socket && activeConversation?._id) {
-      socket.emit("joinConversation", activeConversation._id);
+    if (isConnected && activeConversation?._id) {
+      // Only join if we're not already in this conversation
+      if (currentConversationId.current !== activeConversation._id) {
+        console.log("Joining conversation:", activeConversation._id);
+        emit("joinConversation", activeConversation._id);
+        currentConversationId.current = activeConversation._id;
+      }
     }
-  }, [socket, activeConversation]);
+  }, [isConnected, activeConversation?._id, emit]);
 
   // Enhanced fetchConversations with loading state and error handling
   const fetchConversations = useCallback(async () => {
@@ -342,6 +323,7 @@ export const ChatProvider = ({ children }) => {
       throw error;
     }
   }, []);
+
   const sendMessage = useCallback(
     async (conversationId, content, attachments = []) => {
       // console.log("[Send] Attempting to send message...");
@@ -378,9 +360,9 @@ export const ChatProvider = ({ children }) => {
           )
         );
 
-        if (socket) {
-          // console.log("[Send] Emitting via socket");
-          socket.emit("sendMessage", responseMessage);
+        if (isConnected) {
+          console.log("[Send] Emitting via socket");
+          emit("sendMessage", responseMessage);
         }
 
         return responseMessage;
@@ -389,9 +371,9 @@ export const ChatProvider = ({ children }) => {
         throw error;
       }
     },
-    [socket]
+    [isConnected, emit, user?._id]
   );
-  // In your ChatContext
+
   const markMessagesAsRead = useCallback(
     async (messageIds) => {
       if (!Array.isArray(messageIds) || messageIds.length === 0 || !user?._id)
@@ -458,131 +440,26 @@ export const ChatProvider = ({ children }) => {
     },
     [user?._id, messages]
   );
+
   const handleTyping = useCallback(
     (conversationId, isTyping) => {
-      if (!socket || !conversationId) return;
+      if (!isConnected || !conversationId) return;
 
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
 
-      socket.emit("typing", { conversationId, isTyping });
+      emit("typing", { conversationId, isTyping });
 
       if (isTyping) {
         typingTimeoutRef.current = setTimeout(() => {
-          socket.emit("typing", { conversationId, isTyping: false });
+          emit("typing", { conversationId, isTyping: false });
         }, 3000);
       }
     },
-    [socket]
+    [isConnected, emit]
   );
 
-  useEffect(() => {
-    if (!socket) return;
-
-    const handleNewNotification = (notification) => {
-      setNotifications((prev) => [notification, ...prev]);
-      setNotificationUnreadCount((prev) => prev + 1);
-
-      // Browser notification
-      if (Notification.permission === "granted") {
-        new Notification("New Notification", {
-          body: notification.message,
-        });
-      }
-    };
-
-    socket.on("newNotification", handleNewNotification);
-
-    return () => {
-      socket.off("newNotification", handleNewNotification);
-    };
-  }, [socket]);
-
-  // Fetch notifications with proper data structure handling
-  const fetchNotifications = useCallback(async () => {
-    try {
-      const { data } = await axios.get(`${API_BASE_URL}/api/notifications`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      });
-
-      if (data?.data?.notifications) {
-        setNotifications(data.data.notifications);
-        setNotificationUnreadCount(data.data.unreadCount || 0);
-      }
-    } catch (error) {
-      console.error("Error fetching notifications:", error);
-      if (error.response?.status === 401) {
-        // Handle unauthorized error
-        console.error("Authentication expired, please log in again");
-      }
-    }
-  }, []);
-
-  // Mark single notification as read
-  const markNotificationAsRead = useCallback(async (notificationId) => {
-    try {
-      await axios.patch(
-        `${API_BASE_URL}/api/notifications/${notificationId}`,
-        {}, // Empty body
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        }
-      );
-
-      setNotifications((prev) =>
-        prev.map((n) => (n._id === notificationId ? { ...n, seen: true } : n))
-      );
-      setNotificationUnreadCount((prev) => Math.max(0, prev - 1));
-    } catch (error) {
-      console.error("Error marking notification as read:", error);
-      if (error.response?.status === 401) {
-        // Handle unauthorized error
-        console.error("Authentication expired, please log in again");
-      }
-    }
-  }, []);
-
-  // Mark all notifications as read
-  const markAllNotificationsAsRead = useCallback(async () => {
-    try {
-      const response = await axios.patch(
-        `${API_BASE_URL}/api/notifications/mark-all-read`,
-        {}, // Empty body
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        }
-      );
-
-      if (response.status === 200) {
-        setNotifications((prev) => prev.map((n) => ({ ...n, seen: true })));
-        setNotificationUnreadCount(0);
-      }
-    } catch (error) {
-      console.error("Error marking all notifications as read:", error);
-
-      // Handle specific error cases
-      if (error.response) {
-        if (error.response.status === 401) {
-          localStorage.removeItem("accessToken");
-          window.location.href = "/login";
-        } else if (error.response.status === 500) {
-          // Try optimistic update if server fails
-          setNotifications((prev) => prev.map((n) => ({ ...n, seen: true })));
-          setNotificationUnreadCount(0);
-          console.warn("Server error but updated UI optimistically");
-        }
-      }
-    }
-  }, []);
   return (
     <ChatContext.Provider
       value={{
@@ -612,8 +489,7 @@ export const ChatProvider = ({ children }) => {
           }
           setActiveConversation(conversation);
         },
-        socketConnected: socket?.connected || false,
-
+        socketConnected: isConnected,
         typingStatus,
         handleTyping,
       }}
