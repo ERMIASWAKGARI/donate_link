@@ -39,6 +39,6 @@ router.patch(
   uploadVerificationDocsMiddleware,
   uploadVerificationDocs
 );
-router.get("/:id",protect,getUserById);
+router.get('/:id', protect, getUserById);
 
 module.exports = router;
