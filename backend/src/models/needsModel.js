@@ -110,6 +110,10 @@ const needsSchema = new mongoose.Schema(
         ref: "Application",
       },
     ],
+    isReportGenerated: {
+      type: Boolean,
+      default: false,
+    },
     categories: {
       material: [
         {

@@ -13,18 +13,18 @@ const Header = () => {
   const { user, logout } = useContext(UserContext);
   const { socket } = useChat();
   console.log("socket", socket);
+  socket?.emit("joinRoleRoom", user?.role);
+  socket?.on("newNeed", (data) => {
+    console.log("New need received:", data);
+  });
   useEffect(() => {
     if (!socket) return;
+    //join the user to the socket room
 
-    socket.on("newNeed", (data) => {
-      console.log("New need received:", data);
-    });
-
-    // Cleanup on unmount
     return () => {
       socket.off("newNeed");
     };
-  }, [socket]);
+  }, [socket, user?.role]);
   const handleLogout = () => {
     logout();
     navigate("/login");
@@ -36,12 +36,10 @@ const Header = () => {
     } else {
       document.body.classList.remove("overflow-hidden");
     }
-
     return () => {
       document.body.classList.remove("overflow-hidden");
     };
   }, [menuOpen]);
-
   return (
     <motion.nav
       className="bg-[#008080] text-white z-50 sticky top-0 shadow-lg"

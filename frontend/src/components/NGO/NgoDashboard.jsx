@@ -8,6 +8,7 @@ import {
   FaChevronLeft,
   FaTimes,
   FaUser,
+  FaFileAlt,
 } from "react-icons/fa";
 import PendingDonations from "./pendingDonations";
 import PostedNeeds from "./postedNeeds";
@@ -15,6 +16,7 @@ import DonationsList from "./donationsList";
 import VolunteerApplication from "./VolunteerApplication";
 import { UserContext } from "../../context/UserContext";
 import Header from "../header/Header";
+import Reports from "./Reports";
 const ngoData = {
   name: "Helping Hands NGO",
   email: "contact@helpinghands.org",
@@ -79,14 +81,14 @@ export default function NgoDashboard() {
     setMobileSidebarOpen(!mobileSidebarOpen);
   };
 
-  const handleAddNeed = (newNeed) => {
-    const newNeedWithId = {
-      ...newNeed,
-      id: needs.length + 1,
-    };
-    setNeeds([...needs, newNeedWithId]);
-    setShowNeedForm(false);
-  };
+  // const handleAddNeed = (newNeed) => {
+  //   const newNeedWithId = {
+  //     ...newNeed,
+  //     id: needs.length + 1,
+  //   };
+  //   setNeeds([...needs, newNeedWithId]);
+  //   setShowNeedForm(false);
+  // };
 
   const handleDeleteNeed = (id) => {
     setNeeds(needs.filter((need) => need.id !== id));
@@ -109,6 +111,8 @@ export default function NgoDashboard() {
         return <VolunteerApplication volunteers={volunteers} />;
       case "pending-donations":
         return <PendingDonations />;
+      case "reports":
+        return <Reports />;
       default:
         return (
           <div className="mt-6 p-3">
@@ -251,6 +255,22 @@ export default function NgoDashboard() {
                   <FaUser className="text-lg flex-shrink-0" />
                   {(sidebarOpen || mobileSidebarOpen) && (
                     <span className="ml-3 truncate">Applications</span>
+                  )}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => {
+                    setActiveSection("reports");
+                    setMobileSidebarOpen(false);
+                  }}
+                  className={`flex items-center p-2 w-full rounded  transition-colors ${
+                    activeSection === "reports" ? "bg-yellow-400" : ""
+                  }`}
+                >
+                  <FaFileAlt className="text-lg flex-shrink-0" />
+                  {(sidebarOpen || mobileSidebarOpen) && (
+                    <span className="ml-3 truncate">Reports</span>
                   )}
                 </button>
               </li>

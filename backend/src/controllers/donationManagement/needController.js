@@ -4,9 +4,12 @@ const uploadNeedPictures = require("../../middleware/uploadNeedPictures");
 const AppError = require("../../utils/appError");
 const APIFeatures = require("../../utils/apiFeatures"); // Adjust path as needed
 const socketIO = require("../../utils/socketConfig"); // Adjust path as needed
+const Application = require("../../models/applicationModel");
+const materialDonation = require("../../models/matterialDonation");
 const onlineUsers = socketIO.onlineUsers; // Adjust path as needed
 const io=socketIO.getIO; // Adjust path as needed
 console.log("onlineUsers", onlineUsers,io);
+const Report = require("../../models/Report");
 const sendNotificationToGroup=require("../../utils/socketConfig").sendNotificationToGroup; // Adjust path as needed
 // Helper function to handle the upload
 const handleUpload = (req, res) => {
@@ -157,6 +160,8 @@ const postNgosNeed = async (req, res, next) => {
     next(error);
   }
 };
+// Endpoint to make isReportGenerated false for all needs
+
 
 getAllServiceNeeds = async (req, res) => {
   try {
@@ -361,6 +366,109 @@ getNeedsByNgo = async (req, res) => {
     });
   }
 };
+const generateReport = async (req, res) => {
+  try {
+  const pictures =
+    req.files?.map((file) =>
+      path.join("donations", path.basename(file.path))
+    ) || [];
+
+    const { needId } = req.params;
+    const { description, needTypes } = req.body;
+
+    if (!description || !needTypes || needTypes.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Description and at least one need type are required",
+      });
+    }
+
+    // Validate need types
+    const validNeedTypes = ["material", "service"];
+    const invalidTypes = needTypes.filter(type => !validNeedTypes.includes(type));
+    if (invalidTypes.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid need types: ${invalidTypes.join(", ")}`,
+      });
+    }
+
+    const need = await Need.findById(needId);
+    if (!need) {
+      return res.status(404).json({
+        success: false,
+        error: "Need not found",
+      });
+    }
+
+    const [approvedApplications, materialDonations] = await Promise.all([
+      needTypes.includes("service") ? 
+        Application.find({
+          need: needId,
+          status: "Approved"
+        }).populate("applicant", "name email phone") : 
+        Promise.resolve([]),
+      
+      needTypes.includes("material") ? 
+        MaterialDonation.find({
+          needId: needId,
+          status: "Approved"
+        }).populate("donorId", "name email phone") : 
+        Promise.resolve([])
+    ]);
+
+    // Transform data to match schema
+    const transformedData = {
+      services: approvedApplications.map(app => ({
+        applicant: app.applicant._id,
+        category: app.category,
+        subcategory: app.subCategory,
+        startDate: app.startDate,
+        endDate: app.endDate,
+        hoursPerWeek: app.hoursPerWeek,
+        motivation: app.motivation
+      })),
+      
+      materials: materialDonations.flatMap(donation => 
+        donation.materials.map(material => ({
+          category: material.categoryName,
+          subcategory: material.subCategoryName,
+          quantity: material.quantity
+        })))
+    };
+
+    const totals = {
+      services: transformedData.services.length,
+      materials: transformedData.materials.reduce((sum, item) => sum + item.quantity, 0)
+    };
+
+    const newReport = await Report.create({
+      need: needId,
+      description,
+      pictures,
+      donations: transformedData,
+      totals,
+      status: "pending",
+      NGO: req.user._id,
+      createdBy: req.user._id
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Report generated successfully",
+      data: newReport,
+      summary: totals
+    });
+
+  } catch (error) {
+    console.error("Error generating report:", error);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error",
+      details: process.env.NODE_ENV === "development" ? error.message : undefined
+    });
+  }
+};
 
 // Get single need by ID
  const getNeedById = async (req, res) => {
@@ -399,6 +507,7 @@ module.exports = {
   getNeedsByNgo,
   getAllServiceNeeds,
   getAllNGOServiceNeeds,
+  generateReport,
   getAllNeeds,
   postNgosNeed,
 };
