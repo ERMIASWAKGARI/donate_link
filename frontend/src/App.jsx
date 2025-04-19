@@ -32,7 +32,7 @@ import { store } from "./redux/store";
 function App() {
   return (
     <Provider store={store}>
-      <div className="pb-16">
+      <div>
         <UserProvider>
           <SocketProvider>
             <ChatProvider>

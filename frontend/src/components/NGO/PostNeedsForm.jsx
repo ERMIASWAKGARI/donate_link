@@ -3,6 +3,13 @@ import { FaTimes, FaPlus, FaUpload } from "react-icons/fa";
 
 import Axios from "../../config/axiosConfig";
 import MapComponent from "./mapComponent";
+import {
+  materialCategories,
+  getSubCategories,
+  serviceCategories,
+  getServiceSubCategories,
+  getUnits,
+} from "../../constants/category";
 
 // Fix for default marker icons in React-Leaflet
 
@@ -515,6 +522,7 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
         </div>
 
         {/* Material Categories */}
+        {/* Material Categories Section */}
         {formData.needTypes.includes("material") && (
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">
@@ -522,53 +530,145 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
             </h3>
             {formData.categories.material.map((category, index) => (
               <div key={index} className="mb-4 p-4 border rounded-lg">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
+                  {/* Category Selection */}
                   <div>
                     <label className="block text-gray-700 text-sm mb-1">
                       Category Name*
                     </label>
-                    <input
-                      type="text"
+                    <select
                       value={category.categoryName}
-                      onChange={(e) =>
+                      onChange={(e) => {
                         handleCategoryChange(
                           "material",
                           index,
                           "categoryName",
                           e.target.value
-                        )
-                      }
-                      className="w-full p-2 border border-gray-300 rounded text-sm"
-                      maxLength="50"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-gray-700 text-sm mb-1">
-                      Sub-Category*
-                    </label>
-                    <input
-                      type="text"
-                      value={category.subCategoryName}
-                      onChange={(e) =>
+                        );
                         handleCategoryChange(
                           "material",
                           index,
                           "subCategoryName",
-                          e.target.value
-                        )
-                      }
+                          ""
+                        );
+                        handleCategoryChange("material", index, "unit", "");
+                      }}
                       className="w-full p-2 border border-gray-300 rounded text-sm"
-                      maxLength="50"
                       required
-                    />
+                    >
+                      <option value="">Select Category</option>
+                      {materialCategories.map((cat) => (
+                        <option key={cat.name} value={cat.name}>
+                          {cat.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
+
+                  {/* Subcategory - Dynamic */}
+                  <div>
+                    <label className="block text-gray-700 text-sm mb-1">
+                      Sub-Category*
+                    </label>
+                    {category.categoryName === "Other" ? (
+                      <input
+                        type="text"
+                        value={category.subCategoryName}
+                        onChange={(e) =>
+                          handleCategoryChange(
+                            "material",
+                            index,
+                            "subCategoryName",
+                            e.target.value
+                          )
+                        }
+                        className="w-full p-2 border border-gray-300 rounded text-sm"
+                        maxLength="50"
+                        required
+                      />
+                    ) : (
+                      <select
+                        value={category.subCategoryName}
+                        onChange={(e) =>
+                          handleCategoryChange(
+                            "material",
+                            index,
+                            "subCategoryName",
+                            e.target.value
+                          )
+                        }
+                        className="w-full p-2 border border-gray-300 rounded text-sm"
+                        disabled={!category.categoryName}
+                        required
+                      >
+                        <option value="">Select Subcategory</option>
+                        {category.categoryName &&
+                          getSubCategories(category.categoryName).map(
+                            (subCat) => (
+                              <option key={subCat} value={subCat}>
+                                {subCat}
+                              </option>
+                            )
+                          )}
+                      </select>
+                    )}
+                  </div>
+
+                  {/* Unit */}
+                  <div>
+                    <label className="block text-gray-700 text-sm mb-1">
+                      Unit*
+                    </label>
+                    {category.categoryName === "Other" ? (
+                      <input
+                        type="text"
+                        value={category.unit}
+                        onChange={(e) =>
+                          handleCategoryChange(
+                            "material",
+                            index,
+                            "unit",
+                            e.target.value
+                          )
+                        }
+                        className="w-full p-2 border border-gray-300 rounded text-sm"
+                        maxLength="20"
+                        required
+                      />
+                    ) : (
+                      <select
+                        value={category.unit}
+                        onChange={(e) =>
+                          handleCategoryChange(
+                            "material",
+                            index,
+                            "unit",
+                            e.target.value
+                          )
+                        }
+                        className="w-full p-2 border border-gray-300 rounded text-sm"
+                        disabled={!category.categoryName}
+                        required
+                      >
+                        <option value="">Select Unit</option>
+                        {category.categoryName &&
+                          getUnits(category.categoryName).map((unit) => (
+                            <option key={unit} value={unit}>
+                              {unit}
+                            </option>
+                          ))}
+                      </select>
+                    )}
+                  </div>
+
+                  {/* Quantity */}
                   <div>
                     <label className="block text-gray-700 text-sm mb-1">
                       Target Amount*
                     </label>
                     <input
-                      type="text"
+                      type="number"
+                      min="1"
                       value={category.targetAmountNeeded}
                       onChange={(e) =>
                         handleCategoryChange(
@@ -583,6 +683,8 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
                     />
                   </div>
                 </div>
+
+                {/* Remove Category Button */}
                 <button
                   type="button"
                   onClick={() => {
@@ -590,10 +692,7 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
                     updated.splice(index, 1);
                     setFormData((prev) => ({
                       ...prev,
-                      categories: {
-                        ...prev.categories,
-                        material: updated,
-                      },
+                      categories: { ...prev.categories, material: updated },
                     }));
                   }}
                   className="text-red-500 text-sm hover:text-red-700"
@@ -602,17 +701,19 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
                 </button>
               </div>
             ))}
+
+            {/* Add Material Category Button */}
             <button
               type="button"
               onClick={() => addCategory("material")}
-              className="flex items-center px-3 py-1 bg-primary text-white rounded hover:bg-blue-600 text-sm"
+              className="flex items-center px-3 py-1 bg-primary text-white rounded hover:bg-blue-600 text-sm mb-6"
             >
               <FaPlus className="mr-1" /> Add Material Category
             </button>
           </div>
         )}
 
-        {/* Service Categories */}
+        {/* Service Categories Section */}
         {formData.needTypes.includes("service") && (
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">
@@ -621,52 +722,97 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
             {formData.categories.service.map((category, index) => (
               <div key={index} className="mb-4 p-4 border rounded-lg">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                  {/* Service Category Dropdown */}
                   <div>
                     <label className="block text-gray-700 text-sm mb-1">
                       Category Name*
                     </label>
-                    <input
-                      type="text"
+                    <select
                       value={category.categoryName}
-                      onChange={(e) =>
+                      onChange={(e) => {
                         handleCategoryChange(
                           "service",
                           index,
                           "categoryName",
                           e.target.value
-                        )
-                      }
-                      className="w-full p-2 border border-gray-300 rounded text-sm"
-                      maxLength="50"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-gray-700 text-sm mb-1">
-                      Sub-Category*
-                    </label>
-                    <input
-                      type="text"
-                      value={category.subCategoryName}
-                      onChange={(e) =>
+                        );
+                        // Reset subcategory when category changes
                         handleCategoryChange(
                           "service",
                           index,
                           "subCategoryName",
-                          e.target.value
-                        )
-                      }
+                          ""
+                        );
+                      }}
                       className="w-full p-2 border border-gray-300 rounded text-sm"
-                      maxLength="50"
                       required
-                    />
+                    >
+                      <option value="">Select Category</option>
+                      {serviceCategories.map((cat) => (
+                        <option key={cat.name} value={cat.name}>
+                          {cat.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
+
+                  {/* Service Subcategory - Dynamic dropdown or input */}
+                  <div>
+                    <label className="block text-gray-700 text-sm mb-1">
+                      Sub-Category*
+                    </label>
+                    {category.categoryName === "Other" ? (
+                      <input
+                        type="text"
+                        value={category.subCategoryName}
+                        onChange={(e) =>
+                          handleCategoryChange(
+                            "service",
+                            index,
+                            "subCategoryName",
+                            e.target.value
+                          )
+                        }
+                        className="w-full p-2 border border-gray-300 rounded text-sm"
+                        maxLength="50"
+                        required
+                      />
+                    ) : (
+                      <select
+                        value={category.subCategoryName}
+                        onChange={(e) =>
+                          handleCategoryChange(
+                            "service",
+                            index,
+                            "subCategoryName",
+                            e.target.value
+                          )
+                        }
+                        className="w-full p-2 border border-gray-300 rounded text-sm"
+                        disabled={!category.categoryName}
+                        required
+                      >
+                        <option value="">Select Subcategory</option>
+                        {category.categoryName &&
+                          getServiceSubCategories(category.categoryName).map(
+                            (subCat) => (
+                              <option key={subCat} value={subCat}>
+                                {subCat}
+                              </option>
+                            )
+                          )}
+                      </select>
+                    )}
+                  </div>
+
+                  {/* Vacancy Input */}
                   <div>
                     <label className="block text-gray-700 text-sm mb-1">
                       Vacancy*
                     </label>
                     <input
-                      type="text"
+                      type="number"
+                      min="1"
                       value={category.vacancy}
                       onChange={(e) =>
                         handleCategoryChange(
@@ -709,7 +855,6 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
             </button>
           </div>
         )}
-
         {/* Form Actions */}
         <div className="flex justify-end space-x-4 pt-4 border-t">
           <button

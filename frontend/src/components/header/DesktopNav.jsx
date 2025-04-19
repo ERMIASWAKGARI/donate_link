@@ -13,22 +13,7 @@ const DesktopNav = ({ user, handleLogout }) => {
   const navigate = useNavigate();
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [showChatModal, setShowChatModal] = useState(false);
-  const { unreadCount, socket } = useChat();
-
-  // // Get the user from context
-  // console.log("socket", socket);
-  // useEffect(() => {
-  //   if (!socket) return;
-
-  //   socket.on("newNeed", (data) => {
-  //     console.log("New need received:", data);
-  //   });
-
-  //   // Cleanup on unmount
-  //   return () => {
-  //     socket.off("newNeed");
-  //   };
-  // }, [socket]);
+  const { unreadCount } = useChat();
 
   const dropdownRefs = {
     howItWorks: useRef(null),

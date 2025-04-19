@@ -472,7 +472,7 @@ export const ChatProvider = ({ children }) => {
         fetchConversations,
         startConversation,
         fetchMessages,
-        socket,
+        // socket,
         sendMessage,
         markMessagesAsRead,
         setActiveConversation: (conversation) => {
