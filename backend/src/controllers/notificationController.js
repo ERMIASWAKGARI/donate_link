@@ -5,7 +5,7 @@ const APIFeatures = require('../utils/apiFeatures');
 
 exports.getNotifications = asyncWrapper(async (req, res) => {
   const { seen, page = 1, limit = 5 } = req.query;
-  console.log('Fetching notifications:', req.query);
+  // console.log('Fetching notifications:', req.query);
 
   const baseQuery = { recipient: req.user.id };
   if (seen === 'false') {
@@ -21,7 +21,7 @@ exports.getNotifications = asyncWrapper(async (req, res) => {
     .skip(skip)
     .limit(limit);
 
-  console.log('Notifications:', notifications);
+  // console.log('Notifications:', notifications);
 
   // Count total matching notifications
   const total = await Notification.countDocuments(baseQuery);
@@ -46,7 +46,7 @@ exports.getNotifications = asyncWrapper(async (req, res) => {
 });
 
 exports.markAsRead = asyncWrapper(async (req, res) => {
-  console.log('Marking notification as read:', req.params.id);
+  // console.log('Marking notification as read:', req.params.id);
   const notification = await Notification.findByIdAndUpdate(
     req.params.id,
     { seen: true },

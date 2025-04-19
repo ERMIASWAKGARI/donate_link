@@ -295,6 +295,7 @@ const getUserById = asyncWrapper(async (req, res) => {
 
 const updateUserProfile = asyncWrapper(async (req, res) => {
   const { email, phone, ...updates } = req.body;
+  console.log(req.body);
 
   const user = await User.findById(req.user._id).select(
     '-password -emailVerificationToken -tokenVersion -isActive -isEmailVerified -lastLogin -__v'
@@ -362,6 +363,7 @@ const updateUserProfile = asyncWrapper(async (req, res) => {
       'address',
       'location',
     ],
+    admin: ['name', 'email', 'phone'],
   };
 
   // 🔹 Update Only Allowed Fields
