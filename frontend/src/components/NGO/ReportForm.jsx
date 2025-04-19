@@ -289,7 +289,7 @@ const ReportForm = ({ selectedNeeds, onGenerate, clearSelection }) => {
                           <h5 className="text-md font-medium text-gray-700 mb-3">
                             Donation Summary
                           </h5>
-
+                          <p> We have requested for</p>
                           <div className="grid grid-cols-2 gap-4">
                             {selectedNeeds.needTypes.includes("service") &&
                               selectedNeeds.categories.service.map(
@@ -298,7 +298,7 @@ const ReportForm = ({ selectedNeeds, onGenerate, clearSelection }) => {
                                     key={index}
                                     className="bg-white p-3 rounded-lg shadow-sm"
                                   >
-                                    We have requested for {category.vacancy}{" "}
+                                    {category.vacancy}{" "}
                                     {category.subCategoryName}
                                   </div>
                                 )
@@ -310,7 +310,6 @@ const ReportForm = ({ selectedNeeds, onGenerate, clearSelection }) => {
                                     key={index}
                                     className="bg-white p-3 rounded-lg shadow-sm"
                                   >
-                                    We have requested for{" "}
                                     {category.targetAmountNeeded}{" "}
                                     {category.subCategoryName}
                                   </div>
@@ -318,7 +317,6 @@ const ReportForm = ({ selectedNeeds, onGenerate, clearSelection }) => {
                               )}
                             {selectedNeeds.needTypes.includes("money") && (
                               <div className="bg-white p-3 rounded-lg shadow-sm">
-                                We have requested for{" "}
                                 {selectedNeeds.targetMoney} ETB
                               </div>
                             )}
@@ -328,6 +326,50 @@ const ReportForm = ({ selectedNeeds, onGenerate, clearSelection }) => {
                     )}
                     <div>
                       <h1>our Result</h1>
+                      {previewData?.donations &&
+                        previewData.donations.services.map(
+                          (donation, index) => (
+                            <div
+                              key={index}
+                              className="bg-gray-50 p-4 rounded-lg"
+                            >
+                              <h5 className="text-md font-medium text-gray-700 mb-3">
+                                name {donation.applicant.name}
+                              </h5>
+                              <p className="text-gray-600">
+                                email {donation.applicant.email}
+                              </p>
+                              <p className="text-gray-600">
+                                category {donation.category}
+                              </p>
+                              <p className="text-gray-600">
+                                category {donation.subCategory}
+                              </p>
+                            </div>
+                          )
+                        )}
+                      {previewData?.donations &&
+                        previewData.donations.material.map(
+                          (donation, index) => (
+                            <div
+                              key={index}
+                              className="bg-gray-50 p-4 rounded-lg"
+                            >
+                              <h5 className="text-md font-medium text-gray-700 mb-3">
+                                name {donation.applicant.name}
+                              </h5>
+                              <p className="text-gray-600">
+                                email {donation.applicant.email}
+                              </p>
+                              <p className="text-gray-600">
+                                category {donation.category}
+                              </p>
+                              <p className="text-gray-600">
+                                category {donation.subCategory}
+                              </p>
+                            </div>
+                          )
+                        )}
                     </div>
                   </div>
 
