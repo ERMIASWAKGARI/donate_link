@@ -13,8 +13,11 @@ const User = require("../models/User");
 // @access  Private (NGO)
 
 exports.createApplication = asyncWrapper(async (req, res, next) => {
+  console.log("[Application] Creating new application...");
   const { needId } = req.params;
   const userId = req.user._id;
+  console.log(`[Application] User ${userId} applying for need ${needId}`);
+
   const {
     motivation,
     startDate,
@@ -25,19 +28,30 @@ exports.createApplication = asyncWrapper(async (req, res, next) => {
   } = req.body;
 
   // Validate need exists with NGO
+  console.log("[Application] Validating need...");
   const need = await Needs.findById(needId).populate("NGO");
-  if (!need) return next(new AppError("Need not found", 404));
-  if (!need.NGO) return next(new AppError("Need has no associated NGO", 400));
+  if (!need) {
+    console.error("[Application] Need not found");
+    return next(new AppError("Need not found", 404));
+  }
+  if (!need.NGO) {
+    console.error("[Application] Need has no associated NGO");
+    return next(new AppError("Need has no associated NGO", 400));
+  }
 
   // Prevent duplicate applications
+  console.log("[Application] Checking for existing applications...");
   const existingApplication = await Application.findOne({
     need: needId,
     applicant: userId,
   });
-  if (existingApplication)
+  if (existingApplication) {
+    console.error("[Application] Duplicate application found");
     return next(new AppError("You have already applied for this need", 400));
+  }
 
   // Create application
+  console.log("[Application] Creating new application record...");
   const newApplication = await Application.create({
     applicant: userId,
     need: needId,
@@ -49,9 +63,11 @@ exports.createApplication = asyncWrapper(async (req, res, next) => {
     hoursPerWeek,
     status: "Submitted",
   });
+  console.log(`[Application] Created application ID: ${newApplication._id}`);
 
   // Notification handling
   try {
+    console.log("[Notification] Creating notification...");
     const notification = await Notification.create({
       recipient: need.NGO._id,
       sender: userId,
@@ -64,30 +80,58 @@ exports.createApplication = asyncWrapper(async (req, res, next) => {
         applicantId: userId,
       },
     });
+    console.log(
+      `[Notification] Created notification ID: ${notification._id} for recipient ${need.NGO._id}`
+    );
+
+    // Get updated unread count
+    const unreadCount = await Notification.countDocuments({
+      recipient: need.NGO._id,
+      seen: false,
+    });
+    console.log(
+      `[Notification] Current unread count for ${need.NGO._id}: ${unreadCount}`
+    );
 
     // Real-time notification
     const io = getIO();
     if (io) {
+      console.log("[Socket] IO instance found");
       const ngoRoom = need.NGO._id.toString();
+      console.log(`[Socket] Preparing to emit to NGO room: ${ngoRoom}`);
 
-      // Direct emission to NGO's room
-      io.to(ngoRoom).emit("newNotification", {
-        _id: notification._id,
-        message: notification.message,
-        type: notification.type,
-        createdAt: notification.createdAt,
-        seen: notification.seen,
-        metadata: notification.metadata,
+      // Emit both notification and unread count
+      io.to(ngoRoom).emit("notificationUpdate", {
+        notification: {
+          _id: notification._id,
+          message: notification.message,
+          type: notification.type,
+          createdAt: notification.createdAt,
+          seen: notification.seen,
+          metadata: notification.metadata,
+        },
+        unreadCount,
       });
+      console.log("[Socket] Emitted notificationUpdate event");
 
-      // Broadcast for other services if needed
-      io.emit("applicationActivity", {
-        needId: need._id,
-        applicationId: newApplication._id,
-      });
+      // For debugging: list all rooms
+      const rooms = io.sockets.adapter.rooms;
+      console.log("[Socket] Current rooms:", rooms);
+
+      // Additional debug: check if NGO is connected
+      io.in(ngoRoom)
+        .allSockets()
+        .then((sockets) => {
+          console.log(`[Socket] Clients in room ${ngoRoom}:`, sockets.size);
+          if (sockets.size === 0) {
+            console.warn("[Socket] No clients in the NGO room!");
+          }
+        });
+    } else {
+      console.error("[Socket] No IO instance available");
     }
   } catch (err) {
-    console.error("Notification processing failed:", err);
+    console.error("[Notification] Processing failed:", err);
     // Continue even if notification fails
   }
 
