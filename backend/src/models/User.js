@@ -135,11 +135,31 @@ const userSchema = new mongoose.Schema(
             ],
             required: true,
           },
-          startTime: { type: String, required: true },
-          endTime: { type: String, required: true },
+          startTime: {
+            type: String,
+            required: true,
+            validate: {
+              validator: (v) => /^\d{2}:\d{2}$/.test(v),
+              message: 'Start time must be in HH:mm format',
+            },
+          },
+          endTime: {
+            type: String,
+            required: true,
+            validate: {
+              validator: (v) => /^\d{2}:\d{2}$/.test(v),
+              message: 'End time must be in HH:mm format',
+            },
+          },
         },
       ],
-      default: undefined,
+      default: [],
+      validate: {
+        validator: function (entries) {
+          return entries.every(({ startTime, endTime }) => startTime < endTime);
+        },
+        message: 'Start time must be before end time',
+      },
     },
   },
   { timestamps: true, strict: 'throw' }

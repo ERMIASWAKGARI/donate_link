@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { EditableField } from './EditableField';
+import { AvailabilitySelector } from './VolunteerInfo';
 
 export const FieldRenderer = ({
   fieldConfig,
@@ -186,16 +187,6 @@ export const FieldRenderer = ({
                   className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
                 >
                   {value}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoveSelection(value);
-                    }}
-                    className="ml-2 text-blue-500 hover:text-blue-700"
-                  >
-                    ×
-                  </button>
                 </span>
               ))}
             </div>
@@ -209,13 +200,13 @@ export const FieldRenderer = ({
               {currentValues.map((value) => (
                 <span
                   key={value}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-teal-100 text-teal-800"
+                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
                 >
                   {value}
                   <button
                     type="button"
                     onClick={() => handleRemoveSelection(value)}
-                    className="ml-2 text-teal-500 hover:text-teal-700"
+                    className="ml-2 text-blue-500 hover:text-blue-700"
                   >
                     ×
                   </button>
@@ -245,6 +236,51 @@ export const FieldRenderer = ({
               <p className="text-sm text-gray-500">All options selected</p>
             )}
           </div>
+        }
+        editingField={editingField}
+        loading={loading}
+        onEdit={onEdit}
+        onCancel={onCancel}
+        onSave={onSave}
+      />
+    );
+  }
+
+  if (fieldConfig.type === 'availability') {
+    return (
+      <EditableField
+        fieldName={fieldConfig.fieldName}
+        label={fieldConfig.label}
+        value={
+          user[fieldConfig.fieldName]?.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {user[fieldConfig.fieldName].map(
+                ({ day, startTime, endTime }) => (
+                  <span
+                    key={day}
+                    className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+                  >
+                    {day}: {startTime}-{endTime}
+                  </span>
+                )
+              )}
+            </div>
+          ) : (
+            <span className="text-gray-400">Not provided</span>
+          )
+        }
+        editComponent={
+          <AvailabilitySelector
+            value={
+              formData[fieldConfig.fieldName] ||
+              user[fieldConfig.fieldName] ||
+              []
+            }
+            onChange={(value) =>
+              handleFieldChange(fieldConfig.fieldName, value)
+            }
+            days={fieldConfig.days}
+          />
         }
         editingField={editingField}
         loading={loading}

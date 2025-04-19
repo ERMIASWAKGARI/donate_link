@@ -83,8 +83,16 @@ export const volunteerFields = [
   {
     fieldName: 'availability',
     label: 'Availability',
-    type: 'select',
-    options: ['Weekdays', 'Weekends', 'Both'],
+    type: 'availability',
+    days: [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ],
   },
 ];
 

@@ -1,15 +1,17 @@
 import { Spin } from 'antd';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import ErrorMessage from '../../components/ErrorMessage';
 import Header from '../../components/header/Header';
 import ProfileBasicInfo from './../../components/profile/ProfileBasicInfo';
+
 const API_BASE_URL = import.meta.env.BACKEND_URL || 'http://localhost:5000';
 
 const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
-  const [updateLoading, setUpdateLoading] = useState(false); // Separate state for updates
+  const [updateLoading, setUpdateLoading] = useState(false);
 
   const fetchUserProfile = async () => {
     try {
@@ -23,7 +25,11 @@ const ProfilePage = () => {
       setUser(response.data.data[0]);
     } catch (err) {
       console.error('Failed to fetch profile:', err);
-      setError(err.response?.data?.message || 'Failed to fetch profile');
+      setError({
+        message: err.response?.data?.message || 'Failed to fetch profile',
+        details: err.response?.data?.details,
+        status: err.response?.status,
+      });
     } finally {
       setLoading(false);
     }
@@ -36,6 +42,7 @@ const ProfilePage = () => {
   const handleProfileUpdate = async (updateData) => {
     try {
       setUpdateLoading(true);
+      setError(null);
       await axios.patch(`${API_BASE_URL}/api/users/me/update`, updateData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
@@ -44,7 +51,11 @@ const ProfilePage = () => {
       await fetchUserProfile();
     } catch (err) {
       console.error('Update failed:', err);
-      setError('Failed to update profile');
+      setError({
+        message: err.response?.data?.message || 'Failed to update profile',
+        details: err.response?.data?.errors,
+        status: err.response?.status,
+      });
     } finally {
       setUpdateLoading(false);
     }
@@ -58,10 +69,14 @@ const ProfilePage = () => {
     );
   }
 
-  if (error || !user) {
+  if (!user) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <p className="text-red-500">{error || 'User data not available'}</p>
+        <ErrorMessage
+          error={error || 'User data not available'}
+          title="Profile Error"
+          dismissible={false}
+        />
       </div>
     );
   }
@@ -77,6 +92,17 @@ const ProfilePage = () => {
       <Header />
       <div className="py-12 px-4 bg-gray-100 flex justify-center">
         <div className="w-full max-w-5xl space-y-10">
+          {/* Display error message if exists (dismissible) */}
+          {error && (
+            <ErrorMessage
+              error={error}
+              title={error.status ? `Error (${error.status})` : 'Error'}
+              dismissible
+              onDismiss={() => setError(null)}
+              className="mb-6"
+            />
+          )}
+
           <ProfileBasicInfo
             user={user}
             loading={updateLoading}
@@ -89,3 +115,72 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
+
+{
+  /* 
+  
+  
+  Basic Usage
+
+<ErrorMessage error="Something went wrong" />
+
+With Error Object
+
+<ErrorMessage error={new Error('Database connection failed')} />
+
+API Error Response
+
+<ErrorMessage error={{
+  error: "Validation failed",
+  errors: {
+    email: "Must be a valid email",
+    password: "Must be at least 8 characters"
+  }
+}} />
+
+Dismissible Error
+
+const [apiError, setApiError] = useState(null);
+
+// When error occurs
+setApiError("Failed to load data");
+
+// In your 
+{apiError && (
+  <ErrorMessage 
+    error={apiError} 
+    dismissible 
+    onDismiss={() => setApiError(null)}
+  />
+)}
+Auto-dismissing Error
+
+<ErrorMessage 
+  error="Notification saved" 
+  autoDismiss={3000} 
+  dismissible
+/>
+With Additional Content
+
+<ErrorMessage 
+  error="Payment failed" 
+  title="Transaction Error"
+>
+  <p className="mt-1">Please try again or contact support.</p>
+  <button 
+    onClick={retryPayment}
+    className="mt-2 inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-red-600 hover:bg-red-700"
+  >
+    Retry Payment
+  </button>
+</ErrorMessage>
+
+Custom Styling
+
+<ErrorMessage 
+  error="Network error" 
+  className="mb-4"
+  dismissible
+/>
+  */
+}
