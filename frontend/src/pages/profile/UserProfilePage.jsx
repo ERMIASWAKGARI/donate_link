@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import ErrorMessage from '../../components/ErrorMessage';
 import Header from '../../components/header/Header';
 import ProfileBasicInfo from './../../components/profile/ProfileBasicInfo';
+import { validateProfile } from './../../components/profile/ProfileDataValidator';
 
 const API_BASE_URL = import.meta.env.BACKEND_URL || 'http://localhost:5000';
 
@@ -12,6 +13,7 @@ const ProfilePage = () => {
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
   const [updateLoading, setUpdateLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
 
   const fetchUserProfile = async () => {
     try {
@@ -40,6 +42,19 @@ const ProfilePage = () => {
   }, []);
 
   const handleProfileUpdate = async (updateData) => {
+    // Validate before submitting
+    const errors = validateProfile(user, updateData);
+    setValidationErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      setError({
+        message: `${errors.name}`,
+        details: 'Some fields contain invalid data',
+        status: 400,
+      });
+      return;
+    }
+
     try {
       setUpdateLoading(true);
       setError(null);
@@ -92,7 +107,6 @@ const ProfilePage = () => {
       <Header />
       <div className="py-12 px-4 bg-gray-100 flex justify-center">
         <div className="w-full max-w-5xl space-y-10">
-          {/* Display error message if exists (dismissible) */}
           {error && (
             <ErrorMessage
               error={error}
@@ -107,6 +121,7 @@ const ProfilePage = () => {
             user={user}
             loading={updateLoading}
             onProfileUpdate={handleProfileUpdate}
+            validationErrors={validationErrors}
           />
         </div>
       </div>
@@ -115,7 +130,6 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
-
 {
   /* 
   
