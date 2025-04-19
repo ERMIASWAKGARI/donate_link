@@ -19,6 +19,7 @@ export const ProfileBasicInfo = ({ user, onProfileUpdate }) => {
     handleFieldChange,
     setEditingField,
     formData,
+    hasChanges,
   } = useProfile(user, onProfileUpdate);
 
   const renderRoleSpecificInfo = () => {
@@ -34,6 +35,7 @@ export const ProfileBasicInfo = ({ user, onProfileUpdate }) => {
             onCancel={handleCancelEdit}
             onSave={handleSaveField}
             handleFieldChange={handleFieldChange}
+            hasChanges={hasChanges}
           />
         );
       case 'ngo':
@@ -59,6 +61,7 @@ export const ProfileBasicInfo = ({ user, onProfileUpdate }) => {
             onCancel={handleCancelEdit}
             onSave={handleSaveField}
             handleFieldChange={handleFieldChange}
+            hasChanges={hasChanges}
           />
         );
       case 'admin':
@@ -71,6 +74,7 @@ export const ProfileBasicInfo = ({ user, onProfileUpdate }) => {
             onCancel={handleCancelEdit}
             onSave={handleSaveField}
             handleFieldChange={handleFieldChange}
+            hasChanges={hasChanges}
           />
         );
       default:
@@ -103,6 +107,7 @@ export const ProfileBasicInfo = ({ user, onProfileUpdate }) => {
                     onCancel={handleCancelEdit}
                     onSave={handleSaveField}
                     handleFieldChange={handleFieldChange}
+                    hasChanges={hasChanges}
                   />
                 ))}
               </div>

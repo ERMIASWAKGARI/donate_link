@@ -1,25 +1,30 @@
-import { Spin } from 'antd';
-import axios from 'axios';
+import { Modal, Spin } from 'antd';
 import { useEffect, useState } from 'react';
 import ErrorMessage from '../../components/ErrorMessage';
+import SuccessMessage from '../../components/SuccessMessage'; // Your new component
 import Header from '../../components/header/Header';
+import api from '../../config/axiosConfig'; // Adjust the import path as necessary
 import ProfileBasicInfo from './../../components/profile/ProfileBasicInfo';
 import { validateProfile } from './../../components/profile/ProfileDataValidator';
-
-const API_BASE_URL = import.meta.env.BACKEND_URL || 'http://localhost:5000';
 
 const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [updateLoading, setUpdateLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const [verificationModal, setVerificationModal] = useState({
+    visible: false,
+    type: null, // 'email' or 'phone'
+    message: '',
+  });
 
   const fetchUserProfile = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get(`${API_BASE_URL}/api/users/me`, {
+      const response = await api.get(`/users/me`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
@@ -42,7 +47,6 @@ const ProfilePage = () => {
   }, []);
 
   const handleProfileUpdate = async (updateData) => {
-    // Validate before submitting
     const errors = validateProfile(user, updateData);
     setValidationErrors(errors);
 
@@ -58,11 +62,37 @@ const ProfilePage = () => {
     try {
       setUpdateLoading(true);
       setError(null);
-      await axios.patch(`${API_BASE_URL}/api/users/me/update`, updateData, {
+      const response = await api.patch('/users/me/update', updateData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
       });
+
+      const { data } = response;
+      console.log('Update response:', data);
+
+      if (data.message.updatedFields.includes('email')) {
+        // Handle email verification flow
+        setVerificationModal({
+          visible: true,
+          type: 'email',
+          message: data.message,
+        });
+      } else if (data.message.updatedFields.includes('phone')) {
+        // Handle phone verification flow
+        setVerificationModal({
+          visible: true,
+          type: 'phone',
+          message: data.message,
+        });
+      } else {
+        // Regular success case
+        setSuccess({
+          message: data.message,
+          updatedFields: data.updatedFields || [],
+        });
+      }
+
       await fetchUserProfile();
     } catch (err) {
       console.error('Update failed:', err);
@@ -74,6 +104,14 @@ const ProfilePage = () => {
     } finally {
       setUpdateLoading(false);
     }
+  };
+
+  const handleVerificationModalClose = () => {
+    setVerificationModal({
+      visible: false,
+      type: null,
+      message: '',
+    });
   };
 
   if (loading) {
@@ -104,6 +142,61 @@ const ProfilePage = () => {
         </div>
       )}
 
+      {/* Verification Modal */}
+      <Modal
+        title={
+          verificationModal.type === 'email'
+            ? 'Email Verification Required'
+            : 'Phone Verification Required'
+        }
+        visible={verificationModal.visible}
+        onOk={handleVerificationModalClose}
+        onCancel={handleVerificationModalClose}
+        footer={[
+          <button
+            key="submit"
+            onClick={handleVerificationModalClose}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            OK
+          </button>,
+        ]}
+      >
+        <div className="space-y-4">
+          {verificationModal.type === 'email' ? (
+            <>
+              <p className="text-lg font-medium">Email Update Successful!</p>
+              <p>
+                We&apos;ve sent a verification link to your new email address.
+              </p>
+              <p className="text-sm text-gray-600">
+                Please check your inbox and click the verification link to
+                complete the update.
+              </p>
+              <div className="bg-blue-50 p-3 rounded mt-3">
+                <p className="text-sm font-medium text-blue-800">
+                  Didn&apos;t receive the email?
+                </p>
+                <ul className="list-disc pl-5 text-sm text-blue-700 mt-1">
+                  <li>Check your spam folder</li>
+                  <li>Wait a few minutes</li>
+                  <li>Contact support if you still don&apos;t see it</li>
+                </ul>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-lg font-medium">Phone Update Successful!</p>
+              <p>We&apos;ve sent an OTP to your new phone number.</p>
+              <p className="text-sm text-gray-600">
+                Please enter the verification code when prompted to complete the
+                update.
+              </p>
+            </>
+          )}
+        </div>
+      </Modal>
+
       <Header />
       <div className="py-12 px-4 bg-gray-100 flex justify-center">
         <div className="w-full max-w-5xl space-y-10">
@@ -113,6 +206,17 @@ const ProfilePage = () => {
               title={error.status ? `Error (${error.status})` : 'Error'}
               dismissible
               onDismiss={() => setError(null)}
+              className="mb-6"
+            />
+          )}
+
+          {success && !verificationModal.visible && (
+            <SuccessMessage
+              message={success.message}
+              updatedFields={success.updatedFields}
+              dismissible
+              autoDismiss={5000}
+              onDismiss={() => setSuccess(null)}
               className="mb-6"
             />
           )}
@@ -130,71 +234,3 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
-{
-  /* 
-  
-  
-  Basic Usage
-
-<ErrorMessage error="Something went wrong" />
-
-With Error Object
-
-<ErrorMessage error={new Error('Database connection failed')} />
-
-API Error Response
-
-<ErrorMessage error={{
-  error: "Validation failed",
-  errors: {
-    email: "Must be a valid email",
-    password: "Must be at least 8 characters"
-  }
-}} />
-
-Dismissible Error
-
-const [apiError, setApiError] = useState(null);
-
-// When error occurs
-setApiError("Failed to load data");
-
-// In your 
-{apiError && (
-  <ErrorMessage 
-    error={apiError} 
-    dismissible 
-    onDismiss={() => setApiError(null)}
-  />
-)}
-Auto-dismissing Error
-
-<ErrorMessage 
-  error="Notification saved" 
-  autoDismiss={3000} 
-  dismissible
-/>
-With Additional Content
-
-<ErrorMessage 
-  error="Payment failed" 
-  title="Transaction Error"
->
-  <p className="mt-1">Please try again or contact support.</p>
-  <button 
-    onClick={retryPayment}
-    className="mt-2 inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-red-600 hover:bg-red-700"
-  >
-    Retry Payment
-  </button>
-</ErrorMessage>
-
-Custom Styling
-
-<ErrorMessage 
-  error="Network error" 
-  className="mb-4"
-  dismissible
-/>
-  */
-}

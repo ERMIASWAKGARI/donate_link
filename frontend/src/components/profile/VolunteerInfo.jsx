@@ -14,6 +14,7 @@ export const VolunteerInfo = ({
   onCancel,
   onSave,
   handleFieldChange,
+  hasChanges,
 }) => (
   <>
     <h2 className="text-lg font-semibold text-gray-800 mb-6 pb-2 border-b border-gray-200 flex items-center">
@@ -33,6 +34,7 @@ export const VolunteerInfo = ({
         onCancel={onCancel}
         onSave={onSave}
         handleFieldChange={handleFieldChange}
+        hasChanges={hasChanges}
       />
     ))}
   </>

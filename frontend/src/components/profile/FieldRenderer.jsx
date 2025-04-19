@@ -12,6 +12,7 @@ export const FieldRenderer = ({
   onCancel,
   onSave,
   handleFieldChange,
+  hasChanges,
 }) => {
   if (fieldConfig.roles && !fieldConfig.roles.includes(user.role)) {
     return null;
@@ -79,6 +80,7 @@ export const FieldRenderer = ({
         onEdit={onEdit}
         onCancel={onCancel}
         onSave={onSave}
+        hasChanges={hasChanges}
       />
     );
   }
@@ -110,6 +112,7 @@ export const FieldRenderer = ({
         onEdit={onEdit}
         onCancel={onCancel}
         onSave={onSave}
+        hasChanges={hasChanges}
       />
     );
   }
@@ -145,6 +148,7 @@ export const FieldRenderer = ({
         onEdit={onEdit}
         onCancel={onCancel}
         onSave={onSave}
+        hasChanges={hasChanges}
       />
     );
   }
@@ -242,6 +246,7 @@ export const FieldRenderer = ({
         onEdit={onEdit}
         onCancel={onCancel}
         onSave={onSave}
+        hasChanges={hasChanges}
       />
     );
   }
@@ -287,6 +292,7 @@ export const FieldRenderer = ({
         onEdit={onEdit}
         onCancel={onCancel}
         onSave={onSave}
+        hasChanges={hasChanges}
       />
     );
   }
@@ -318,6 +324,7 @@ export const FieldRenderer = ({
       onEdit={fieldConfig.readOnly ? null : onEdit}
       onCancel={onCancel}
       onSave={onSave}
+      hasChanges={hasChanges}
     />
   );
 };

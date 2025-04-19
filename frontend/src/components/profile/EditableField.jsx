@@ -11,6 +11,7 @@ export const EditableField = ({
   onEdit,
   onCancel,
   onSave,
+  hasChanges, // New prop to determine if there are changes
 }) => {
   return (
     <div className="mb-6">
@@ -30,8 +31,10 @@ export const EditableField = ({
             </button>
             <button
               onClick={() => onSave(fieldName)}
-              disabled={loading}
-              className="text-teal-600 hover:text-teal-800 disabled:opacity-50"
+              disabled={loading || !hasChanges} // Disable if no changes
+              className={`text-teal-600 hover:text-teal-800 disabled:opacity-50 ${
+                !hasChanges ? 'cursor-not-allowed' : ''
+              }`}
             >
               <SaveOutlined className="mr-1" />
               {loading ? 'Saving...' : 'Save'}

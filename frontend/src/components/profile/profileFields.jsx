@@ -17,7 +17,7 @@ export const basicProfileFields = [
     label: 'Email Address',
     type: 'email',
     placeholder: 'Enter your email',
-    readOnly: true,
+    // readOnly: true,
     roles: [
       'admin',
       'ngo',

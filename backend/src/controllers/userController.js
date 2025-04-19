@@ -306,6 +306,7 @@ const updateUserProfile = asyncWrapper(async (req, res) => {
   let isUpdated = false;
   let emailUpdated = false;
   let phoneUpdated = false;
+  const updatedFields = []; // Track which fields were updated
 
   if (email && email === user.email) {
     throw new AppError('Email is already in use.', 400);
@@ -320,14 +321,14 @@ const updateUserProfile = asyncWrapper(async (req, res) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) throw new AppError('Email is already in use.', 400);
 
-    user.newEmail = email; // Store as newEmail (not replacing old email)
+    user.newEmail = email;
     user.isNewEmailVerified = false;
-    // Generate and send email verification token
     const emailVerificationToken = crypto.randomBytes(32).toString('hex');
     user.emailVerificationToken = emailVerificationToken;
     await sendEmailUpdateVerification(user.newEmail, emailVerificationToken);
 
     emailUpdated = true;
+    updatedFields.push('email');
   }
 
   // 🔹 Handle Phone Update
@@ -336,13 +337,12 @@ const updateUserProfile = asyncWrapper(async (req, res) => {
     if (existingUser)
       throw new AppError('Phone number is already in use.', 400);
 
-    user.newPhone = phone; // Store as newPhone (not replacing old phone)
+    user.newPhone = phone;
     user.isNewPhoneVerified = false;
-
-    // Send OTP for phone verification
     await sendOTP(user.newPhone);
 
     phoneUpdated = true;
+    updatedFields.push('phone');
   }
 
   // 🔹 Allowed Fields for Each Role
@@ -369,8 +369,12 @@ const updateUserProfile = asyncWrapper(async (req, res) => {
   // 🔹 Update Only Allowed Fields
   Object.keys(updates).forEach((key) => {
     if (allowedFields[user.role] && allowedFields[user.role].includes(key)) {
-      user[key] = updates[key];
-      isUpdated = true;
+      if (user[key] !== updates[key]) {
+        // Only track if value actually changed
+        user[key] = updates[key];
+        isUpdated = true;
+        updatedFields.push(key);
+      }
     }
   });
 
@@ -380,21 +384,22 @@ const updateUserProfile = asyncWrapper(async (req, res) => {
 
   await user.save();
 
+  // Prepare response data
+  const responseData = {
+    user,
+    updatedFields,
+    message: `Profile updated successfully!`,
+  };
+
   if (emailUpdated) {
-    return sendSuccessResponse(
-      res,
-      200,
-      'Please verify your new email before it is updated.'
-    );
+    responseData.message = 'Please verify your new email before it is updated.';
+    return sendSuccessResponse(res, 200, responseData);
   } else if (phoneUpdated) {
-    return sendSuccessResponse(
-      res,
-      200,
-      'Please verify your new phone before it is updated.'
-    );
+    responseData.message = 'Please verify your new phone before it is updated.';
+    return sendSuccessResponse(res, 200, responseData);
   }
 
-  sendSuccessResponse(res, 200, 'Profile updated successfully.', user);
+  sendSuccessResponse(res, 200, responseData);
 });
 
 const deactivateAccount = asyncWrapper(async (req, res) => {

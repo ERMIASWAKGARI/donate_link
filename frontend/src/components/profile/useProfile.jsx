@@ -5,6 +5,7 @@ export const useProfile = (user, onProfileUpdate) => {
   const [editingField, setEditingField] = useState(null);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({});
+  const [hasChanges, setHasChanges] = useState(false); // Track changes
 
   useEffect(() => {
     let completedFields = 0;
@@ -20,35 +21,69 @@ export const useProfile = (user, onProfileUpdate) => {
     setProfileCompletion(Math.round((completedFields / totalFields) * 100));
   }, [user]);
 
-  const handleCancelEdit = () => setEditingField(null);
+  const handleCancelEdit = () => {
+    setEditingField(null);
+    setFormData({});
+    setHasChanges(false);
+  };
 
   const handleFieldChange = (fieldName, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [fieldName]: value,
+    setFormData((prev) => {
+      const newFormData = {
+        ...prev,
+        [fieldName]: value,
+        ...(fieldName === 'country' && {
+          address: {
+            ...prev.address,
+            country: value,
+            ...(!user.address?.region && { region: '' }),
+            ...(!user.address?.city && { city: '' }),
+          },
+        }),
+        ...(fieldName === 'region' && {
+          address: {
+            ...prev.address,
+            region: value,
+          },
+        }),
+        ...(fieldName === 'city' && {
+          address: {
+            ...prev.address,
+            city: value,
+          },
+        }),
+      };
 
-      // Special handling for address compound field
-      ...(fieldName === 'country' && {
-        address: {
-          ...prev.address,
-          country: value,
-          ...(!user.address?.region && { region: '' }),
-          ...(!user.address?.city && { city: '' }),
-        },
-      }),
-      ...(fieldName === 'region' && {
-        address: {
-          ...prev.address,
-          region: value,
-        },
-      }),
-      ...(fieldName === 'city' && {
-        address: {
-          ...prev.address,
-          city: value,
-        },
-      }),
-    }));
+      // Check if there are actual changes
+      const hasChanges = checkForChanges(newFormData, fieldName);
+      setHasChanges(hasChanges);
+
+      return newFormData;
+    });
+  };
+
+  // Helper function to check for actual changes
+  const checkForChanges = (currentFormData, fieldName) => {
+    if (fieldName === 'address') {
+      return (
+        currentFormData.address?.country !== user.address?.country ||
+        currentFormData.address?.region !== user.address?.region ||
+        currentFormData.address?.city !== user.address?.city
+      );
+    }
+
+    if (Array.isArray(currentFormData[fieldName])) {
+      // For array fields (like multiselect)
+      const currentValues = currentFormData[fieldName] || [];
+      const userValues = user[fieldName] || [];
+      return (
+        currentValues.length !== userValues.length ||
+        currentValues.some((val) => !userValues.includes(val)) ||
+        userValues.some((val) => !currentValues.includes(val))
+      );
+    }
+
+    return currentFormData[fieldName] !== user[fieldName];
   };
 
   const handleSaveField = async (fieldName) => {
@@ -65,7 +100,6 @@ export const useProfile = (user, onProfileUpdate) => {
           },
         };
       } else {
-        // For multi-select fields, use the formData if it exists, otherwise fall back to user data
         updateData = {
           [fieldName]:
             formData[fieldName] !== undefined
@@ -77,6 +111,7 @@ export const useProfile = (user, onProfileUpdate) => {
       await onProfileUpdate(updateData);
       setEditingField(null);
       setFormData({});
+      setHasChanges(false);
     } catch (error) {
       console.error(`Failed to update ${fieldName}`, error);
       throw error;
@@ -90,6 +125,7 @@ export const useProfile = (user, onProfileUpdate) => {
     editingField,
     loading,
     formData,
+    hasChanges, // Expose hasChanges
     handleCancelEdit,
     handleSaveField,
     handleFieldChange,
