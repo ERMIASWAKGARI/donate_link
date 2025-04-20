@@ -53,9 +53,7 @@ const ChatModal = ({ onClose, showChatModal }) => {
       if (!showChatModal || !user?._id) return;
 
       try {
-        console.log("Starting conversation fetch...");
         const loadedConversations = await fetchConversations();
-        console.log("Fetched conversations:", loadedConversations);
 
         if (isMounted) {
           if (loadedConversations?.length > 0 && !activeConversation) {
@@ -67,7 +65,6 @@ const ChatModal = ({ onClose, showChatModal }) => {
           }
 
           if (activeConversation?._id) {
-            console.log("Loading messages for:", activeConversation._id);
             await fetchMessages(activeConversation._id);
             scrollToBottom();
           }
@@ -92,10 +89,6 @@ const ChatModal = ({ onClose, showChatModal }) => {
 
     const loadMessages = async () => {
       try {
-        console.log(
-          "Loading messages for new conversation:",
-          activeConversation._id
-        );
         await fetchMessages(activeConversation._id);
         scrollToBottom();
       } catch (error) {
@@ -174,7 +167,7 @@ const ChatModal = ({ onClose, showChatModal }) => {
 
     try {
       const result = await sendMessage(activeConversation._id, message);
-      console.log("Message sent successfully:", result);
+
       setMessage(""); // Clear the input
       console.log("Message clearly successfully:", result);
       setShowEmojiPicker(false);
@@ -205,7 +198,6 @@ const ChatModal = ({ onClose, showChatModal }) => {
   });
 
   const handleConversationClick = (conversation) => {
-    console.log("Conversation clicked:", conversation._id);
     setActiveConversation(conversation);
     if (isMobileView) {
       document.getElementById("conversation-list").classList.add("hidden");

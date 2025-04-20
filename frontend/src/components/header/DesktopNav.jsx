@@ -4,6 +4,15 @@ import { ChevronDown, MessageSquare } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useChat } from '../../context/ChatContext';
+import { headerLinks } from './HeaderConfig';
+import ProfileDropdown from './ProfileDropdown';
+import NotificationDropdown from '../NotificationDropdown';
+// import { useSocket } from "../context/SocketContext";
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronDown, MessageSquare } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useChat } from '../../context/ChatContext';
 import NotificationBell from './../../components/NotificationBell';
 import { headerLinks } from './HeaderConfig';
 import ProfileDropdown from './ProfileDropdown';
@@ -15,6 +24,7 @@ const DesktopNav = ({ user, handleLogout }) => {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [showChatModal, setShowChatModal] = useState(false);
   const { unreadCount } = useChat();
+  // const socket = useSocket();
 
   const dropdownRefs = {
     howItWorks: useRef(null),
@@ -290,6 +300,10 @@ const DesktopNav = ({ user, handleLogout }) => {
         </AnimatePresence>
       </div>
 
+      {/* Notification Icon */}
+      <NotificationDropdown
+        onNotificationClick={() => setActiveDropdown(null)}
+      />
       <div>
         <NotificationBell />
       </div>

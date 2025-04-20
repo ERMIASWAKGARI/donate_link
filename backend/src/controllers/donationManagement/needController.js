@@ -158,21 +158,24 @@ getAllServiceNeeds = async (req, res) => {
     // 1. BASE QUERY - Only service needs
     let query = { needTypes: "service" };
 
-    // 2. FILTERING - Status and Urgency
-    if (req.query.status) {
-      query.status = req.query.status;
-    }
-    if (req.query.urgency) {
-      query.urgencyLevel = req.query.urgency;
+    // 2. FILTERING - Status and Urgency with combined conditions
+    const filterConditions = {};
+    if (req.query.status) filterConditions.status = req.query.status;
+    if (req.query.urgency) filterConditions.urgencyLevel = req.query.urgency;
+
+    // Combine filters with AND condition
+    if (Object.keys(filterConditions).length > 0) {
+      query = { ...query, ...filterConditions };
     }
 
-    // 3. SEARCH - Across multiple fields
-    if (req.query.search) {
-      const searchRegex = new RegExp(req.query.search, "i");
+    // 3. SEARCH - Debounced search across multiple fields
+    if (req.query.search && req.query.search.trim() !== "") {
+      const searchRegex = new RegExp(req.query.search.trim(), "i");
       query.$or = [
         { title: searchRegex },
         { description: searchRegex },
         { "NGO.name": searchRegex },
+        { "beneficiaryInfo.location.address": searchRegex },
       ];
     }
 
@@ -216,13 +219,11 @@ getAllServiceNeeds = async (req, res) => {
 //get all NGO service needs
 const getAllNGOServiceNeeds = async (req, res) => {
   try {
-   
-
-
-
     // Find the specific need for the given NGO
-    const need = await Need.find({ NGO: req.user?._id, needTypes: ["service"] })
-      .populate("NGO", "name email"); // Populate NGO basic info
+    const need = await Need.find({
+      NGO: req.user?._id,
+      needTypes: ["service"],
+    }).populate("NGO", "name email"); // Populate NGO basic info
 
     if (!need || need.length === 0) {
       return res.status(404).json({
@@ -253,7 +254,6 @@ const getAllNGOServiceNeeds = async (req, res) => {
 // In your backend route file (e.g., donationRoutes.js)
 const getAllNeeds = async (req, res) => {
   try {
-  
     const { page = 1, limit = 10, search = "", category = "all" } = req.query;
 
     const query = {
@@ -267,7 +267,6 @@ const getAllNeeds = async (req, res) => {
         { title: { $regex: search, $options: "i" } },
         { description: { $regex: search, $options: "i" } },
         { needTypes: { $regex: search, $options: "i" } },
-       
       ];
     }
 
@@ -284,11 +283,11 @@ const getAllNeeds = async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit))
       .populate("NGO", "name email")
-      .then(needs => {
+      .then((needs) => {
         if (category === "service") {
-          return needs.filter(need => need.needTypes.includes("service"));
+          return needs.filter((need) => need.needTypes.includes("service"));
         } else if (category === "all") {
-          return needs.filter(need => !need.needTypes.includes("service")); 
+          return needs.filter((need) => !need.needTypes.includes("service"));
         }
         return needs;
       });
@@ -358,7 +357,7 @@ getNeedsByNgo = async (req, res) => {
 };
 
 // Get single need by ID
- const getNeedById = async (req, res) => {
+const getNeedById = async (req, res) => {
   try {
     const need = await Need.findById(req.params.id)
       .populate("NGO", "name email") // Populate NGO basic info
