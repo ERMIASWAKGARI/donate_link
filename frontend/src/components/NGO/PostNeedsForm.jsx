@@ -90,6 +90,7 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
           ...prev.categories[type],
           {
             categoryName: "",
+            unit: "",
             subCategoryName: "",
             ...(type === "material"
               ? { targetAmountNeeded: "" }
@@ -226,6 +227,7 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
               categoryName: cat.categoryName?.slice(0, 50),
               subCategoryName: cat.subCategoryName?.slice(0, 50),
               targetAmountNeeded: cat.targetAmountNeeded,
+              unit: cat.unit,
             }))
           )
         );

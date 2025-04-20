@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle } from "lucide-react";
 import ReportForm from "./ReportForm";
 import { useUser } from "../../context/UserContext";
+import ReportList from "./reportPreview";
 const Reports = () => {
   const [activeTab, setActiveTab] = useState("generate");
   const [selectedNeed, setSelectedNeed] = useState("");
@@ -13,9 +14,33 @@ const Reports = () => {
   const [error, setError] = useState(null);
   const { user } = useUser();
   // Pagination state
+
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(6);
   const [totalItems, setTotalItems] = useState(0);
+  //get reports by NGO means of user._id
+  // const fetchReports = async () => {
+  //   try {
+  //     setLoading(true);
+  //     setError(null);
+  //     const response = await Axios.get(`/report/ngo/${user._id}`, {
+  //       params: {
+  //         page: currentPage,
+  //         limit: itemsPerPage,
+  //       },
+  //     });
+  //     console.log("here is our response", response.data);
+  //     setReports(response.data.data || []);
+  //     setTotalItems(response.data.total || 0);
+  //   } catch (err) {
+  //     setError("Failed to fetch reports. Please try again.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  // useEffect(() => {
+  //   fetchReports();
+  // }, [currentPage]);
 
   useEffect(() => {
     fetchNeeds();
@@ -147,46 +172,7 @@ const Reports = () => {
           </motion.div>
         )}
 
-        {activeTab === "ourReports" && (
-          <motion.div
-            key="ourReports"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">
-              Our Reports
-            </h2>
-
-            {reports.length > 0 ? (
-              <div className="space-y-4">
-                {reports.map((report) => (
-                  <motion.div
-                    key={report.id}
-                    className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-sm border hover:shadow-md transition"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.2, delay: report.id * 0.05 }}
-                  >
-                    <CheckCircle className="text-green-500 w-5 h-5" />
-                    <div>
-                      <p className="font-medium text-gray-800">
-                        Report for{" "}
-                        <span className="text-blue-600">{report.need}</span>
-                      </p>
-                      <p className="text-gray-500 text-sm">
-                        Generated on {report.date}
-                      </p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500">No reports generated yet.</p>
-            )}
-          </motion.div>
-        )}
+        {activeTab === "ourReports" && <ReportList />}
       </AnimatePresence>
     </div>
   );

@@ -6,14 +6,18 @@ const donationItemSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    subcategory: {
+    subCategory: {
       type: String,
       required: true,
     },
-    quantity: {
+    totalQuantity: {
       type: Number,
       required: true,
       min: 0,
+    },
+    unit: {
+      type: String,
+ 
     },
   },
   { _id: false }
@@ -30,7 +34,7 @@ const serviceSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    subcategory: {
+    subCategory: {
       type: String,
       required: true,
     },
@@ -40,7 +44,7 @@ const serviceSchema = new mongoose.Schema(
     },
     endDate: Date,
     hoursPerWeek: Number,
-    motivation: String,
+  
   },
   { _id: false }
 );
@@ -49,7 +53,7 @@ const reportSchema = new mongoose.Schema(
   {
     need: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Need",
+      ref: "Needs",
       required: true,
     },
     description: {
@@ -57,34 +61,30 @@ const reportSchema = new mongoose.Schema(
       required: true,
     },
     pictures: {
-        type: [String],
-        validate: {
-            validator: function (v) {
-            return v.length <= 10;
-            },
-            message: "Cannot upload more than 10 pictures",
+      type: [String],
+      validate: {
+        validator: function (v) {
+          return v.length <= 10;
         },
-        },
+        message: "Cannot upload more than 10 pictures",
+      },
+    },
+    impactMetrics: {
+      beneficiariesReached: Number,
+      communitiesServed: [String],
+      successStories: [String],
+    },
     donations: {
       services: [serviceSchema],
       materials: [donationItemSchema],
     },
-    totals: {
-      services: {
-        type: Number,
-        default: 0,
-      },
-      materials: {
-        type: Number,
-        default: 0,
-      },
-    },
+  
     status: {
       type: String,
       enum: ["pending", "approved", "rejected"],
       default: "pending",
     },
-    NGO: {
+  NGO: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,

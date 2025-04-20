@@ -114,6 +114,7 @@ const NeedDetail = ({ need, onClose }) => {
                     console.log("Donation submitted:", formData);
                     // Handle donation submission here
                   }}
+                  onClose={onClose}
                 />
               </div>
             </div>

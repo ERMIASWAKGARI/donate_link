@@ -138,6 +138,10 @@ const needsSchema = new mongoose.Schema(
             },
             min: 1,
           },
+          unit: {
+            type: String,
+           
+          },
         },
       ],
 
