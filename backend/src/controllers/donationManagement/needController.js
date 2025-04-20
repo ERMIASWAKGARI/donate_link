@@ -115,6 +115,7 @@ const postNgosNeed = async (req, res, next) => {
           categoryName: cat.categoryName,
           subCategoryName: cat.subCategoryName,
           targetAmountNeeded: cat.targetAmountNeeded,
+          unit: cat.unit,
         })),
         service: serviceCategories.map((cat) => ({
           categoryName: cat.categoryName,
@@ -368,7 +369,7 @@ getNeedsByNgo = async (req, res) => {
 };
 const getReportPreview = async (req, res) => {
   try {
-       const { needId } = req.params;
+       const { needId,categories } = req.params;
        const { needTypes } = req.query;
 console.log("needId", needId);
     if ( !needTypes || needTypes.length === 0) {
@@ -411,7 +412,28 @@ console.log("needId", needId);
           }).populate("donorId", "name email phone")
         : Promise.resolve([]),
     ]);
-    console.log("materialdonations", materialDonations);
+ const materialsSummary = {};
+
+ materialDonations.forEach((donation) => {
+   donation.materials.forEach((material) => {
+     const key = `${material.categoryName}-${material.subCategoryName}`;
+
+     if (!materialsSummary[key]) {
+       materialsSummary[key] = {
+         category: material.categoryName,
+         subCategory: material.subCategoryName,
+         totalQuantity: 0,
+         unit: material.unit || "",
+       };
+     }
+
+     materialsSummary[key].totalQuantity += material.quantity;
+   });
+ });
+
+ // Convert object to array for report
+ const summarizedMaterials = Object.values(materialsSummary);
+
     // Transform data to match schema
     const transformedData = {
       services: approvedApplications.map((app) => ({
@@ -424,13 +446,7 @@ console.log("needId", needId);
         motivation: app.motivation,
       })),
 
-      materials: materialDonations.flatMap((donation) =>
-        donation.materials.map((material) => ({
-          category: material.categoryName,
-          subcategory: material.subCategoryName,
-          quantity: material.quantity,
-        }))
-      ),
+      materials: summarizedMaterials,
     };
 
     const totals = {
@@ -473,20 +489,23 @@ const generateReport = async (req, res) => {
     req.files?.map((file) =>
       path.join("donations", path.basename(file.path))
     ) || [];
+console.log("body",req.query);
+   
+       const { needId,  } = req.body;
+       let { needTypes } = req.body;
 
-    const { needId } = req.params;
-    const { description, needTypes } = req.body;
+  needTypes = JSON.parse(needTypes);
 
-    if (!description || !needTypes || needTypes.length === 0) {
+    if ( !needTypes || needTypes.length === 0) {
       return res.status(400).json({
         success: false,
-        error: "Description and at least one need type are required",
+        error: " and at least one need type are required",
       });
     }
-
-    // Validate need types
-    const validNeedTypes = ["material", "service"];
-    const invalidTypes = needTypes.filter(type => !validNeedTypes.includes(type));
+    const validNeedTypes = ["material", "service","money"];
+    const invalidTypes = needTypes.filter(
+      (type) => !validNeedTypes.includes(type)
+    );
     if (invalidTypes.length > 0) {
       return res.status(400).json({
         success: false,
@@ -503,76 +522,86 @@ const generateReport = async (req, res) => {
     }
 
     const [approvedApplications, materialDonations] = await Promise.all([
-      needTypes.includes("service") ? 
-        Application.find({
-          need: needId,
-          status: "Approved"
-        }).populate("applicant", "name email phone") : 
-        Promise.resolve([]),
-      
-      needTypes.includes("material") ? 
-        MaterialDonation.find({
-          needId: needId,
-          status: "Approved"
-        }).populate("donorId", "name email phone") : 
-        Promise.resolve([])
+      needTypes.includes("service")
+        ?await  Application.find({
+            need: needId,
+            status: "Approved",
+          }).populate("applicant", "name email phone")
+        : Promise.resolve([]),
+
+      needTypes.includes("material")
+        ?await MaterialDonation.find({
+            needId: needId,
+           
+          }).populate("donorId", "name email phone")
+        : Promise.resolve([]),
     ]);
+ const materialsSummary = {};
+
+ materialDonations.forEach((donation) => {
+   donation.materials.forEach((material) => {
+     const key = `${material.categoryName}-${material.subCategoryName}`;
+
+     if (!materialsSummary[key]) {
+       materialsSummary[key] = {
+         category: material.categoryName,
+         subCategory: material.subCategoryName,
+         totalQuantity: 0,
+         unit: material.unit || "",
+       };
+     }
+
+     materialsSummary[key].totalQuantity += material.quantity;
+   });
+ });
+
+ // Convert object to array for report
+ const summarizedMaterials = Object.values(materialsSummary);
 
     // Transform data to match schema
     const transformedData = {
-      services: approvedApplications.map(app => ({
-        applicant: app.applicant._id,
+      services: approvedApplications.map((app) => ({
+        applicant: app.applicant,
         category: app.category,
         subcategory: app.subCategory,
         startDate: app.startDate,
         endDate: app.endDate,
         hoursPerWeek: app.hoursPerWeek,
-        motivation: app.motivation
+        motivation: app.motivation,
       })),
-      
-      materials: materialDonations.flatMap(donation => 
-        donation.materials.map(material => ({
-          category: material.categoryName,
-          subcategory: material.subCategoryName,
-          quantity: material.quantity
-        })))
+
+      materials: summarizedMaterials,
     };
-
-    const totals = {
-      services: transformedData.services.length,
-      materials: transformedData.materials.reduce((sum, item) => sum + item.quantity, 0)
-    };
-
-    const newReport = await Report.create({
-      need: needId,
-      description,
-      pictures,
-      donations: transformedData,
-      totals,
-      status: "pending",
-      NGO: req.user._id,
-      createdBy: req.user._id
-    });
-
-    res.status(201).json({
+      const newReport = {
+        need: needId,
+description: req.body.description,
+        donations: transformedData,
+        pictures,
+        status: "pending",
+        NGO: req.user._id,
+        createdBy: req.user._id,
+      };
+      const report = await Report.create(newReport);
+      need.isReportGenerated = true;
+    res.status(200).json({
       success: true,
-      message: "Report generated successfully",
-      data: newReport,
-      summary: totals
+      data: need,
     });
-
   } catch (error) {
-    console.error("Error generating report:", error);
+    console.error("Error fetching need:", error);
+    if (error.kind === "ObjectId") {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid need ID",
+      });
+    }
     res.status(500).json({
       success: false,
-      error: "Internal server error",
-      details: process.env.NODE_ENV === "development" ? error.message : undefined
+      error: "Server error",
     });
   }
 };
-
-// Get single need by ID
- const getNeedById = async (req, res) => {
+const getNeedById = async (req, res) => {
   try {
     const need = await Need.findById(req.params.id)
       .populate("NGO", "name email") // Populate NGO basic info
@@ -603,8 +632,52 @@ const generateReport = async (req, res) => {
     });
   }
 };
+//get report by NGO means of user._id
+const getReportByNgo = async (req, res) => {
+  try {
+    const { page = 1, limit = 5 } = req.query;
+
+    const filter = { NGO: req.user._id };
+
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const total = await Report.countDocuments(filter);
+
+    const reports = await Report.find(filter)
+      .populate("need", "title description")
+      .populate("NGO", "name email")
+      .sort({ createdAt: -1 }) // Sort by newest first
+      .skip(skip)
+      .limit(limitNumber);
+
+    if (!reports || reports.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "No reports found for this NGO",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      count: reports.length,
+      total,
+      page: pageNumber,
+      pages: Math.ceil(total / limitNumber),
+      data: reports,
+    });
+  } catch (error) {
+    console.error("Error fetching NGO reports:", error);
+    res.status(500).json({
+      success: false,
+      error: "Server error",
+    });
+  }
+};
 module.exports = {
   getNeedById,
+  getReportByNgo,
   getNeedsByNgo,
   getAllServiceNeeds,
   getAllNGOServiceNeeds,
