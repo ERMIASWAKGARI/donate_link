@@ -13,19 +13,17 @@ const sendOTP = async (phone) => {
   }
 
   try {
-    await client.verify.v2
+    const otp = await client.verify.v2
       .services(verifySid)
       .verifications.create({ to: phone, channel: 'sms' });
 
     return { success: true, message: 'OTP sent successfully.' };
   } catch (error) {
     console.error('Error sending OTP:', error.message);
-
-    return {
-      success: false,
-      message: 'Failed to send OTP. Please try again.',
-      statusCode: 500,
-    };
+    throw new AppError(
+      'Failed to send OTP. Please check the phone number and try again.',
+      500
+    );
   }
 };
 

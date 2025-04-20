@@ -115,7 +115,14 @@ const registerUser = asyncWrapper(async (req, res) => {
     userData.isPhoneVerified = false;
     console.log(phone);
 
-    sendOTP(phone); // ✅ Reuse sendOTP function
+    try {
+      await sendOTP(phone);
+    } catch (error) {
+      throw new AppError(
+        'Failed to send OTP. Please check the phone number.',
+        500
+      );
+    }
   }
 
   console.log(userData);
@@ -294,8 +301,9 @@ const getUserById = asyncWrapper(async (req, res) => {
 });
 
 const updateUserProfile = asyncWrapper(async (req, res) => {
-  const { email, phone, ...updates } = req.body;
+  const { email, fullPhone: phone, ...updates } = req.body;
   console.log(req.body);
+  console.log(phone);
 
   const user = await User.findById(req.user._id).select(
     '-password -emailVerificationToken -tokenVersion -isActive -isEmailVerified -lastLogin -__v'
