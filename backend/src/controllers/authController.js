@@ -24,7 +24,7 @@ const generateToken = (user) => {
       tokenVersion: user.tokenVersion,
     },
     JWT_SECRET,
-    { expiresIn: '3h' } // Access token expires in 3 hour
+    { expiresIn: '1d' } // Access token expires in 3 hour
   );
 };
 
