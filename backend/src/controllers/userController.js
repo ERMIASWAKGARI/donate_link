@@ -9,6 +9,7 @@ const sendOTP = require('../utils/sendOTP');
 const APIFeatures = require('../utils/apiFeatures');
 const { sendNotification } = require('../utils/notificationService');
 const JWT_SECRET = process.env.JWT_SECRET;
+const BACKEND_URL = process.env.BACKEND_URL;
 
 const {
   sendVerificationEmail,
@@ -174,7 +175,7 @@ const uploadProfilePicture = asyncWrapper(async (req, res) => {
 
 const uploadVerificationDocs = asyncWrapper(async (req, res) => {
   const user = await User.findById(req.user._id).select(
-    '+ngoVerificationDocs +organizationVerificationDocs +volunteerVerificationDocs'
+    '+ngoVerificationDocs +organizationVerificationDocs +volunteerVerificationDocs +verificationStatus'
   );
 
   if (!user) throw new AppError('User not found.', 404);
@@ -237,6 +238,10 @@ const uploadVerificationDocs = asyncWrapper(async (req, res) => {
 
   // Update user document
   user[config.field] = processedDocs;
+
+  // Set verification status to pending
+  user.verificationStatus = 'pending';
+
   await user.save();
 
   // Notify admins
@@ -245,13 +250,15 @@ const uploadVerificationDocs = asyncWrapper(async (req, res) => {
     sendNotification(
       admin._id,
       `New verification documents uploaded by ${user.name}`,
-      'verification_docs'
+      'verification_docs_upload',
+      `/admin/users/${user._id}`
     );
   });
 
   sendSuccessResponse(res, 200, 'Documents uploaded successfully!', {
     uploadedFiles: processedDocs,
     requiredDocuments: config.required,
+    verificationStatus: user.verificationStatus, // Include the new status in response
   });
 });
 
@@ -273,8 +280,11 @@ const getUserProfile = asyncWrapper(async (req, res) => {
 
   sendSuccessResponse(res, 200, 'User profile retrieved successfully.', user);
 });
+
 const getUserById = asyncWrapper(async (req, res) => {
-  const user = await User.findById(req.params.id).select('-password -tokenVersion -emailVerificationToken -__v');
+  const user = await User.findById(req.params.id).select(
+    '-password -tokenVersion -emailVerificationToken -__v'
+  );
 
   if (!user) {
     throw new AppError('User not found.', 404);
@@ -283,10 +293,9 @@ const getUserById = asyncWrapper(async (req, res) => {
   sendSuccessResponse(res, 200, 'User profile retrieved successfully.', user);
 });
 
-
-
 const updateUserProfile = asyncWrapper(async (req, res) => {
   const { email, phone, ...updates } = req.body;
+  console.log(req.body);
 
   const user = await User.findById(req.user._id).select(
     '-password -emailVerificationToken -tokenVersion -isActive -isEmailVerified -lastLogin -__v'
@@ -297,6 +306,7 @@ const updateUserProfile = asyncWrapper(async (req, res) => {
   let isUpdated = false;
   let emailUpdated = false;
   let phoneUpdated = false;
+  const updatedFields = []; // Track which fields were updated
 
   if (email && email === user.email) {
     throw new AppError('Email is already in use.', 400);
@@ -311,14 +321,14 @@ const updateUserProfile = asyncWrapper(async (req, res) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) throw new AppError('Email is already in use.', 400);
 
-    user.newEmail = email; // Store as newEmail (not replacing old email)
+    user.newEmail = email;
     user.isNewEmailVerified = false;
-    // Generate and send email verification token
     const emailVerificationToken = crypto.randomBytes(32).toString('hex');
     user.emailVerificationToken = emailVerificationToken;
     await sendEmailUpdateVerification(user.newEmail, emailVerificationToken);
 
     emailUpdated = true;
+    updatedFields.push('email');
   }
 
   // 🔹 Handle Phone Update
@@ -327,13 +337,12 @@ const updateUserProfile = asyncWrapper(async (req, res) => {
     if (existingUser)
       throw new AppError('Phone number is already in use.', 400);
 
-    user.newPhone = phone; // Store as newPhone (not replacing old phone)
+    user.newPhone = phone;
     user.isNewPhoneVerified = false;
-
-    // Send OTP for phone verification
     await sendOTP(user.newPhone);
 
     phoneUpdated = true;
+    updatedFields.push('phone');
   }
 
   // 🔹 Allowed Fields for Each Role
@@ -348,19 +357,25 @@ const updateUserProfile = asyncWrapper(async (req, res) => {
     ngo: ['name', 'ngoVerificationDocs', 'address', 'location'],
     volunteer: [
       'name',
-      'skills',
+      'servicePreference',
+      'languageProficiency',
       'availability',
       'volunteerVerificationDocs',
       'address',
       'location',
     ],
+    admin: ['name', 'email', 'phone'],
   };
 
   // 🔹 Update Only Allowed Fields
   Object.keys(updates).forEach((key) => {
     if (allowedFields[user.role] && allowedFields[user.role].includes(key)) {
-      user[key] = updates[key];
-      isUpdated = true;
+      if (user[key] !== updates[key]) {
+        // Only track if value actually changed
+        user[key] = updates[key];
+        isUpdated = true;
+        updatedFields.push(key);
+      }
     }
   });
 
@@ -370,21 +385,22 @@ const updateUserProfile = asyncWrapper(async (req, res) => {
 
   await user.save();
 
+  // Prepare response data
+  const responseData = {
+    user,
+    updatedFields,
+    message: `Profile updated successfully!`,
+  };
+
   if (emailUpdated) {
-    return sendSuccessResponse(
-      res,
-      200,
-      'Please verify your new email before it is updated.'
-    );
+    responseData.message = 'Please verify your new email before it is updated.';
+    return sendSuccessResponse(res, 200, responseData);
   } else if (phoneUpdated) {
-    return sendSuccessResponse(
-      res,
-      200,
-      'Please verify your new phone before it is updated.'
-    );
+    responseData.message = 'Please verify your new phone before it is updated.';
+    return sendSuccessResponse(res, 200, responseData);
   }
 
-  sendSuccessResponse(res, 200, 'Profile updated successfully.', user);
+  sendSuccessResponse(res, 200, responseData);
 });
 
 const deactivateAccount = asyncWrapper(async (req, res) => {

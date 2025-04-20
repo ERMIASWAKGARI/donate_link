@@ -24,7 +24,7 @@ const generateToken = (user) => {
       tokenVersion: user.tokenVersion,
     },
     JWT_SECRET,
-    { expiresIn: '3h' } // Access token expires in 3 hour
+    { expiresIn: '1d' } // Access token expires in 3 hour
   );
 };
 
@@ -69,6 +69,7 @@ const verifyEmail = asyncWrapper(async (req, res) => {
     user.newEmail = undefined;
     user.isEmailVerified = true;
     user.isNewEmailVerified = undefined;
+    user.tokenVersion += 1; // Increment token version to invalidate old tokens
 
     user.emailVerificationToken = undefined;
     await user.save();

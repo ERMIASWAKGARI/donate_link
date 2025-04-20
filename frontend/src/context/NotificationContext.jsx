@@ -1,24 +1,24 @@
 /* eslint-disable react/prop-types */
-import axios from "axios";
+import axios from 'axios';
 import {
   createContext,
   useCallback,
   useContext,
   useEffect,
   useState,
-} from "react";
-import { useSocket } from "./SocketContext";
-import { useUser } from "./UserContext";
+} from 'react';
+import { useSocket } from './SocketContext';
+import { useUser } from './UserContext';
 
 const NotificationContext = createContext();
-const API_BASE_URL = import.meta.env.BACKEND_URL || "http://localhost:5000";
+const API_BASE_URL = import.meta.env.BACKEND_URL || 'http://localhost:5000';
 const NOTIFICATIONS_PER_PAGE = 10;
 
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab, setActiveTab] = useState('all');
   const [pagination, setPagination] = useState({
     page: 1,
     total: 0,
@@ -37,13 +37,13 @@ export const NotificationProvider = ({ children }) => {
         const params = {
           page,
           limit: NOTIFICATIONS_PER_PAGE,
-          seen: tab === "unread" ? "false" : undefined,
+          seen: tab === 'unread' ? 'false' : undefined,
         };
 
         const { data } = await axios.get(`${API_BASE_URL}/api/notification`, {
           params,
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
         });
 
@@ -60,7 +60,7 @@ export const NotificationProvider = ({ children }) => {
           hasMore: data.data.hasMore,
         }));
       } catch (error) {
-        console.error("Error fetching notifications:", error);
+        console.error('Error fetching notifications:', error);
       } finally {
         setIsLoading(false);
       }
@@ -96,10 +96,10 @@ export const NotificationProvider = ({ children }) => {
 
   const markAsRead = useCallback(async (id) => {
     if (!id) {
-      console.error("No notification ID provided");
+      console.error('No notification ID provided');
       return;
     }
-    console.log("Marking notification as read:", id);
+    console.log('Marking notification as read:', id);
 
     try {
       const response = await axios.patch(
@@ -107,7 +107,7 @@ export const NotificationProvider = ({ children }) => {
         {},
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
         }
       );
@@ -120,7 +120,7 @@ export const NotificationProvider = ({ children }) => {
 
       return response.data;
     } catch (error) {
-      console.error("Error marking notification as read:", error);
+      console.error('Error marking notification as read:', error);
       throw error;
     }
   }, []);
@@ -132,7 +132,7 @@ export const NotificationProvider = ({ children }) => {
         { notificationIds: ids },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
         }
       );
@@ -142,7 +142,7 @@ export const NotificationProvider = ({ children }) => {
       );
       setUnreadCount((prev) => Math.max(0, prev - ids.length));
     } catch (error) {
-      console.error("Error marking notifications as read:", error);
+      console.error('Error marking notifications as read:', error);
     }
   }, []);
 
@@ -153,16 +153,16 @@ export const NotificationProvider = ({ children }) => {
         {},
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
         }
       );
 
       setNotifications((prev) => prev.map((n) => ({ ...n, seen: true })));
       setUnreadCount(0);
-      setActiveTab("all");
+      setActiveTab('all');
     } catch (error) {
-      console.error("Error marking all notifications as read:", error);
+      console.error('Error marking all notifications as read:', error);
     }
   }, []);
 
@@ -171,7 +171,7 @@ export const NotificationProvider = ({ children }) => {
 
     const handleNewNotification = (notification) => {
       // Ensure the notification has a proper ID
-      console.log("New notification received:", notification.id);
+      console.log('New notification received:', notification.id);
       const completeNotification = {
         ...notification,
         _id: notification.id || `temp_${Date.now()}`,
@@ -181,7 +181,7 @@ export const NotificationProvider = ({ children }) => {
 
       setNotifications((prev) => {
         // Remove any existing temp notifications
-        const filtered = prev.filter((n) => !n._id.startsWith("temp_"));
+        const filtered = prev.filter((n) => !n._id.startsWith('temp_'));
         // Add new notification at the top
         return [completeNotification, ...filtered];
       });
@@ -193,26 +193,26 @@ export const NotificationProvider = ({ children }) => {
       }));
     };
 
-    on("notification", handleNewNotification);
+    on('notification', handleNewNotification);
 
     return () => {
-      off("notification", handleNewNotification);
+      off('notification', handleNewNotification);
     };
   }, [isConnected, user?._id, on, off]);
 
   useEffect(() => {
     if (!isConnected || !user?._id) {
-      console.log("[NotificationContext] Socket not connected or no user ID");
+      console.log('[NotificationContext] Socket not connected or no user ID');
       return;
     }
 
     console.log(
-      "[NotificationContext] Setting up socket listeners for user:",
+      '[NotificationContext] Setting up socket listeners for user:',
       user._id
     );
 
     const handleNotificationUpdate = (data) => {
-      console.log("[NotificationContext] Received notificationUpdate:", data);
+      console.log('[NotificationContext] Received notificationUpdate:', data);
 
       setNotifications((prev) => {
         const filtered = prev.filter((n) => n._id !== data.notification._id);
@@ -226,11 +226,11 @@ export const NotificationProvider = ({ children }) => {
       }));
     };
 
-    on("notificationUpdate", handleNotificationUpdate);
+    on('notificationUpdate', handleNotificationUpdate);
 
     return () => {
-      console.log("[NotificationContext] Cleaning up socket listeners");
-      off("notificationUpdate", handleNotificationUpdate);
+      console.log('[NotificationContext] Cleaning up socket listeners');
+      off('notificationUpdate', handleNotificationUpdate);
     };
   }, [isConnected, user?._id, on, off]);
 
@@ -261,7 +261,7 @@ export const useNotifications = () => {
   const context = useContext(NotificationContext);
   if (context === undefined) {
     throw new Error(
-      "useNotifications must be used within a NotificationProvider"
+      'useNotifications must be used within a NotificationProvider'
     );
   }
   return context;

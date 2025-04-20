@@ -42,7 +42,26 @@ const Header = () => {
           <motion.div
             className="flex items-center cursor-pointer"
             whileHover={{ scale: 1.05 }}
-            onClick={() => navigate('/dashboard')}
+            onClick={() => {
+              if (user) {
+                if (user.role === 'volunteer') {
+                  navigate('/volunteer/dashboard');
+                } else if (
+                  user.role === 'individual_donor' ||
+                  user.role === 'organization_donor'
+                ) {
+                  navigate('/donor/dashboard');
+                } else if (user.role === 'ngo') {
+                  navigate('/ngo/dashboard');
+                } else if (user.role === 'admin') {
+                  navigate('/admin/dashboard');
+                } else {
+                  navigate('/');
+                }
+              } else {
+                navigate('/');
+              }
+            }}
           >
             <img src={logo} alt="Logo" className="h-10 w-auto" />
             <span className="ml-2 text-yellow-400 font-bold text-xl">

@@ -1,732 +1,344 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable react/prop-types */
-import { useState } from 'react';
+import { Modal, Spin } from 'antd';
+import { useEffect, useState } from 'react';
+import ErrorMessage from '../../components/ErrorMessage';
+import SuccessMessage from '../../components/SuccessMessage'; // Your new component
 import Header from '../../components/header/Header';
-import { useUser } from '../../context/UserContext';
+import api from '../../config/axiosConfig'; // Adjust the import path as necessary
+import ProfileBasicInfo from './../../components/profile/ProfileBasicInfo';
+import { validateProfile } from './../../components/profile/ProfileDataValidator';
 
-const UserProfilePage = () => {
-  const { user, fetchUserDetails } = useUser();
-  const [activeTab, setActiveTab] = useState('profile');
+const ProfilePage = () => {
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [updateLoading, setUpdateLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
+  const [verificationModal, setVerificationModal] = useState({
+    visible: false,
+    type: null, // 'email' or 'phone'
+    message: '',
+  });
 
-  if (!user) {
+  const formatFieldName = (field) => {
+    // Handle known special cases
+    const specialCases = {
+      languagePreference: 'Language preference',
+      servicePreference: 'Service preference',
+      // Add other special cases as needed
+    };
+
+    if (specialCases[field]) {
+      return specialCases[field];
+    }
+
+    // Default transformation for camelCase fields
+    return (
+      field
+        // Insert space before capital letters
+        .replace(/([A-Z])/g, ' $1')
+        // Capitalize first letter of the string and letters following spaces
+        .replace(/(?:^|\s)\S/g, (letter) => letter.toUpperCase())
+        // Trim any extra spaces
+        .trim()
+    );
+  };
+
+  const fetchUserProfile = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await api.get(`/users/me`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+      });
+      setUser(response.data.data[0]);
+    } catch (err) {
+      console.error('Failed to fetch profile:', err);
+      setError({
+        message: err.response?.data?.message || 'Failed to fetch profile',
+        details: err.response?.data?.details,
+        status: err.response?.status,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
+
+  const handleProfileUpdate = async (updateData) => {
+    const errors = validateProfile(user, updateData);
+    setValidationErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      setError({
+        message: `${errors.name}`,
+        details: 'Some fields contain invalid data',
+        status: 400,
+      });
+      return;
+    }
+
+    try {
+      setUpdateLoading(true);
+      setError(null);
+      const response = await api.patch('/users/me/update', updateData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+      });
+
+      const { data } = response;
+      console.log('Update response:', data);
+
+      if (data.message.updatedFields.includes('email')) {
+        // Handle email verification flow
+        setVerificationModal({
+          visible: true,
+          type: 'email',
+          message: data.message,
+        });
+      } else if (data.message.updatedFields.includes('phone')) {
+        // Handle phone verification flow
+        setVerificationModal({
+          visible: true,
+          type: 'phone',
+          message: data.message,
+        });
+      } else {
+        // Regular success case
+        setSuccess({
+          message: data.message,
+          updatedFields: data.message.updatedFields.map(formatFieldName),
+        });
+      }
+
+      await fetchUserProfile();
+    } catch (err) {
+      console.error('Update failed:', err);
+      setError({
+        message: err.response?.data?.message || 'Failed to update profile',
+        details: err.response?.data?.errors,
+        status: err.response?.status,
+      });
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
+
+  const handleProfilePictureUpload = async (file) => {
+    console.log('Uploading profile picture:', file);
+    try {
+      setUpdateLoading(true);
+      setError(null);
+
+      const formData = new FormData();
+      formData.append('profilePicture', file);
+
+      const response = await api.patch(
+        '/users/me/upload-profile-picture',
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      setSuccess({
+        message: response.data.message,
+        updatedFields: ['Profile picture :)'],
+      });
+
+      // Refresh the user data
+      await fetchUserProfile();
+    } catch (err) {
+      console.error('Profile picture upload failed:', err);
+      setError({
+        message:
+          err.response?.data?.message || 'Failed to upload profile picture',
+        details: err.response?.data?.errors,
+        status: err.response?.status,
+      });
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
+
+  // In ProfilePage.jsx, add this function
+  const handleVerificationDocsSubmit = async (formData) => {
+    try {
+      setUpdateLoading(true);
+      setError(null);
+
+      const response = await api.patch(
+        '/users/me/upload-verification-docs',
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      console.log('Verification docs upload response:', response.data);
+
+      setSuccess({
+        message:
+          'Verification documents submitted successfully! Your account will be verified shortly.',
+      });
+
+      // Refresh the user data
+      await fetchUserProfile();
+    } catch (err) {
+      console.error('Verification docs upload failed:', err);
+      setError({
+        message:
+          err.response?.data?.message ||
+          'Failed to upload verification documents',
+        details: err.response?.data?.errors,
+        status: err.response?.status,
+      });
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
+
+  const handleVerificationModalClose = () => {
+    setVerificationModal({
+      visible: false,
+      type: null,
+      message: '',
+    });
+  };
+
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <Spin size="large" />
       </div>
     );
   }
 
-  const handleUpdate = () => {
-    fetchUserDetails(localStorage.getItem('accessToken'));
-  };
-
-  return (
-    <div>
-      <Header />
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-4 md:mb-0">
-            My Profile
-          </h1>
-          <div className="flex space-x-2 bg-gray-100 p-1 rounded-lg">
-            <button
-              className={`px-4 py-2 rounded-md ${
-                activeTab === 'profile'
-                  ? 'bg-white shadow-sm text-blue-600'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-              onClick={() => setActiveTab('profile')}
-            >
-              Profile
-            </button>
-            <button
-              className={`px-4 py-2 rounded-md ${
-                activeTab === 'settings'
-                  ? 'bg-white shadow-sm text-blue-600'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-              onClick={() => setActiveTab('settings')}
-            >
-              Account Settings
-            </button>
-          </div>
-        </div>
-
-        {activeTab === 'profile' && (
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <ProfileOverview user={user} />
-            <div className="border-t my-6"></div>
-            <ProfileEditor user={user} onUpdate={handleUpdate} />
-            {(user.role === 'ngo' ||
-              user.role === 'organization_donor' ||
-              user.role === 'volunteer') && (
-              <>
-                <div className="border-t my-6"></div>
-                <VerificationDocsSection user={user} />
-              </>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'settings' && (
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <AccountSettings user={user} />
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const ProfileOverview = ({ user }) => {
-  const formatRole = (role) => {
-    return role
-      .split('_')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  };
-
-  return (
-    <div className="flex flex-col md:flex-row gap-8">
-      <div className="flex flex-col items-center">
-        <img
-          src={user.profilePicture || '/default-profile.png'}
-          alt="Profile"
-          className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-md"
+  if (!user) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <ErrorMessage
+          error={error || 'User data not available'}
+          title="Profile Error"
+          dismissible={false}
         />
-        <FileUpload
-          endpoint="/api/users/upload-profile-picture"
-          onSuccess={() => window.location.reload()}
-          accept="image/*"
-          className="mt-4"
-        >
-          <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md text-sm font-medium transition-colors">
-            Change Photo
-          </button>
-        </FileUpload>
       </div>
-
-      <div className="flex-1">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-          {user.name}
-        </h2>
-        <p className="text-gray-600 mb-4">
-          <span className="font-medium">Role:</span> {formatRole(user.role)}
-        </p>
-
-        <div className="space-y-2">
-          <p className="text-gray-700">
-            <span className="font-medium">Email:</span> {user.email}{' '}
-            {user.isEmailVerified ? (
-              <span className="text-green-600 text-sm">(Verified)</span>
-            ) : (
-              <span className="text-yellow-600 text-sm">(Not Verified)</span>
-            )}
-          </p>
-
-          {user.phone && (
-            <p className="text-gray-700">
-              <span className="font-medium">Phone:</span> {user.phone}{' '}
-              {user.isPhoneVerified ? (
-                <span className="text-green-600 text-sm">(Verified)</span>
-              ) : (
-                <span className="text-yellow-600 text-sm">(Not Verified)</span>
-              )}
-            </p>
-          )}
-
-          {user.address &&
-            (user.address.city ||
-              user.address.region ||
-              user.address.country) && (
-              <div className="mt-4">
-                <h4 className="font-medium text-gray-800 mb-1">Address</h4>
-                <p className="text-gray-700">
-                  {[
-                    user.address.city,
-                    user.address.region,
-                    user.address.country,
-                  ]
-                    .filter(Boolean)
-                    .join(', ')}
-                </p>
-              </div>
-            )}
-
-          {/* Role-specific details */}
-          {(user.role === 'individual_donor' ||
-            user.role === 'organization_donor') && (
-            <div className="mt-4">
-              <p className="text-gray-700">
-                <span className="font-medium">Donor Type:</span>{' '}
-                {user.role === 'individual_donor'
-                  ? 'Individual'
-                  : 'Organization'}
-              </p>
-            </div>
-          )}
-
-          {user.role === 'organization_donor' && user.bankAccount && (
-            <div className="mt-4">
-              <h4 className="font-medium text-gray-800 mb-1">
-                Bank Information
-              </h4>
-              <p className="text-gray-700">
-                {user.bankAccount.bankName} - {user.bankAccount.account_number}
-              </p>
-            </div>
-          )}
-
-          {user.role === 'volunteer' && user.skills?.length > 0 && (
-            <div className="mt-4">
-              <h4 className="font-medium text-gray-800 mb-1">Skills</h4>
-              <div className="flex flex-wrap gap-2">
-                {user.skills.map((skill) => (
-                  <span
-                    key={skill}
-                    className="bg-blue-100 text-blue-800 text-xs px-2.5 py-0.5 rounded-full"
-                  >
-                    {skill}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {user.role === 'ngo' && (
-            <div className="mt-4">
-              <p className="text-gray-700">
-                <span className="font-medium">Verification Status:</span>{' '}
-                {user.isVerified ? (
-                  <span className="text-green-600">Verified</span>
-                ) : (
-                  <span className="text-yellow-600">Pending Verification</span>
-                )}
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const ProfileEditor = ({ user, onUpdate }) => {
-  const [formData, setFormData] = useState({
-    name: user.name,
-    email: user.email,
-    phone: user.phone || '',
-    address: user.address || { country: '', region: '', city: '' },
-    ...(user.role === 'volunteer' && {
-      skills: user.skills || [],
-      availability: user.availability || [],
-    }),
-  });
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch('/api/users/me/update', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-        },
-        body: JSON.stringify(formData),
-      });
-      const data = await response.json();
-      if (data.status === 'success') {
-        onUpdate(data.data);
-        // Show success notification
-      }
-    } catch (error) {
-      console.error('Update error:', error);
-      // Show error notification
-    }
-  };
+    );
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label
-            htmlFor="name"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Full Name
-          </label>
-          <input
-            type="text"
-            id="name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Email
-          </label>
-          <input
-            type="email"
-            id="email"
-            value={formData.email}
-            onChange={(e) =>
-              setFormData({ ...formData, email: e.target.value })
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="phone"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Phone
-          </label>
-          <input
-            type="tel"
-            id="phone"
-            value={formData.phone}
-            onChange={(e) =>
-              setFormData({ ...formData, phone: e.target.value })
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="country"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Country
-          </label>
-          <input
-            type="text"
-            id="country"
-            value={formData.address.country}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                address: { ...formData.address, country: e.target.value },
-              })
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="region"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Region/State
-          </label>
-          <input
-            type="text"
-            id="region"
-            value={formData.address.region}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                address: { ...formData.address, region: e.target.value },
-              })
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="city"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            City
-          </label>
-          <input
-            type="text"
-            id="city"
-            value={formData.address.city}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                address: { ...formData.address, city: e.target.value },
-              })
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-      </div>
-
-      {/* Volunteer-specific fields */}
-      {user.role === 'volunteer' && (
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Skills
-            </label>
-            <SkillsInput
-              skills={formData.skills}
-              onChange={(skills) => setFormData({ ...formData, skills })}
-              className="w-full"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Availability
-            </label>
-            <AvailabilityInput
-              availability={formData.availability}
-              onChange={(availability) =>
-                setFormData({ ...formData, availability })
-              }
-            />
-          </div>
+    <div className="relative min-h-screen">
+      {updateLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+          <Spin size="large" />
         </div>
       )}
 
-      <div className="flex justify-end">
-        <button
-          type="submit"
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          Save Changes
-        </button>
-      </div>
-    </form>
-  );
-};
-
-const VerificationDocsSection = ({ user }) => {
-  const [isUploading, setIsUploading] = useState(false);
-
-  const handleUpload = async (files) => {
-    setIsUploading(true);
-    const formData = new FormData();
-    files.forEach((file) => formData.append('documents', file));
-
-    try {
-      const response = await fetch('/api/users/upload-verification-docs', {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-        },
-        body: formData,
-      });
-      const data = await response.json();
-      if (data.status === 'success') {
-        // Show success notification
-      }
-    } catch (error) {
-      console.error('Upload error:', error);
-      // Show error notification
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const getDocsDescription = () => {
-    switch (user.role) {
-      case 'ngo':
-        return 'Please upload your NGO registration documents for verification.';
-      case 'organization_donor':
-        return 'Please upload your organization license and tax documents.';
-      case 'volunteer':
-        return 'Please upload your ID card and any relevant certificates.';
-      default:
-        return '';
-    }
-  };
-
-  return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-medium text-gray-800">
-        Verification Documents
-      </h3>
-      <p className="text-gray-600">{getDocsDescription()}</p>
-
-      <FileUpload
-        multiple
-        onUpload={handleUpload}
-        accept=".pdf,.jpg,.jpeg,.png"
-        disabled={isUploading}
-        className="w-full"
+      {/* Verification Modal */}
+      <Modal
+        title={
+          verificationModal.type === 'email'
+            ? 'Email Verification Required'
+            : 'Phone Verification Required'
+        }
+        visible={verificationModal.visible}
+        onOk={handleVerificationModalClose}
+        onCancel={handleVerificationModalClose}
+        footer={[
+          <button
+            key="submit"
+            onClick={handleVerificationModalClose}
+            className="px-4 py-2 bg-yellow-400 text-white rounded hover:bg-yellow-600"
+          >
+            OK
+          </button>,
+        ]}
       >
-        <button
-          disabled={isUploading}
-          className={`px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md shadow-sm ${
-            isUploading ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-        >
-          {isUploading ? 'Uploading...' : 'Upload Documents'}
-        </button>
-      </FileUpload>
-
-      {/* Display uploaded documents */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-        {/* Map through documents and display them */}
-      </div>
-    </div>
-  );
-};
-
-const AccountSettings = ({ user }) => {
-  const { logout } = useUser();
-  const [isDeactivating, setIsDeactivating] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
-
-  const handleDeactivate = async () => {
-    if (!window.confirm('Are you sure you want to deactivate your account?'))
-      return;
-
-    setIsDeactivating(true);
-    try {
-      const response = await fetch('/api/users/me/deactivate', {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-        },
-      });
-      const data = await response.json();
-      if (data.status === 'success') {
-        logout();
-      }
-    } catch (error) {
-      console.error('Deactivation error:', error);
-    } finally {
-      setIsDeactivating(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (
-      !window.confirm(
-        'This will permanently delete your account. Are you sure?'
-      )
-    )
-      return;
-
-    setIsDeleting(true);
-    try {
-      const response = await fetch('/api/users/me/delete', {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-        },
-      });
-      const data = await response.json();
-      if (data.status === 'success') {
-        logout();
-      }
-    } catch (error) {
-      console.error('Deletion error:', error);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-      <h3 className="text-lg font-medium text-gray-800">Account Settings</h3>
-
-      <div className="space-y-4">
-        <div className="border-b pb-4">
-          <button
-            onClick={() => setShowPasswordForm(!showPasswordForm)}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md shadow-sm"
-          >
-            Change Password
-          </button>
-          {showPasswordForm && (
-            <div className="mt-4">
-              <ChangePasswordForm />
-            </div>
+        <div className="space-y-4">
+          {verificationModal.type === 'email' ? (
+            <>
+              <p className="bg-blue-50 px-2 py-1 font-medium rounded-md">
+                Email Update Successful!
+              </p>
+              <p>
+                We&apos;ve sent a verification link to your new email address.
+              </p>
+              <p className="text-sm text-gray-600">
+                Please check your inbox and click the verification link to
+                complete the update.
+              </p>
+              <div className="bg-blue-50 p-3 rounded mt-3">
+                <p className="text-sm font-medium text-blue-800">
+                  Didn&apos;t receive the email?
+                </p>
+                <ul className="list-disc pl-5 text-sm text-blue-700 mt-1">
+                  <li>Check your spam folder</li>
+                  <li>Wait a few minutes</li>
+                  <li>Contact support if you still don&apos;t see it</li>
+                </ul>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-lg font-medium">Phone Update Successful!</p>
+              <p>We&apos;ve sent an OTP to your new phone number.</p>
+              <p className="text-sm text-gray-600">
+                Please enter the verification code when prompted to complete the
+                update.
+              </p>
+            </>
           )}
         </div>
+      </Modal>
 
-        <div className="border-b pb-4">
-          <button
-            onClick={handleDeactivate}
-            disabled={isDeactivating}
-            className={`px-4 py-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded-md shadow-sm ${
-              isDeactivating ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-          >
-            {isDeactivating ? 'Deactivating...' : 'Deactivate Account'}
-          </button>
-          <p className="mt-2 text-sm text-gray-500">
-            Your account will be temporarily disabled. You can reactivate later
-            by logging in.
-          </p>
-        </div>
+      <Header />
+      <div className="py-12 px-4 bg-gray-100 flex justify-center">
+        <div className="w-full max-w-5xl space-y-10">
+          {error && (
+            <ErrorMessage
+              error={error}
+              title={error.status ? `Error (${error.status})` : 'Error'}
+              dismissible
+              onDismiss={() => setError(null)}
+              className="mb-6"
+            />
+          )}
 
-        <div>
-          <button
-            onClick={handleDelete}
-            disabled={isDeleting}
-            className={`px-4 py-2 bg-red-100 hover:bg-red-200 text-red-800 rounded-md shadow-sm ${
-              isDeleting ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-          >
-            {isDeleting ? 'Deleting...' : 'Permanently Delete Account'}
-          </button>
-          <p className="mt-2 text-sm text-gray-500">
-            This action cannot be undone. All your data will be permanently
-            removed from our systems.
-          </p>
+          {success && !verificationModal.visible && (
+            <SuccessMessage
+              message={success.message}
+              updatedFields={success.updatedFields}
+              dismissible
+              autoDismiss={5000}
+              onDismiss={() => setSuccess(null)}
+              className="mb-6"
+            />
+          )}
+
+          <ProfileBasicInfo
+            user={user}
+            loading={updateLoading}
+            onProfileUpdate={handleProfileUpdate}
+            onProfilePictureUpload={handleProfilePictureUpload}
+            onVerificationDocsSubmit={handleVerificationDocsSubmit} // Add this prop
+            validationErrors={validationErrors}
+          />
         </div>
       </div>
     </div>
   );
 };
 
-const ChangePasswordForm = () => {
-  const [formData, setFormData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (formData.newPassword !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/users/change-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-        },
-        body: JSON.stringify({
-          currentPassword: formData.currentPassword,
-          newPassword: formData.newPassword,
-        }),
-      });
-      const data = await response.json();
-      if (data.status === 'success') {
-        setSuccess(true);
-        setError('');
-        setFormData({
-          currentPassword: '',
-          newPassword: '',
-          confirmPassword: '',
-        });
-      } else {
-        setError(data.message || 'Password change failed');
-      }
-    } catch (error) {
-      setError('An error occurred. Please try again.');
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <div className="p-3 bg-red-50 text-red-700 rounded-md">{error}</div>
-      )}
-      {success && (
-        <div className="p-3 bg-green-50 text-green-700 rounded-md">
-          Password changed successfully!
-        </div>
-      )}
-
-      <div>
-        <label
-          htmlFor="currentPassword"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Current Password
-        </label>
-        <input
-          type="password"
-          id="currentPassword"
-          value={formData.currentPassword}
-          onChange={(e) =>
-            setFormData({ ...formData, currentPassword: e.target.value })
-          }
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          required
-        />
-      </div>
-
-      <div>
-        <label
-          htmlFor="newPassword"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          New Password
-        </label>
-        <input
-          type="password"
-          id="newPassword"
-          value={formData.newPassword}
-          onChange={(e) =>
-            setFormData({ ...formData, newPassword: e.target.value })
-          }
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          required
-        />
-      </div>
-
-      <div>
-        <label
-          htmlFor="confirmPassword"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Confirm New Password
-        </label>
-        <input
-          type="password"
-          id="confirmPassword"
-          value={formData.confirmPassword}
-          onChange={(e) =>
-            setFormData({ ...formData, confirmPassword: e.target.value })
-          }
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          required
-        />
-      </div>
-
-      <div className="flex justify-end">
-        <button
-          type="submit"
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          Update Password
-        </button>
-      </div>
-    </form>
-  );
-};
-
-// You'll need to implement these components
-const FileUpload = ({ children, ...props }) => {
-  // Implementation for file upload component
-  return <div {...props}>{children}</div>;
-};
-
-const SkillsInput = ({ skills, onChange }) => {
-  // Implementation for skills input component
-  return <div></div>;
-};
-
-const AvailabilityInput = ({ availability, onChange }) => {
-  // Implementation for availability input component
-  return <div></div>;
-};
-
-export default UserProfilePage;
+export default ProfilePage;
