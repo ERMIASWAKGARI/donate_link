@@ -76,7 +76,7 @@ const ProfilePage = () => {
 
     if (Object.keys(errors).length > 0) {
       setError({
-        message: `${errors.name}`,
+        message: `Validation failed: ${Object.values(errors).join(', ')}.`,
         details: 'Some fields contain invalid data',
         status: 400,
       });

@@ -84,6 +84,20 @@ export const useProfile = (user, onProfileUpdate) => {
             city: formData.address?.city || user.address?.city,
           },
         };
+      } else if (fieldName === 'phone') {
+        // Combine country code and phone number
+        const countryCode =
+          formData.phoneCountryCode || user.phoneCountryCode || '+251';
+        const phoneNumber =
+          formData[fieldName] !== undefined
+            ? formData[fieldName]
+            : user[fieldName];
+
+        updateData = {
+          [fieldName]: phoneNumber,
+          phoneCountryCode: countryCode,
+          fullPhone: `${countryCode}${phoneNumber}`.replace(/\s+/g, ''),
+        };
       } else {
         updateData = {
           [fieldName]:
@@ -92,6 +106,8 @@ export const useProfile = (user, onProfileUpdate) => {
               : user[fieldName],
         };
       }
+
+      console.log('Update data:', updateData);
 
       await onProfileUpdate(updateData);
       setEditingField(null);
@@ -109,7 +125,7 @@ export const useProfile = (user, onProfileUpdate) => {
     editingField,
     loading,
     formData,
-    hasChanges, // Expose hasChanges
+    hasChanges,
     handleCancelEdit,
     handleSaveField,
     handleFieldChange,

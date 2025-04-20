@@ -34,6 +34,53 @@ export const FieldRenderer = ({
     </div>
   );
 
+  // In FieldRenderer.js
+  if (fieldConfig.type === 'phone') {
+    return renderWithIcon(
+      <EditableField
+        fieldName={fieldConfig.fieldName}
+        label={fieldConfig.label}
+        value={
+          user[fieldConfig.fieldName] || (
+            <span className="text-gray-400">Not provided</span>
+          )
+        }
+        editComponent={
+          <div className="flex gap-2">
+            <select
+              defaultValue={user.phoneCountryCode || '+251'} // Default to Ethiopia
+              onChange={(e) =>
+                handleFieldChange('phoneCountryCode', e.target.value)
+              }
+              className="mt-1 block w-1/3 rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+            >
+              {fieldConfig.countryCodes.map((country) => (
+                <option key={country.code} value={country.code}>
+                  {country.name}
+                </option>
+              ))}
+            </select>
+            <input
+              type="tel"
+              defaultValue={user[fieldConfig.fieldName] || ''}
+              onChange={(e) =>
+                handleFieldChange(fieldConfig.fieldName, e.target.value)
+              }
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+              placeholder={fieldConfig.placeholder}
+            />
+          </div>
+        }
+        editingField={editingField}
+        loading={loading}
+        onEdit={onEdit}
+        onCancel={onCancel}
+        onSave={onSave}
+        hasChanges={hasChanges}
+      />
+    );
+  }
+
   // Handle display-only fields
   if (fieldConfig.type === 'display') {
     return (
