@@ -20,8 +20,8 @@ const { protect } = require('../middleware/authMiddleware');
 const router = express.Router();
 
 router.post('/register', registerUser);
-router.post(
-  '/upload-profile-picture',
+router.patch(
+  '/me/upload-profile-picture',
   protect,
   uploadProfilePictureMiddleware,
   uploadProfilePicture
@@ -34,7 +34,7 @@ router.delete('/me/soft-delete', protect, softDeleteUserAccount);
 router.patch('/me/recover-account', recoverAccount);
 router.delete('/me/delete', protect, deleteUserAccount);
 router.patch(
-  '/upload-verification-docs',
+  '/me/upload-verification-docs',
   protect,
   uploadVerificationDocsMiddleware,
   uploadVerificationDocs

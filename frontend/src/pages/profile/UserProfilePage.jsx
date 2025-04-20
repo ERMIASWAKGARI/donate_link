@@ -89,7 +89,9 @@ const ProfilePage = () => {
         // Regular success case
         setSuccess({
           message: data.message,
-          updatedFields: data.updatedFields || [],
+          updatedFields: (data.message.updatedFields || []).map(
+            (field) => field.charAt(0).toUpperCase() + field.slice(1)
+          ),
         });
       }
 
@@ -98,6 +100,86 @@ const ProfilePage = () => {
       console.error('Update failed:', err);
       setError({
         message: err.response?.data?.message || 'Failed to update profile',
+        details: err.response?.data?.errors,
+        status: err.response?.status,
+      });
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
+
+  const handleProfilePictureUpload = async (file) => {
+    console.log('Uploading profile picture:', file);
+    try {
+      setUpdateLoading(true);
+      setError(null);
+
+      const formData = new FormData();
+      formData.append('profilePicture', file);
+
+      const response = await api.patch(
+        '/users/me/upload-profile-picture',
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      setSuccess({
+        message: response.data.message,
+        updatedFields: ['Profile picture :)'],
+      });
+
+      // Refresh the user data
+      await fetchUserProfile();
+    } catch (err) {
+      console.error('Profile picture upload failed:', err);
+      setError({
+        message:
+          err.response?.data?.message || 'Failed to upload profile picture',
+        details: err.response?.data?.errors,
+        status: err.response?.status,
+      });
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
+
+  // In ProfilePage.jsx, add this function
+  const handleVerificationDocsSubmit = async (formData) => {
+    try {
+      setUpdateLoading(true);
+      setError(null);
+
+      const response = await api.patch(
+        '/users/me/upload-verification-docs',
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      console.log('Verification docs upload response:', response.data);
+
+      setSuccess({
+        message:
+          'Verification documents submitted successfully! Your account will be verified shortly.',
+      });
+
+      // Refresh the user data
+      await fetchUserProfile();
+    } catch (err) {
+      console.error('Verification docs upload failed:', err);
+      setError({
+        message:
+          err.response?.data?.message ||
+          'Failed to upload verification documents',
         details: err.response?.data?.errors,
         status: err.response?.status,
       });
@@ -225,6 +307,8 @@ const ProfilePage = () => {
             user={user}
             loading={updateLoading}
             onProfileUpdate={handleProfileUpdate}
+            onProfilePictureUpload={handleProfilePictureUpload}
+            onVerificationDocsSubmit={handleVerificationDocsSubmit} // Add this prop
             validationErrors={validationErrors}
           />
         </div>

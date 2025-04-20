@@ -9,7 +9,12 @@ import { ProfileHeader } from './ProfileHeader';
 import { useProfile } from './useProfile';
 import { VolunteerInfo } from './VolunteerInfo';
 
-export const ProfileBasicInfo = ({ user, onProfileUpdate }) => {
+export const ProfileBasicInfo = ({
+  user,
+  onProfileUpdate,
+  onProfilePictureUpload,
+  onVerificationDocsSubmit,
+}) => {
   const {
     profileCompletion,
     editingField,
@@ -86,7 +91,12 @@ export const ProfileBasicInfo = ({ user, onProfileUpdate }) => {
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         <div className="bg-white shadow-xl rounded-2xl overflow-hidden">
-          <ProfileHeader user={user} profileCompletion={profileCompletion} />
+          <ProfileHeader
+            user={user}
+            profileCompletion={profileCompletion}
+            onProfilePictureUpload={onProfilePictureUpload}
+            onVerificationDocsSubmit={onVerificationDocsSubmit} // Pass it down
+          />
 
           <div className="p-6 md:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
