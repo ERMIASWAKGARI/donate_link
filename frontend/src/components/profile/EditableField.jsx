@@ -16,7 +16,7 @@ export const EditableField = ({
   return (
     <div className="mb-6">
       <div className="flex justify-between items-start mb-1">
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
           {label}
         </label>
         {editingField === fieldName ? (
@@ -32,7 +32,7 @@ export const EditableField = ({
             <button
               onClick={() => onSave(fieldName)}
               disabled={loading || !hasChanges} // Disable if no changes
-              className={`text-teal-600 hover:text-teal-800 disabled:opacity-50 ${
+              className={`text-teal-500 hover:text-teal-700 disabled:opacity-50 ${
                 !hasChanges ? 'cursor-not-allowed' : ''
               }`}
             >
@@ -43,7 +43,7 @@ export const EditableField = ({
         ) : (
           <button
             onClick={() => onEdit(fieldName)}
-            className="text-teal-600 hover:text-teal-800 transition-colors"
+            className="text-teal-500 hover:text-teal-800 transition-colors"
           >
             <EditOutlined className="mr-1" />
           </button>

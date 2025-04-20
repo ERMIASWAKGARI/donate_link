@@ -12,26 +12,65 @@ export const DonorInfo = ({
   onSave,
   handleFieldChange,
   hasChanges,
-}) => (
-  <>
-    <h2 className="text-lg font-semibold text-gray-800 mb-6 pb-2 border-b border-gray-200 flex items-center">
-      <SolutionOutlined className="mr-2 text-teal-500" />
-      Donor Information
-    </h2>
+}) => {
+  const horizontalFields = [
+    'donorType',
+    'preferredDonations',
+    'donationFrequency',
+  ];
 
-    {donorFields.map((field) => (
-      <FieldRenderer
-        key={field.fieldName}
-        fieldConfig={field}
-        user={user}
-        editingField={editingField}
-        loading={loading}
-        onEdit={onEdit}
-        onCancel={onCancel}
-        onSave={onSave}
-        handleFieldChange={handleFieldChange}
-        hasChanges={hasChanges}
-      />
-    ))}
-  </>
-);
+  const otherFields = donorFields.filter(
+    (field) => !horizontalFields.includes(field.fieldName)
+  );
+
+  return (
+    <>
+      <h2 className="text-lg font-semibold text-gray-800 mb-6 pb-2 border-b border-gray-200 flex items-center">
+        <SolutionOutlined className="mr-2 text-teal-500" />
+        Donor Information
+      </h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {donorFields
+          .filter((field) => horizontalFields.includes(field.fieldName))
+          .map((field) => (
+            <div
+              key={field.fieldName}
+              className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
+            >
+              <FieldRenderer
+                key={field.fieldName}
+                fieldConfig={field}
+                user={user}
+                editingField={editingField}
+                loading={loading}
+                onEdit={onEdit}
+                onCancel={onCancel}
+                onSave={onSave}
+                handleFieldChange={handleFieldChange}
+                hasChanges={hasChanges}
+              />
+            </div>
+          ))}
+      </div>
+
+      {/* Vertical Fields Section */}
+      <div className="space-y-6">
+        {otherFields.map((field) => (
+          <FieldRenderer
+            key={field.fieldName}
+            fieldConfig={field}
+            user={user}
+            editingField={editingField}
+            loading={loading}
+            onEdit={onEdit}
+            onCancel={onCancel}
+            onSave={onSave}
+            handleFieldChange={handleFieldChange}
+            hasChanges={hasChanges}
+          />
+        ))}
+      </div>
+    </>
+  );
+};

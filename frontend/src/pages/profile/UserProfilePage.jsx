@@ -20,6 +20,30 @@ const ProfilePage = () => {
     message: '',
   });
 
+  const formatFieldName = (field) => {
+    // Handle known special cases
+    const specialCases = {
+      languagePreference: 'Language preference',
+      servicePreference: 'Service preference',
+      // Add other special cases as needed
+    };
+
+    if (specialCases[field]) {
+      return specialCases[field];
+    }
+
+    // Default transformation for camelCase fields
+    return (
+      field
+        // Insert space before capital letters
+        .replace(/([A-Z])/g, ' $1')
+        // Capitalize first letter of the string and letters following spaces
+        .replace(/(?:^|\s)\S/g, (letter) => letter.toUpperCase())
+        // Trim any extra spaces
+        .trim()
+    );
+  };
+
   const fetchUserProfile = async () => {
     try {
       setLoading(true);
@@ -89,9 +113,7 @@ const ProfilePage = () => {
         // Regular success case
         setSuccess({
           message: data.message,
-          updatedFields: (data.message.updatedFields || []).map(
-            (field) => field.charAt(0).toUpperCase() + field.slice(1)
-          ),
+          updatedFields: data.message.updatedFields.map(formatFieldName),
         });
       }
 
@@ -238,7 +260,7 @@ const ProfilePage = () => {
           <button
             key="submit"
             onClick={handleVerificationModalClose}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-4 py-2 bg-yellow-400 text-white rounded hover:bg-yellow-600"
           >
             OK
           </button>,
@@ -247,7 +269,9 @@ const ProfilePage = () => {
         <div className="space-y-4">
           {verificationModal.type === 'email' ? (
             <>
-              <p className="text-lg font-medium">Email Update Successful!</p>
+              <p className="bg-blue-50 px-2 py-1 font-medium rounded-md">
+                Email Update Successful!
+              </p>
               <p>
                 We&apos;ve sent a verification link to your new email address.
               </p>

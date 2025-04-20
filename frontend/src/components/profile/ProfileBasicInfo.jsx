@@ -1,5 +1,4 @@
 /* eslint-disable react/prop-types */
-import { UserOutlined } from '@ant-design/icons';
 import { AdminInfo } from './AdminInfo';
 import { DonorInfo } from './DonorInfo';
 import { FieldRenderer } from './FieldRenderer';
@@ -16,7 +15,6 @@ export const ProfileBasicInfo = ({
   onVerificationDocsSubmit,
 }) => {
   const {
-    profileCompletion,
     editingField,
     loading,
     handleCancelEdit,
@@ -93,16 +91,14 @@ export const ProfileBasicInfo = ({
         <div className="bg-white shadow-xl rounded-2xl overflow-hidden">
           <ProfileHeader
             user={user}
-            profileCompletion={profileCompletion}
             onProfilePictureUpload={onProfilePictureUpload}
             onVerificationDocsSubmit={onVerificationDocsSubmit} // Pass it down
           />
 
-          <div className="p-6 md:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="p-6 md:p-8  gap-8">
             <div className="lg:col-span-2">
               <div className="bg-gray-50 p-6 rounded-xl">
                 <h2 className="text-lg font-semibold text-gray-800 mb-6 pb-2 border-b border-gray-200 flex items-center">
-                  <UserOutlined className="mr-2 text-teal-500" />
                   Basic Information
                 </h2>
 
@@ -122,10 +118,9 @@ export const ProfileBasicInfo = ({
                 ))}
               </div>
             </div>
-            <div>
-              <div className="bg-gray-50 p-6 rounded-xl sticky top-6">
-                {renderRoleSpecificInfo()}
-              </div>
+            <div></div>
+            <div className="bg-gray-50 p-6 rounded-xl sticky top-6">
+              {renderRoleSpecificInfo()}
             </div>
           </div>
         </div>

@@ -1,25 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export const useProfile = (user, onProfileUpdate) => {
-  const [profileCompletion, setProfileCompletion] = useState(0);
   const [editingField, setEditingField] = useState(null);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({});
   const [hasChanges, setHasChanges] = useState(false); // Track changes
-
-  useEffect(() => {
-    let completedFields = 0;
-    const totalFields = 6; // name, email, phone, address, bio, dob
-
-    if (user?.name) completedFields++;
-    if (user?.email && user?.isEmailVerified) completedFields++;
-    if (user?.phone && user?.isPhoneVerified) completedFields++;
-    if (user?.address) completedFields++;
-    if (user?.bio) completedFields++;
-    if (user?.dob) completedFields++;
-
-    setProfileCompletion(Math.round((completedFields / totalFields) * 100));
-  }, [user]);
 
   const handleCancelEdit = () => {
     setEditingField(null);
@@ -121,7 +106,6 @@ export const useProfile = (user, onProfileUpdate) => {
   };
 
   return {
-    profileCompletion,
     editingField,
     loading,
     formData,

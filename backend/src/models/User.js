@@ -118,7 +118,8 @@ const userSchema = new mongoose.Schema(
     },
 
     // VOLUNTEER FIELDS
-    skills: { type: [String], default: undefined },
+    servicePreference: { type: [String], default: undefined },
+    languageProficiency: { type: [String], default: undefined },
     availability: {
       type: [
         {

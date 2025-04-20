@@ -1,4 +1,6 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
+import { useState } from 'react';
 import { EditableField } from './EditableField';
 import { AvailabilitySelector } from './VolunteerInfo';
 
@@ -14,6 +16,9 @@ export const FieldRenderer = ({
   handleFieldChange,
   hasChanges,
 }) => {
+  const [customInput, setCustomInput] = useState('');
+  const [showCustomInput, setShowCustomInput] = useState(false);
+
   if (fieldConfig.roles && !fieldConfig.roles.includes(user.role)) {
     return null;
   }
@@ -21,6 +26,13 @@ export const FieldRenderer = ({
   if (fieldConfig.showIf && !fieldConfig.showIf(user)) {
     return null;
   }
+
+  const renderWithIcon = (content) => (
+    <div className="flex items-start gap-3">
+      <div className="pt-1 text-teal-500">{fieldConfig.icon}</div>
+      <div className="flex-1">{content}</div>
+    </div>
+  );
 
   // Handle display-only fields
   if (fieldConfig.type === 'display') {
@@ -38,7 +50,7 @@ export const FieldRenderer = ({
 
   // Handle compound fields (like address)
   if (fieldConfig.type === 'compound') {
-    return (
+    return renderWithIcon(
       <EditableField
         fieldName={fieldConfig.fieldName}
         label={fieldConfig.label}
@@ -162,14 +174,37 @@ export const FieldRenderer = ({
           : user[fieldConfig.fieldName] || []
         : user[fieldConfig.fieldName] || [];
 
-    const availableOptions = fieldConfig.options.filter(
-      (option) => !currentValues.includes(option)
+    // Separate predefined options and custom values
+    const predefinedOptions = fieldConfig.options || [];
+    const customValues = currentValues.filter(
+      (value) => !predefinedOptions.includes(value)
+    );
+    const selectedPredefined = currentValues.filter((value) =>
+      predefinedOptions.includes(value)
+    );
+
+    const availableOptions = predefinedOptions.filter(
+      (option) => !selectedPredefined.includes(option)
     );
 
     const handleAddSelection = (value) => {
+      if (value === 'other') {
+        setShowCustomInput(true);
+        return;
+      }
+
       if (value && !currentValues.includes(value)) {
         const newValues = [...currentValues, value];
         handleFieldChange(fieldConfig.fieldName, newValues);
+      }
+    };
+
+    const handleAddCustom = () => {
+      if (customInput.trim() && !currentValues.includes(customInput)) {
+        const newValues = [...currentValues, customInput.trim()];
+        handleFieldChange(fieldConfig.fieldName, newValues);
+        setCustomInput('');
+        setShowCustomInput(false);
       }
     };
 
@@ -188,7 +223,7 @@ export const FieldRenderer = ({
               {currentValues.map((value) => (
                 <span
                   key={value}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-gray-800"
                 >
                   {value}
                 </span>
@@ -204,13 +239,13 @@ export const FieldRenderer = ({
               {currentValues.map((value) => (
                 <span
                   key={value}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-gray-800"
                 >
                   {value}
                   <button
                     type="button"
                     onClick={() => handleRemoveSelection(value)}
-                    className="ml-2 text-blue-500 hover:text-blue-700"
+                    className="ml-2 text-red-500 hover:text-red-700"
                   >
                     ×
                   </button>
@@ -218,27 +253,55 @@ export const FieldRenderer = ({
               ))}
             </div>
 
-            {availableOptions.length > 0 ? (
-              <select
-                value=""
-                onChange={(e) => {
-                  handleAddSelection(e.target.value);
-                  e.target.value = ''; // Reset the select
-                }}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
-              >
-                <option value="">
-                  Add {fieldConfig.label.toLowerCase()}...
-                </option>
-                {availableOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
+            <div className="space-y-2">
+              {availableOptions.length > 0 && (
+                <select
+                  value=""
+                  onChange={(e) => {
+                    handleAddSelection(e.target.value);
+                    e.target.value = ''; // Reset the select
+                  }}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                >
+                  <option value="">
+                    Add {fieldConfig.label.toLowerCase()}...
                   </option>
-                ))}
-              </select>
-            ) : (
-              <p className="text-sm text-gray-500">All options selected</p>
-            )}
+                  {availableOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                  <option value="other">Other (specify)...</option>
+                </select>
+              )}
+
+              {showCustomInput && (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={customInput}
+                    onChange={(e) => setCustomInput(e.target.value)}
+                    className="flex-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+                    placeholder={`Enter custom ${fieldConfig.label.toLowerCase()}`}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddCustom}
+                    disabled={!customInput.trim()}
+                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Add
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomInput(false)}
+                    className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         }
         editingField={editingField}
@@ -263,7 +326,7 @@ export const FieldRenderer = ({
                 ({ day, startTime, endTime }) => (
                   <span
                     key={day}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+                    className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-gray-800"
                   >
                     {day}: {startTime}-{endTime}
                   </span>
@@ -298,7 +361,7 @@ export const FieldRenderer = ({
   }
 
   // Default to text input
-  return (
+  return renderWithIcon(
     <EditableField
       fieldName={fieldConfig.fieldName}
       label={fieldConfig.label}

@@ -3,19 +3,15 @@ import {
   CheckCircleOutlined,
   ExclamationCircleOutlined,
   UploadOutlined,
-  VerifiedOutlined,
 } from '@ant-design/icons';
 import { Button, Modal, message } from 'antd';
 import { useState } from 'react';
-import { getRoleTagColor, getVerificationStatus } from './profileUtils';
 
 export const ProfileHeader = ({
   user,
-  profileCompletion,
   onProfilePictureUpload,
   onVerificationDocsSubmit,
 }) => {
-  const verificationStatus = getVerificationStatus(user.verificationStatus);
   const [isVerificationModalVisible, setIsVerificationModalVisible] =
     useState(false);
   const [verificationDocs, setVerificationDocs] = useState({});
@@ -29,6 +25,37 @@ export const ProfileHeader = ({
       user.role === 'ngo') &&
     !user.isVerified &&
     user.verificationStatus === 'not_verified';
+
+  const getVerificationStatus = (status) => {
+    switch (status) {
+      case 'verified':
+        return {
+          color: 'bg-green-100 text-green-800',
+          icon: 'text-green-500',
+          text: 'Verified',
+        };
+      case 'pending':
+        return {
+          color: 'bg-amber-100 text-amber-800',
+          icon: 'text-amber-500',
+          text: 'Pending',
+        };
+      case 'not_verified':
+        return {
+          color: 'bg-red-100 text-red-800',
+          icon: 'text-red-500',
+          text: 'Not Verified',
+        };
+      default:
+        return {
+          color: 'bg-gray-100 text-gray-800',
+          icon: null,
+          text: 'Unknown',
+        };
+    }
+  };
+
+  const verificationStatus = getVerificationStatus(user.verificationStatus);
 
   // Validate a single file
   const validateFile = (file) => {
@@ -395,7 +422,7 @@ export const ProfileHeader = ({
           <div className="relative group mb-4 md:mb-0 md:mr-6">
             <div className="relative">
               <img
-                className="h-32 w-32 rounded-full border-4 border-white border-opacity-80 shadow-md"
+                className="h-32 w-32 rounded-full border-2 border-yellow-400 border-opacity-80 shadow-md"
                 src={
                   user?.profilePicture
                     ? `http://localhost:5000/uploads/${user.profilePicture}`
@@ -407,7 +434,7 @@ export const ProfileHeader = ({
               />
               <label
                 htmlFor="profilePictureUpload"
-                className="absolute inset-0 bg-black bg-opacity-30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer"
+                className="absolute inset-0 bg-black bg-opacity-30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-80 transition-opacity duration-300 cursor-pointer"
               >
                 <UploadOutlined className="text-white text-2xl" />
                 <input
@@ -419,35 +446,19 @@ export const ProfileHeader = ({
                 />
               </label>
             </div>
-            <div className="absolute -bottom-2 -right-2 bg-white rounded-full p-1 shadow-md">
-              <div
-                className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                  profileCompletion === 100
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-teal-100 text-teal-800'
-                }`}
-              >
-                {profileCompletion === 100
-                  ? '✓ Complete'
-                  : `${profileCompletion}%`}
-              </div>
-            </div>
           </div>
 
           <div className="text-center md:text-left">
-            <h1 className="text-2xl font-bold flex items-center justify-center md:justify-start">
+            <h1 className="text-xl md:text-2xl lg:text-3xl font-bold flex items-center justify-center md:justify-start">
               {user.name}
-              {user.isVerified && (
-                <VerifiedOutlined className="ml-2 text-yellow-300" />
-              )}
             </h1>
             <div className="mt-2 flex flex-wrap justify-center md:justify-start gap-2">
               <span
-                className={`px-3 py-1 rounded-full text-xs font-semibold ${getRoleTagColor(
-                  user.role
-                )}`}
+                className={`px-3 py-1 rounded-full text-xs font-semibold bg-yellow-400 text-teal-700`}
               >
-                {user.role.replace('_', ' ')}
+                {user.role
+                  .replace('_', ' ')
+                  .replace(/\b\w/g, (char) => char.toUpperCase())}
               </span>
               {user.role !== 'admin' && user.role !== 'individual_donor' && (
                 <span
@@ -461,20 +472,6 @@ export const ProfileHeader = ({
                   <span className="ml-1">{verificationStatus.text}</span>
                 </span>
               )}
-            </div>
-
-            <div className="mt-4 w-full md:w-64">
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  className={`h-full ${
-                    profileCompletion === 100 ? 'bg-green-500' : 'bg-teal-500'
-                  }`}
-                  style={{ width: `${profileCompletion}%` }}
-                ></div>
-              </div>
-              <div className="text-xs text-white text-opacity-90 mt-1">
-                Profile {profileCompletion}% complete
-              </div>
             </div>
           </div>
         </div>

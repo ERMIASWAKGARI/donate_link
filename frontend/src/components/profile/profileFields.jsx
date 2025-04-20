@@ -1,9 +1,17 @@
+import {
+  EnvironmentOutlined,
+  MailOutlined,
+  PhoneOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
+
 export const basicProfileFields = [
   {
     fieldName: 'name',
     label: 'Full Name',
     type: 'text',
     placeholder: 'Enter your full name',
+    icon: <UserOutlined />,
     roles: [
       'admin',
       'ngo',
@@ -17,7 +25,7 @@ export const basicProfileFields = [
     label: 'Email Address',
     type: 'email',
     placeholder: 'Enter your email',
-    // readOnly: true,
+    icon: <MailOutlined />,
     roles: [
       'admin',
       'ngo',
@@ -31,6 +39,7 @@ export const basicProfileFields = [
     label: 'Phone Number',
     type: 'tel',
     placeholder: 'Enter your phone number',
+    icon: <PhoneOutlined />,
     roles: [
       'admin',
       'ngo',
@@ -43,7 +52,8 @@ export const basicProfileFields = [
     fieldName: 'address',
     label: 'Address',
     type: 'compound',
-    roles: ['ngo', 'volunteer', 'individual_donor', 'organization_donor'], // Exclude admin
+    icon: <EnvironmentOutlined />,
+    roles: ['ngo', 'volunteer', 'individual_donor', 'organization_donor'],
     fields: [
       {
         fieldName: 'country',
@@ -69,16 +79,25 @@ export const basicProfileFields = [
 
 export const volunteerFields = [
   {
-    fieldName: 'skills',
-    label: 'Skills',
+    fieldName: 'servicePreference',
+    label: 'Service Preferences',
     type: 'multiselect',
     options: [
-      'First Aid',
-      'Teaching',
-      'Construction',
-      'Medical',
-      'Translation',
+      'Teaching & Tutoring',
+      'Medical & First Aid',
+      'Translation & Interpretation',
+      'Construction & Manual Labor',
+      'Technology Support (IT, Web, Digital)',
+      'Event Assistance & Logistics',
+      'Community Outreach & Awareness',
+      'Food Distribution & Shelter Support',
     ],
+  },
+  {
+    fieldName: 'languageProficiency',
+    label: 'Language Proficiency',
+    type: 'multiselect', // You can customize the UI accordingly
+    options: ['Afaan Oromo', 'Amharic', 'Tigrinya', 'Somali', 'English'],
   },
   {
     fieldName: 'availability',
@@ -103,7 +122,7 @@ export const adminFields = [
     label: 'Admin Level',
     type: 'display', // Special type for non-editable display
     displayComponent: (value) => (
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-gray-800">
         {value || 'Standard'}
       </span>
     ),
@@ -142,11 +161,14 @@ export const adminFields = [
 
 export const donorFields = [
   {
-    fieldName: 'organizationName',
-    label: 'Organization Name',
-    type: 'text',
-    placeholder: 'Enter organization name',
-    showIf: (user) => user.role === 'organization_donor',
+    fieldName: 'donorType',
+    label: 'Donor Type',
+    type: 'display',
+    displayComponent: (value) => (
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-gray-800">
+        {value || 'Individual Donor'}
+      </span>
+    ),
   },
   {
     fieldName: 'preferredDonations',
