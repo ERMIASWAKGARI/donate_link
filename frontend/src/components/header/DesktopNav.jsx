@@ -4,18 +4,11 @@ import { ChevronDown, MessageSquare } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useChat } from '../../context/ChatContext';
-import { headerLinks } from './HeaderConfig';
-import ProfileDropdown from './ProfileDropdown';
 import NotificationDropdown from '../NotificationDropdown';
-// import { useSocket } from "../context/SocketContext";
-import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, MessageSquare } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { useChat } from '../../context/ChatContext';
-import NotificationBell from './../../components/NotificationBell';
 import { headerLinks } from './HeaderConfig';
 import ProfileDropdown from './ProfileDropdown';
+// import { useSocket } from "../context/SocketContext";
+import NotificationBell from './../../components/NotificationBell';
 
 import ChatModal from '../ChatModal'; // Import the ChatModal component
 
@@ -300,10 +293,10 @@ const DesktopNav = ({ user, handleLogout }) => {
         </AnimatePresence>
       </div>
 
-      {/* Notification Icon */}
       <NotificationDropdown
         onNotificationClick={() => setActiveDropdown(null)}
       />
+
       <div>
         <NotificationBell />
       </div>
