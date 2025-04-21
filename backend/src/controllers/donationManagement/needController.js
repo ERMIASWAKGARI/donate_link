@@ -319,12 +319,12 @@ const getAllNeeds = async (req, res) => {
 };
 
 // Get needs by NGO ID
-getNeedsByNgo = async (req, res) => {
+const getNeedsByNgo = async (req, res) => {
   try {
     const ngoId = req.params.ngoId;
     const { status, page = 1, limit = 10 } = req.query;
 
-    const filter = { NGO: ngoId };
+    const filter = { NGO: ngoId, isReportGenerated: false };
 
     if (status) {
       filter.status = status;
@@ -483,6 +483,39 @@ console.log("needId", needId);
     });
   }
   }
+  // Endpoint to identify the status of last need that created by the NGO 
+
+  const getLastNeedStatus = async (req, res) => {
+    try {
+      const ngoId = req.user._id; // Get the NGO ID from the authenticated user
+      const lastNeed = await Need.findOne({ NGO: ngoId })
+        .sort({ createdAt: -1 }) // Sort by createdAt in descending order
+        .limit(1); // Get the most recent need
+
+      if (!lastNeed) {
+        return res.status(404).json({
+          success: false,
+          message: "No needs found for this NGO",
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        data: {
+          status: lastNeed.status,
+          createdAt: lastNeed.createdAt,
+          title: lastNeed.title,
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching last need status:", error);
+      res.status(500).json({
+        success: false,
+        error: "Server error",
+      });
+    }
+  };
+
 const generateReport = async (req, res) => {
   try {
   const pictures =
@@ -583,6 +616,7 @@ description: req.body.description,
       };
       const report = await Report.create(newReport);
       need.isReportGenerated = true;
+      need.save();
     res.status(200).json({
       success: true,
       data: need,

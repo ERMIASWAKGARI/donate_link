@@ -46,19 +46,14 @@ const needsSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["Open", "Fulfilled", "Expired"],
+      enum: ["Open", "Fulfilled", "Expired", "Closed"],
       default: "Open",
     },
 
     endDate: {
       type: Date,
       required: true,
-      validate: {
-        validator: function (v) {
-          return v > new Date(); // Changed to greater than for FUTURE dates
-        },
-        message: "End date must be in the future",
-      },
+   
     },
 
     targetMoney: {
@@ -176,5 +171,22 @@ const needsSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+needsSchema.pre("save", function (next) {
+  if (this.endDate <= new Date() && this.status !== "Closed") {
+    this.status = "Closed";
+  }
+  next();
+});
+
+// Middleware to check for expired needs on every find operation (optional)
+needsSchema.post("find", function (docs) {
+  docs.forEach((doc) => {
+    if (doc.endDate <= new Date() && doc.status !== "Closed") {
+      doc.status = "Closed";
+      doc.save();
+    }
+  });
+});
 
 module.exports = mongoose.model("Needs", needsSchema);
