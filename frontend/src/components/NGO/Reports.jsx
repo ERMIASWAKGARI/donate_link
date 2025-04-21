@@ -139,27 +139,31 @@ const Reports = () => {
                 </div>
               </>
             )}
-            <div className="flex justify-center mt-4">
+            <div className="flex justify-center mt-6 space-x-2">
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-1 border rounded-l-md bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg border border-gray-300 bg-white shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
                 Previous
               </button>
-              <span className="px-4 py-1 border-t border-b bg-white">
-                Page {currentPage} of {totalPages}
+
+              <span className="px-5 py-2 rounded-lg border border-gray-300 bg-gray-50 font-medium text-gray-700 shadow-sm">
+                Page <span className="text-blue-600">{currentPage}</span> of{" "}
+                <span className="text-blue-600">{totalPages}</span>
               </span>
+
               <button
                 onClick={() =>
                   setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                 }
                 disabled={currentPage === totalPages}
-                className="px-3 py-1 border rounded-r-md bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg border border-gray-300 bg-white shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
                 Next
               </button>
             </div>
+
             {selectedNeed && (
               <ReportForm
                 selectedNeeds={selectedNeed}

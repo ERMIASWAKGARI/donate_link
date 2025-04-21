@@ -133,7 +133,7 @@ function PostedNeeds() {
               "Cancel"
             ) : (
               <>
-                <FaPlus /> Post New Need
+                <FaPlus /> create a project
               </>
             )}
           </button>

@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "../../config/axiosConfig";
 import {
-  FaCloudUploadAlt,
   FaImages,
   FaFileAlt,
   FaUsers,
   FaBoxes,
   FaMoneyBillWave,
 } from "react-icons/fa";
+import ImageUpload from "./imageUpload";
 
 const ReportForm = ({ selectedNeeds, onGenerate, clearSelection }) => {
   const [description, setDescription] = useState("");
@@ -135,43 +135,7 @@ const ReportForm = ({ selectedNeeds, onGenerate, clearSelection }) => {
             />
           </div>
 
-          {/* Image upload */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700 flex items-center">
-              <FaImages className="mr-2 text-teal-600" />
-              Upload Impact Photos *
-            </label>
-            <div className="mt-1">
-              <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-teal-500 transition-all">
-                <div className="flex flex-col items-center justify-center p-6 text-center">
-                  <FaCloudUploadAlt className="w-12 h-12 text-gray-400 mb-3" />
-                  <p className="text-sm text-gray-600">
-                    {pictures.length > 0 ? (
-                      <span className="text-teal-600 font-medium">
-                        {pictures.length} photo(s) selected
-                      </span>
-                    ) : (
-                      <>
-                        <span className="font-medium">
-                          Drag & drop photos here
-                        </span>
-                        <br />
-                        or click to browse (max 10 images)
-                      </>
-                    )}
-                  </p>
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleImageChange}
-                  className="hidden"
-                  required
-                />
-              </label>
-            </div>
-          </div>
+          <ImageUpload pictures={pictures} setPictures={setPictures} />
 
           {/* Preview section */}
           {previewData && (
@@ -212,79 +176,78 @@ const ReportForm = ({ selectedNeeds, onGenerate, clearSelection }) => {
           >
             Cancel
           </button>
-          <div className="space-x-3">
-            <button
-              type="button"
-              onClick={handlePreviewClick}
-              disabled={!canPreview || loadingPreview}
-              className={`px-6 py-2 rounded-lg font-medium border ${
-                canPreview
-                  ? "border-teal-600 text-teal-600 hover:bg-teal-50"
-                  : "border-gray-300 text-gray-400 cursor-not-allowed"
-              } transition flex items-center`}
-            >
-              {loadingPreview ? (
-                <>
-                  <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-teal-600"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Loading...
-                </>
-              ) : (
-                "Preview Report"
-              )}
-            </button>
-            <button
-              type="submit"
-              disabled={!canPreview || isSubmitting}
-              className="px-6 py-2 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center"
-            >
-              {isSubmitting ? (
-                <>
-                  <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Submitting...
-                </>
-              ) : (
-                "Generate Report"
-              )}
-            </button>
-          </div>
+
+          <button
+            type="button"
+            onClick={handlePreviewClick}
+            disabled={!canPreview || loadingPreview}
+            className={`px-6 py-2 rounded-lg font-medium border ${
+              canPreview
+                ? "border-teal-600 text-teal-600 hover:bg-teal-50"
+                : "border-gray-300 text-gray-400 cursor-not-allowed"
+            } transition flex items-center`}
+          >
+            {loadingPreview ? (
+              <>
+                <svg
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-teal-600"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Loading...
+              </>
+            ) : (
+              "Preview Report"
+            )}
+          </button>
+          <button
+            type="submit"
+            disabled={!canPreview || isSubmitting}
+            className="px-6 py-2 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center"
+          >
+            {isSubmitting ? (
+              <>
+                <svg
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Submitting...
+              </>
+            ) : (
+              "Generate Report"
+            )}
+          </button>
         </div>
       </form>
 

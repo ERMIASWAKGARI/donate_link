@@ -168,7 +168,10 @@ const ReportList = () => {
             {report.pictures && report.pictures.length > 0 && (
               <div className="relative h-48 overflow-hidden">
                 <img
-                  src={report.pictures[0]}
+                  src={`http://localhost:5000/uploads/${report.pictures[0].replace(
+                    /\\/g,
+                    "/"
+                  )}`}
                   alt="Report cover"
                   className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-300"
                   onClick={() => openReportDetails(report)}
@@ -376,8 +379,11 @@ const ReportList = () => {
                               whileHover={{ scale: 1.02 }}
                             >
                               <img
-                                src={file}
-                                alt={`Impact ${index + 1}`}
+                                src={`http://localhost:5000/uploads/${file.replace(
+                                  /\\/g,
+                                  "/"
+                                )}`}
+                                alt={file}
                                 className="w-full h-40 object-cover rounded-lg border border-gray-200"
                               />
                             </motion.div>
