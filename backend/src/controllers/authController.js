@@ -404,7 +404,7 @@ const refreshToken = asyncWrapper(async (req, res) => {
 
 const forgotPassword = asyncWrapper(async (req, res) => {
   const { email, phone } = req.body;
-  // console.log(req.body);
+  console.log(req.body);
 
   if (!email && !phone) {
     throw new AppError('Please provide either an email or phone number.', 400);
