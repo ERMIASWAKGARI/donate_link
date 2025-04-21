@@ -17,56 +17,8 @@ import VolunteerApplication from "./VolunteerApplication";
 import { UserContext } from "../../context/UserContext";
 import Header from "../header/Header";
 import Reports from "./Reports";
-const ngoData = {
-  name: "Helping Hands NGO",
-  email: "contact@helpinghands.org",
-  needs: [
-    {
-      id: 1,
-      type: "money",
-      description: "Emergency relief fund",
-      amount: "50,000 ETB",
-      status: "Pending",
-    },
-    {
-      id: 2,
-      type: "items",
-      description: "Winter Clothes for 100 people",
-      status: "Pending",
-    },
-    {
-      id: 3,
-      type: "volunteer",
-      description: "Teaching volunteers for kids",
-      status: "Open",
-    },
-  ],
-  donations: [
-    {
-      id: 1,
-      donor: "John Doe",
-      amount: "5000 ETB",
-      type: "money",
-      status: "Completed",
-    },
-    {
-      id: 2,
-      donor: "Jane Smith",
-      item: "50 Jackets",
-      type: "items",
-      status: "Pending",
-    },
-  ],
-  volunteers: [
-    { id: 1, name: "Samuel Tesfaye", role: "Teaching" },
-    { id: 2, name: "Martha Tadesse", role: "Medical Aid" },
-  ],
-};
 
 export default function NgoDashboard() {
-  const [needs, setNeeds] = useState(ngoData.needs);
-  const [donations, setDonations] = useState(ngoData.donations);
-  const [volunteers, setVolunteers] = useState(ngoData.volunteers);
   const [activeSection, setActiveSection] = useState("home");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -81,34 +33,19 @@ export default function NgoDashboard() {
     setMobileSidebarOpen(!mobileSidebarOpen);
   };
 
-  // const handleAddNeed = (newNeed) => {
-  //   const newNeedWithId = {
-  //     ...newNeed,
-  //     id: needs.length + 1,
-  //   };
-  //   setNeeds([...needs, newNeedWithId]);
-  //   setShowNeedForm(false);
-  // };
-
-  const handleDeleteNeed = (id) => {
-    setNeeds(needs.filter((need) => need.id !== id));
-  };
-
   const renderContent = () => {
     switch (activeSection) {
       case "needs":
         return (
           <PostedNeeds
-            needs={needs}
-            handleDeleteNeed={handleDeleteNeed}
             showNeedForm={showNeedForm}
             setShowNeedForm={setShowNeedForm}
           />
         );
       case "donations":
-        return <DonationsList donations={donations} />;
+        return <DonationsList />;
       case "volunteers":
-        return <VolunteerApplication volunteers={volunteers} />;
+        return <VolunteerApplication />;
       case "pending-donations":
         return <PendingDonations />;
       case "reports":
@@ -132,12 +69,24 @@ export default function NgoDashboard() {
     }
   };
 
+  // Assuming your header height is around 64px (h-16)
+  const headerHeight = "4px";
+
   return (
-    <>
+    <div className="flex flex-col h-screen">
+      {/* Fixed Header */}
       <Header />
-      <div className="flex h-screen bg-gray-100 overflow-hidden">
+
+      {/* Main Content Area */}
+      <div
+        className="flex flex-1 overflow-hidden"
+        // style={{ marginTop: headerHeight }}
+      >
         {/* Mobile sidebar toggle button */}
-        <div className="md:hidden fixed top-4 left-4 z-50">
+        <div
+          className="md:hidden fixed top-20 left-4 z-50"
+          style={{ top: `calc(${headerHeight} + 1rem)` }}
+        >
           <button
             onClick={toggleMobileSidebar}
             className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -153,6 +102,7 @@ export default function NgoDashboard() {
           } md:translate-x-0 transform fixed md:relative z-40 ${
             sidebarOpen ? "w-64" : "w-20"
           } bg-[#008080] text-white h-full transition-all duration-300 ease-in-out flex-shrink-0`}
+          style={{ height: `calc(100vh - ${headerHeight})` }}
         >
           <div className="p-4 flex items-center justify-between border-b border-blue-700">
             <h1 className="text-xl font-bold truncate">
@@ -162,7 +112,7 @@ export default function NgoDashboard() {
             </h1>
             <button
               onClick={toggleSidebar}
-              className="hidden md:block p-1 hover:bg-blue-700  focus:outline-none"
+              className="hidden md:block p-1 hover:bg-[#008080] rounded focus:outline-none"
             >
               {sidebarOpen ? (
                 <FaChevronLeft size={14} />
@@ -179,7 +129,7 @@ export default function NgoDashboard() {
                     setActiveSection("home");
                     setMobileSidebarOpen(false);
                   }}
-                  className={`flex items-center p-2 w-full rounded  transition-colors ${
+                  className={`flex items-center p-2 w-full rounded transition-colors ${
                     activeSection === "home" ? "bg-yellow-400" : ""
                   }`}
                 >
@@ -196,10 +146,8 @@ export default function NgoDashboard() {
                     setMobileSidebarOpen(false);
                     setShowNeedForm(false);
                   }}
-                  className={`flex items-center p-2 w-full rounded  transition-colors ${
-                    activeSection === "needs"
-                      ? "bg-[#006466] bg-yellow-400"
-                      : ""
+                  className={`flex items-center p-2 w-full rounded transition-colors ${
+                    activeSection === "needs" ? "bg-yellow-400" : ""
                   }`}
                 >
                   <FaHandHoldingHeart className="text-lg flex-shrink-0" />
@@ -214,10 +162,8 @@ export default function NgoDashboard() {
                     setActiveSection("donations");
                     setMobileSidebarOpen(false);
                   }}
-                  className={`flex items-center p-2 w-full rounded  transition-colors ${
-                    activeSection === "donations"
-                      ? "bg-blue-600 bg-yellow-400"
-                      : ""
+                  className={`flex items-center p-2 w-full rounded transition-colors ${
+                    activeSection === "donations" ? "bg-yellow-400" : ""
                   }`}
                 >
                   <FaHandsHelping className="text-lg flex-shrink-0" />
@@ -232,7 +178,7 @@ export default function NgoDashboard() {
                     setActiveSection("pending-donations");
                     setMobileSidebarOpen(false);
                   }}
-                  className={`flex items-center p-2 w-full rounded  transition-colors ${
+                  className={`flex items-center p-2 w-full rounded transition-colors ${
                     activeSection === "pending-donations" ? "bg-yellow-400" : ""
                   }`}
                 >
@@ -248,7 +194,7 @@ export default function NgoDashboard() {
                     setActiveSection("volunteers");
                     setMobileSidebarOpen(false);
                   }}
-                  className={`flex items-center p-2 w-full rounded  transition-colors ${
+                  className={`flex items-center p-2 w-full rounded transition-colors ${
                     activeSection === "volunteers" ? "bg-yellow-400" : ""
                   }`}
                 >
@@ -264,7 +210,7 @@ export default function NgoDashboard() {
                     setActiveSection("reports");
                     setMobileSidebarOpen(false);
                   }}
-                  className={`flex items-center p-2 w-full rounded  transition-colors ${
+                  className={`flex items-center p-2 w-full rounded transition-colors ${
                     activeSection === "reports" ? "bg-yellow-400" : ""
                   }`}
                 >
@@ -279,13 +225,15 @@ export default function NgoDashboard() {
         </div>
 
         {/* Main content */}
-        <div
-          className={`flex-1 overflow-auto transition-all duration-300 
-        }`}
-        >
-          <div className="relative">{renderContent()}</div>
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div
+            className="flex-1 overflow-y-auto p-4"
+            style={{ height: `calc(100vh - ${headerHeight})` }}
+          >
+            {renderContent()}
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -275,7 +275,7 @@ const DonationsList = () => {
                     {donation?.message && (
                       <div className="mt-3 p-3 bg-white rounded border-l-4 border-primary">
                         <p className="text-gray-700 italic">
-                          "{donation.message}"
+                          {donation.message}
                         </p>
                       </div>
                     )}
@@ -283,12 +283,6 @@ const DonationsList = () => {
                 ) : selectedCategory === "items" ? (
                   <>
                     <div className="flex justify-between items-start mb-3">
-                      <h3 className="font-semibold text-gray-700">
-                        Tracking ID:{" "}
-                        <span className="text-primary">
-                          {donation.trackingId}
-                        </span>
-                      </h3>
                       <div className="flex items-center text-sm">
                         {getStatusIcon(donation.status)}
                         <span className="ml-1">{donation.status}</span>
