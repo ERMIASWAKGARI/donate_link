@@ -123,15 +123,15 @@ function VolunteerApplication() {
       >
         {/* Header Section */}
         <div className="text-center mb-10">
-          <h1 className="text-2xl font-bold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
+          <h1 className="text-2xl font-bold text-gray-900 sm:text-2xl sm:tracking-tight lg:text-2xl">
             Volunteer Management
           </h1>
           <p className="mt-5 max-w-xl mx-auto text-xl text-gray-500">
             Review and manage volunteer applications for your NGO
           </p>
         </div>
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-10 border border-gray-100">
-          <div className="mb-6">
+        <div className="bg-white rounded-2xl shadow-xl p-6 mb-5 border border-gray-100">
+          <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center">
             <label
               htmlFor="service-need"
               className="block text-lg font-medium text-gray-700 mb-3"
@@ -162,7 +162,7 @@ function VolunteerApplication() {
             transition={{ delay: 0.2 }}
             className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100"
           >
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
               <h2 className="text-2xl font-bold text-gray-800 mb-4 sm:mb-0">
                 Volunteer Applications
               </h2>
@@ -238,7 +238,7 @@ function VolunteerApplication() {
             )}
           </motion.div>
         )}
-        Volunteer Detail Modal
+
         {selectedVolunteer && (
           <AnimatePresence>
             <motion.div
