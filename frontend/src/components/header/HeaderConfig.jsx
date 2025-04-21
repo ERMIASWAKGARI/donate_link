@@ -14,7 +14,7 @@ import {
   Star,
   User,
   Users,
-} from "lucide-react";
+} from 'lucide-react';
 
 // Named export for icons
 export const icons = {
@@ -38,25 +38,25 @@ export const icons = {
 // Named export for headerLinks
 export const headerLinks = {
   common: [
-    { to: "/dashboard", text: "Dashboard", icon: "Home" },
-    { to: "/profile", text: "My Profile", icon: "User" },
-    { to: "/donations", text: "My Donations", icon: "Heart" },
-    { to: "/history", text: "Donation History", icon: "History" },
-    { to: "/settings", text: "Account Settings", icon: "Settings" },
+    { to: '/dashboard', text: 'Dashboard', icon: 'Home' },
+    { to: '/profile', text: 'My Profile', icon: 'User' },
+    { to: '/donations', text: 'My Donations', icon: 'Heart' },
+    { to: '/history', text: 'Donation History', icon: 'History' },
+    { to: '/account/settings', text: 'Account Settings', icon: 'Settings' },
   ],
-  individual_donor: [{ to: "/favorites", text: "Favorites", icon: "Star" }],
+  individual_donor: [{ to: '/favorites', text: 'Favorites', icon: 'Star' }],
   organization_donor: [
-    { to: "/post-donation", text: "Post Donation", icon: "PlusCircle" },
-    { to: "/inventory", text: "Inventory", icon: "Package" },
+    { to: '/post-donation', text: 'Post Donation', icon: 'PlusCircle' },
+    { to: '/inventory', text: 'Inventory', icon: 'Package' },
   ],
   volunteer: [
-    { to: "/volunteer-opportunities", text: "Opportunities", icon: "Calendar" },
-    { to: "/my-shifts", text: "My Shifts", icon: "Clock" },
+    { to: '/volunteer-opportunities', text: 'Opportunities', icon: 'Calendar' },
+    { to: '/my-shifts', text: 'My Shifts', icon: 'Clock' },
   ],
   ngo: [
-    { to: "/manage-donations", text: "Manage Donations", icon: "List" },
-    { to: "/reports", text: "Reports", icon: "FileText" },
-    { to: "/volunteers", text: "Volunteers", icon: "Users" },
+    { to: '/manage-donations', text: 'Manage Donations', icon: 'List' },
+    { to: '/reports', text: 'Reports', icon: 'FileText' },
+    { to: '/volunteers', text: 'Volunteers', icon: 'Users' },
   ],
 };
 

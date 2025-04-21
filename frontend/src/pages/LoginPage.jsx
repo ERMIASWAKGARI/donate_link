@@ -1,134 +1,209 @@
-import { Eye, EyeOff } from "lucide-react";
-import { useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import AlertMessage from "../components/AlertMessage";
-import Header from "../components/common/Header";
-import GoogleAuth from "../components/GoogleAuth";
-import RegisterWithGoogle from "../components/RegisterWithGoogle";
-import { UserContext } from "../context/UserContext";
+import { useContext, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import { Spin } from 'antd';
+import { Eye, EyeOff } from 'lucide-react';
+
+import Header from '../components/common/Header';
+import ErrorMessage from '../components/ErrorMessage';
+import GoogleAuth from '../components/GoogleAuth';
+import RegisterWithGoogle from '../components/RegisterWithGoogle';
+import SuccessMessage from '../components/SuccessMessage';
+import { UserContext } from '../context/UserContext';
+import ReactivateModal from './ReactivateModal';
 
 function LoginPage() {
   const { login } = useContext(UserContext);
+  const [reactivationRequired, setReactivationRequired] = useState(false);
+  const [reactivationToken, setReactivationToken] = useState('');
+
   const navigate = useNavigate();
 
   // State management
-  const [loginMethod, setLoginMethod] = useState("email"); // 'email' or 'phone'
+  const [loginMethod, setLoginMethod] = useState('email'); // 'email' or 'phone'
   const [formData, setFormData] = useState({
-    email: "",
-    phone: "",
-    countryCode: "+251",
-    password: "",
+    email: '',
+    phone: '',
+    countryCode: '+251',
+    password: '',
   });
-  const [message, setMessage] = useState({ type: "", text: "" });
+  const [message, setMessage] = useState({ type: '', text: '' });
   const [googleUser, setGoogleUser] = useState(null);
   const [isRegisteringWithGoogle, setIsRegisteringWithGoogle] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // Handle input changes
+  const handleReactivation = async () => {
+    try {
+      const response = await fetch(
+        'http://localhost:5000/api/users/me/reactivate',
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reactivationToken }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Reactivation failed');
+      }
+
+      setMessage({ type: 'success', text: data.message });
+      setReactivationRequired(false);
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: error.message || 'An error occurred during reactivation',
+      });
+    }
+  };
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage({ type: '', text: '' });
+    setLoading(true);
 
     const loginData = { password: formData.password };
 
     // Validate based on selected method
-    if (loginMethod === "email") {
+    if (loginMethod === 'email') {
       if (!formData.email) {
-        setMessage({ type: "error", text: "Please enter your email" });
+        setMessage({ type: 'error', text: 'Please enter your email' });
+        setLoading(false);
         return;
       }
       loginData.email = formData.email;
     } else {
       if (!formData.phone) {
-        setMessage({ type: "error", text: "Please enter your phone number" });
+        setMessage({ type: 'error', text: 'Please enter your phone number' });
+        setLoading(false);
         return;
       }
       loginData.phone = `${formData.countryCode}${formData.phone}`;
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(loginData),
       });
 
       const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed.');
+      }
 
-      if (data.status === "success") {
-        console.log(data.data.role);
-        login(data.data.accessToken);
+      // Handle specific error cases
+      if (data.data?.reactivationRequired) {
+        setReactivationToken(data.data.reactivationToken);
+        setReactivationRequired(true);
         setMessage({
-          type: "success",
-          text: "Login successful! Redirecting...",
+          type: 'info',
+          text: data.message || 'Your account is deactivated',
         });
-        //check if the user role is admin and lead it to admin dashboard
-        if (data.data.role === "admin") {
-          navigate("/admin/dashboard");
-        } else if (
-          data.data.role === "individual_donor" ||
-          data.data.role === "organization_donor"
-        ) {
-          navigate("/donor/dashboard");
-        } else if (data.data.role === "ngo") {
-          navigate("/ngo/dashboard");
-        } else if (data.data.role === "volunteer") {
-          navigate("/volunteer/dashboard");
-        } else {
-          navigate("/dashboard");
-        }
+        setLoading(false);
+        return;
+      }
+
+      // Handle validation errors or other error messages
+
+      // Success case
+      login(data.data.accessToken);
+      setMessage({
+        type: 'success',
+        text: 'Login successful! Redirecting...',
+      });
+
+      // Redirect based on role
+      const role = data.data.role;
+      if (role === 'admin') {
+        navigate('/admin/dashboard');
+      } else if (role === 'individual_donor' || role === 'organization_donor') {
+        navigate('/donor/dashboard');
+      } else if (role === 'ngo') {
+        navigate('/ngo/dashboard');
+      } else if (role === 'volunteer') {
+        navigate('/volunteer/dashboard');
       } else {
-        setMessage({ type: "error", text: `Login Failed: ${data.message}` });
+        navigate('/dashboard');
       }
     } catch (error) {
-      console.error("Login Error:", error);
+      console.error('Login Error:', error.message);
       setMessage({
-        type: "error",
-        text: "An error occurred. Please try again.",
+        type: 'error',
+        text: error.message || 'An error occurred. Please try again.',
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <>
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+          <Spin size="large" />
+        </div>
+      )}
       <Header />
       <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+        {reactivationRequired && (
+          <ReactivateModal
+            onClose={() => setReactivationRequired(false)}
+            onConfirm={handleReactivation}
+          />
+        )}
         <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
           <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
             Login to Your Account
           </h2>
-          <AlertMessage message={message} />
 
-          {/* Login Method Toggle */}
+          {/* Display messages */}
+          {message.type === 'success' && (
+            <SuccessMessage message={message.text} className="mb-4" />
+          )}
+          {message.type === 'error' && (
+            <ErrorMessage error={message.text} className="mb-4" />
+          )}
+          {message.type === 'info' && (
+            <div className="mb-4 p-3 bg-blue-50 text-blue-700 rounded-md border border-blue-100">
+              {message.text}
+            </div>
+          )}
+
+          {/* Rest of your login form remains the same */}
           <div className="flex mb-6 border-b">
             <button
               className={`flex-1 py-3 font-medium text-sm ${
-                loginMethod === "email"
-                  ? "text-green-600 border-b-2 border-green-600"
-                  : "text-gray-500 hover:text-gray-700"
+                loginMethod === 'email'
+                  ? 'text-[#008080] border-b-2 border-[#008080]'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
-              onClick={() => setLoginMethod("email")}
+              onClick={() => setLoginMethod('email')}
             >
               Email Login
             </button>
             <button
               className={`flex-1 py-3 font-medium text-sm ${
-                loginMethod === "phone"
-                  ? "text-green-600 border-b-2 border-green-600"
-                  : "text-gray-500 hover:text-gray-700"
+                loginMethod === 'phone'
+                  ? 'text-[#008080] border-b-2 border-[#008080]'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
-              onClick={() => setLoginMethod("phone")}
+              onClick={() => setLoginMethod('phone')}
             >
               Phone Login
             </button>
           </div>
 
           {/* Email or Phone Input */}
-          {loginMethod === "email" ? (
+          {loginMethod === 'email' ? (
             <div className="mb-4">
               <label
                 htmlFor="email"
@@ -189,7 +264,7 @@ function LoginPage() {
             </label>
             <div className="relative">
               <input
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 id="password"
                 name="password"
                 placeholder="••••••••"
@@ -201,7 +276,7 @@ function LoginPage() {
                 type="button"
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
                 onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? (
                   <EyeOff size={18} className="text-gray-400" />
@@ -216,16 +291,15 @@ function LoginPage() {
           <button
             type="submit"
             onClick={handleSubmit}
-            className="w-full bg-primary text-white p-3 rounded-lg font-medium hover:bg-green-700 transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+            className="w-full bg-[#008080] text-white p-3 rounded-lg font-medium transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-[#008080] focus:ring-offset-2"
           >
             Sign In
           </button>
 
-          {/* Forgot Password */}
           <div className="text-center mb-6">
             <a
               href="/forgot-password"
-              className="text-sm text-green-600 hover:text-green-800 hover:underline"
+              className="text-sm text-[#008080] hover:underline"
             >
               Forgot your password?
             </a>
@@ -260,10 +334,10 @@ function LoginPage() {
           {/* Register Link */}
           <div className="text-center mt-6">
             <p className="text-sm text-gray-600">
-              Dont have an account?{" "}
+              Dont have an account?{' '}
               <a
                 href="/register"
-                className="font-medium text-[#008080] hover:text-green-800 hover:underline"
+                className="font-medium text-[#008080] hover:underline"
               >
                 Sign up
               </a>

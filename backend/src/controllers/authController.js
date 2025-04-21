@@ -265,7 +265,7 @@ const login = asyncWrapper(async (req, res) => {
     user = await User.findOne({ email });
     if (!user) {
       throw new AppError(
-        'No account found with this email address. Please check your email or sign up.',
+        'Invalid login credentials. Please check your email/phone and password.',
         401
       );
     }
@@ -275,7 +275,7 @@ const login = asyncWrapper(async (req, res) => {
     user = await User.findOne({ phone });
     if (!user) {
       throw new AppError(
-        'No account found with this phone number. Please check your number or sign up.',
+        'Invalid login credentials. Please check your email/phone and password.',
         401
       );
     }
@@ -346,7 +346,7 @@ const login = asyncWrapper(async (req, res) => {
   }
   if (!isMatch) {
     throw new AppError(
-      'The password you entered is incorrect. Please try again.',
+      'Invalid login credentials. Please check your email/phone and password.',
       401
     );
   }
@@ -404,7 +404,7 @@ const refreshToken = asyncWrapper(async (req, res) => {
 
 const forgotPassword = asyncWrapper(async (req, res) => {
   const { email, phone } = req.body;
-  // console.log(req.body);
+  console.log(req.body);
 
   if (!email && !phone) {
     throw new AppError('Please provide either an email or phone number.', 400);

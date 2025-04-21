@@ -185,7 +185,7 @@ const DesktopNav = ({ user, handleLogout }) => {
       {role === 'organization_donor' && (
         <motion.button
           onClick={() => navigate('/post-donation')}
-          className="bg-yellow-400 text-green-900 px-3 py-1 rounded-full text-sm font-medium hover:bg-yellow-500 transition-colors shadow-sm"
+          className="bg-yellow-400 text-green-900 px-3 py-1 rounded-md text-sm font-medium hover:bg-yellow-500 transition-colors shadow-sm"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.98 }}
         >

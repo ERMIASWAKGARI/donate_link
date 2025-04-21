@@ -2,10 +2,12 @@
 import {
   CheckCircleOutlined,
   ExclamationCircleOutlined,
+  SettingOutlined,
   UploadOutlined,
 } from '@ant-design/icons';
 import { Button, Modal, message } from 'antd';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 export const ProfileHeader = ({
   user,
@@ -228,6 +230,9 @@ export const ProfileHeader = ({
 
   // Simplified submit disabled check
   const isSubmitDisabled = () => {
+    const hasErrors = Object.values(validationErrors).some((error) => error);
+    if (hasErrors) return true;
+
     switch (user.role) {
       case 'volunteer':
         return (
@@ -263,7 +268,7 @@ export const ProfileHeader = ({
                 onChange={(e) =>
                   handleVerificationDocsChange('idCard', e.target.files[0])
                 }
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-[#008080] hover:file:bg-teal-100"
               />
               {validationErrors.idCard && (
                 <p className="mt-1 text-sm text-red-600">
@@ -284,7 +289,7 @@ export const ProfileHeader = ({
                     e.target.files[0]
                   )
                 }
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-[#008080] hover:file:bg-teal-100"
               />
               {validationErrors.trainingCertificate && (
                 <p className="mt-1 text-sm text-red-600">
@@ -310,7 +315,7 @@ export const ProfileHeader = ({
                     e.target.files[0]
                   )
                 }
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-[#008080] hover:file:bg-teal-100"
               />
               {validationErrors.registrationCertificate && (
                 <p className="mt-1 text-sm text-red-600">
@@ -331,7 +336,7 @@ export const ProfileHeader = ({
                     e.target.files[0]
                   )
                 }
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-[#008080] hover:file:bg-teal-100"
               />
               {validationErrors.authorizationLetter && (
                 <p className="mt-1 text-sm text-red-600">
@@ -357,7 +362,7 @@ export const ProfileHeader = ({
                     e.target.files[0]
                   )
                 }
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-[#008080] hover:file:bg-teal-100"
               />
               {validationErrors.licenseCertificate && (
                 <p className="mt-1 text-sm text-red-600">
@@ -378,7 +383,7 @@ export const ProfileHeader = ({
                     e.target.files[0]
                   )
                 }
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-[#008080] hover:file:bg-teal-100"
               />
               {validationErrors.taxCertificate && (
                 <p className="mt-1 text-sm text-red-600">
@@ -418,61 +423,77 @@ export const ProfileHeader = ({
 
       {/* Main Profile Header */}
       <div className="bg-gradient-to-r from-teal-500 to-teal-600 p-6 text-white">
-        <div className="flex flex-col md:flex-row items-center">
-          <div className="relative group mb-4 md:mb-0 md:mr-6">
-            <div className="relative">
-              <img
-                className="h-32 w-32 rounded-full border-2 border-yellow-400 border-opacity-80 shadow-md"
-                src={
-                  user?.profilePicture
-                    ? `http://localhost:5000/uploads/${user.profilePicture}`
-                    : `https://ui-avatars.com/api/?name=${
-                        user?.name || 'User'
-                      }&background=ffffff&color=0891b2&size=256`
-                }
-                alt="Profile"
-              />
-              <label
-                htmlFor="profilePictureUpload"
-                className="absolute inset-0 bg-black bg-opacity-30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-80 transition-opacity duration-300 cursor-pointer"
-              >
-                <UploadOutlined className="text-white text-2xl" />
-                <input
-                  id="profilePictureUpload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="hidden"
+        <div className="flex flex-col md:flex-row justify-between items-center w-full flex-wrap">
+          {/* Left: Profile Info */}
+          <div className="flex flex-col md:flex-row items-center">
+            <div className="relative group mb-4 md:mb-0 md:mr-6">
+              <div className="relative">
+                <img
+                  className="h-32 w-32 rounded-full border-2 border-yellow-400 border-opacity-80 shadow-md"
+                  src={
+                    user?.profilePicture
+                      ? `http://localhost:5000/uploads/${user.profilePicture}`
+                      : `https://ui-avatars.com/api/?name=${
+                          user?.name || 'User'
+                        }&background=ffffff&color=0891b2&size=256`
+                  }
+                  alt="Profile"
                 />
-              </label>
+                <label
+                  htmlFor="profilePictureUpload"
+                  className="absolute inset-0 bg-black bg-opacity-30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-80 transition-opacity duration-300 cursor-pointer"
+                >
+                  <UploadOutlined className="text-white text-2xl" />
+                  <input
+                    id="profilePictureUpload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div className="text-center md:text-left">
+              <h1 className="text-xl md:text-2xl lg:text-3xl font-bold flex items-center justify-center md:justify-start">
+                {user.name}
+              </h1>
+              <div className="mt-2 flex flex-wrap justify-center md:justify-start gap-2">
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-semibold bg-yellow-400 text-teal-700`}
+                >
+                  {user.role
+                    .replace('_', ' ')
+                    .replace(/\b\w/g, (char) => char.toUpperCase())}
+                </span>
+                {user.role !== 'admin' && user.role !== 'individual_donor' && (
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center ${verificationStatus.color}`}
+                  >
+                    {verificationStatus.icon && (
+                      <CheckCircleOutlined
+                        className={`mr-1 ${verificationStatus.icon}`}
+                      />
+                    )}
+                    <span className="ml-1">{verificationStatus.text}</span>
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="text-center md:text-left">
-            <h1 className="text-xl md:text-2xl lg:text-3xl font-bold flex items-center justify-center md:justify-start">
-              {user.name}
-            </h1>
-            <div className="mt-2 flex flex-wrap justify-center md:justify-start gap-2">
-              <span
-                className={`px-3 py-1 rounded-full text-xs font-semibold bg-yellow-400 text-teal-700`}
-              >
-                {user.role
-                  .replace('_', ' ')
-                  .replace(/\b\w/g, (char) => char.toUpperCase())}
+          {/* Right: Settings Link */}
+          <div className="relative group mt-4 md:mt-0">
+            <Link
+              to="/account/settings"
+              className="flex items-center gap-2 text-white hover:text-yellow-400 transition-colors duration-300"
+            >
+              <SettingOutlined className=" text-lg" />
+              <span className="text-sm font-medium hidden sm:inline">
+                Settings
               </span>
-              {user.role !== 'admin' && user.role !== 'individual_donor' && (
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center ${verificationStatus.color}`}
-                >
-                  {verificationStatus.icon && (
-                    <CheckCircleOutlined
-                      className={`mr-1 ${verificationStatus.icon}`}
-                    />
-                  )}
-                  <span className="ml-1">{verificationStatus.text}</span>
-                </span>
-              )}
-            </div>
+            </Link>
           </div>
         </div>
       </div>
@@ -503,6 +524,15 @@ export const ProfileHeader = ({
             loading={uploading}
             onClick={handleVerificationSubmit}
             disabled={isSubmitDisabled()}
+            style={{
+              backgroundColor: '#facc15', // Tailwind's bg-yellow-400
+              color: '#14532d', // Tailwind's text-green-900
+              padding: '4px 12px', // Tailwind's px-3 py-1 = 0.75rem x 0.25rem
+              border: 'none',
+              borderRadius: '6px',
+              fontWeight: '500',
+              transition: 'background-color 0.2s ease-in-out',
+            }}
           >
             Submit Documents
           </Button>,
@@ -521,7 +551,7 @@ export const ProfileHeader = ({
             multiple
             accept="image/*,.pdf"
             onChange={(e) => handleAdditionalDocsChange(e.target.files)}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-[#008080] hover:file:bg-teal-100"
           />
           <p className="mt-1 text-sm text-gray-500">
             You can upload multiple additional documents (JPEG, PNG, GIF, PDF)

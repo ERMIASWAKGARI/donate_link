@@ -1,33 +1,34 @@
-import { Route, Routes } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import ChatModal from "./components/ChatModal";
-import ForgotPassword from "./components/ForgotPassword";
-import NgoDashboard from "./components/NGO/NgoDashboard";
-import PrivateRoute from "./components/PrivateRoute";
-import ResetPassword from "./components/ResetPassword";
-import ScrollToTop from "./components/common/ScrollToTop";
-import { UserProvider } from "./context/UserContext";
-import IndividualDashboard from "./pages/Donor/IndividualDonor/DashboardIndividual";
-import NeedDetail from "./pages/Donor/IndividualDonor/NeedDetail";
-import DonationForm from "./pages/Donor/OrganizationalDonor/DonationForm";
-import LandingPage from "./pages/LandingPage";
-import LoginPage from "./pages/LoginPage";
-import NotFoundPage from "./pages/NotFound";
-import RegisterPage from "./pages/RegisterPage";
-import VerifyEmail from "./pages/VerifyEmailPage";
-import VerifyOtp from "./pages/VerifyOtpPage";
-import AdminDashboard from "./pages/admin/Dashboard";
-import UserDetail from "./pages/admin/UserDetail/UserDetail";
-import Users from "./pages/admin/Users";
-import VolunteerDashboard from "./pages/volunteer/VolunteerDashboard";
+import { Route, Routes } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import ChatModal from './components/ChatModal';
+import ForgotPassword from './components/ForgotPassword';
+import NgoDashboard from './components/NGO/NgoDashboard';
+import PrivateRoute from './components/PrivateRoute';
+import ResetPassword from './components/ResetPassword';
+import ScrollToTop from './components/common/ScrollToTop';
+import { UserProvider } from './context/UserContext';
+import IndividualDashboard from './pages/Donor/IndividualDonor/DashboardIndividual';
+import NeedDetail from './pages/Donor/IndividualDonor/NeedDetail';
+import DonationForm from './pages/Donor/OrganizationalDonor/DonationForm';
+import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/LoginPage';
+import NotFoundPage from './pages/NotFound';
+import RegisterPage from './pages/RegisterPage';
+import VerifyEmail from './pages/VerifyEmailPage';
+import VerifyOtp from './pages/VerifyOtpPage';
+import AdminDashboard from './pages/admin/Dashboard';
+import UserDetail from './pages/admin/UserDetail/UserDetail';
+import Users from './pages/admin/Users';
+import VolunteerDashboard from './pages/volunteer/VolunteerDashboard';
 // import UserProfile from "./components/header/UserProfile";
-import { Provider } from "react-redux";
-import { ChatProvider } from "./context/ChatContext";
-import { NotificationProvider } from "./context/NotificationContext";
-import { SocketProvider } from "./context/SocketContext";
-import UserProfilePage from "./pages/profile/UserProfilePage";
-import { store } from "./redux/store";
+import { Provider } from 'react-redux';
+import { ChatProvider } from './context/ChatContext';
+import { NotificationProvider } from './context/NotificationContext';
+import { SocketProvider } from './context/SocketContext';
+import AccountPage from './pages/profile/AccountPage';
+import UserProfilePage from './pages/profile/UserProfilePage';
+import { store } from './redux/store';
 
 function App() {
   return (
@@ -37,8 +38,6 @@ function App() {
           <SocketProvider>
             <ChatProvider>
               <NotificationProvider>
-                {" "}
-                {/* Move ChatProvider here to wrap everything */}
                 <ScrollToTop />
                 <ToastContainer />
                 <Routes>
@@ -83,6 +82,7 @@ function App() {
                     <Route path="/admin/users/:id" element={<UserDetail />} />
                     <Route path="/post-donation" element={<DonationForm />} />
                     <Route path="/profile" element={<UserProfilePage />} />
+                    <Route path="/account/settings" element={<AccountPage />} />
                   </Route>
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>
