@@ -25,6 +25,7 @@
     "emoji-picker-react": "^4.12.2",
     "firebase": "^11.3.1",
     "framer-motion": "^12.6.1",
+    "heroicons": "^2.2.0",
     "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
     "leaflet-geosearch": "^4.2.0",
