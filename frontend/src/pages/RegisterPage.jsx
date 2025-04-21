@@ -394,7 +394,7 @@ const EnhancedRegisterPage = () => {
                           type="button"
                           className={`flex-1 py-2 font-medium text-sm ${
                             loginMethod === 'email'
-                              ? 'text-green-600 border-b-2 border-green-600'
+                              ? 'text-[#008080] border-b-2 border-[#008080]'
                               : 'text-gray-500 hover:text-gray-700'
                           }`}
                           onClick={() => setLoginMethod('email')}
@@ -405,7 +405,7 @@ const EnhancedRegisterPage = () => {
                           type="button"
                           className={`flex-1 py-2 font-medium text-sm ${
                             loginMethod === 'phone'
-                              ? 'text-green-600 border-b-2 border-green-600'
+                              ? 'text-[#008080] border-b-2 border-[#008080]'
                               : 'text-gray-500 hover:text-gray-700'
                           }`}
                           onClick={() => setLoginMethod('phone')}
@@ -548,11 +548,11 @@ const EnhancedRegisterPage = () => {
 
                       <motion.button
                         type="submit"
-                        className="w-full bg-gradient-to-r from-green-500 to-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all mt-6"
+                        className="w-full bg-[#008080] text-white p-3 rounded-lg font-medium transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-[#008080] focus:ring-offset-2"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
-                        Complete Registration
+                        Sign Up
                       </motion.button>
                     </form>
 
@@ -585,7 +585,7 @@ const EnhancedRegisterPage = () => {
                         Already have an account?{' '}
                         <a
                           href="/login"
-                          className="text-blue-500 hover:underline font-medium"
+                          className="text-[#008080] hover:underline font-medium"
                         >
                           Log in
                         </a>

@@ -19,7 +19,7 @@ const ReactivateModal = ({ onClose, onConfirm }) => {
             Cancel
           </button>
           <button
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+            className="bg-yellow-400 text-green-900 px-3 py-1 rounded-md text-sm font-medium hover:bg-yellow-500 transition-colors shadow-sm"
             onClick={onConfirm}
           >
             Reactivate

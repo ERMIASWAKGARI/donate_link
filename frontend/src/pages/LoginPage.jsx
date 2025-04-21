@@ -183,7 +183,7 @@ function LoginPage() {
             <button
               className={`flex-1 py-3 font-medium text-sm ${
                 loginMethod === 'email'
-                  ? 'text-green-600 border-b-2 border-green-600'
+                  ? 'text-[#008080] border-b-2 border-[#008080]'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
               onClick={() => setLoginMethod('email')}
@@ -193,7 +193,7 @@ function LoginPage() {
             <button
               className={`flex-1 py-3 font-medium text-sm ${
                 loginMethod === 'phone'
-                  ? 'text-green-600 border-b-2 border-green-600'
+                  ? 'text-[#008080] border-b-2 border-[#008080]'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
               onClick={() => setLoginMethod('phone')}
@@ -291,16 +291,15 @@ function LoginPage() {
           <button
             type="submit"
             onClick={handleSubmit}
-            className="w-full bg-primary text-white p-3 rounded-lg font-medium hover:bg-green-700 transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+            className="w-full bg-[#008080] text-white p-3 rounded-lg font-medium transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-[#008080] focus:ring-offset-2"
           >
             Sign In
           </button>
 
-          {/* Forgot Password */}
           <div className="text-center mb-6">
             <a
               href="/forgot-password"
-              className="text-sm text-green-600 hover:text-green-800 hover:underline"
+              className="text-sm text-[#008080] hover:underline"
             >
               Forgot your password?
             </a>
@@ -338,7 +337,7 @@ function LoginPage() {
               Dont have an account?{' '}
               <a
                 href="/register"
-                className="font-medium text-[#008080] hover:text-green-800 hover:underline"
+                className="font-medium text-[#008080] hover:underline"
               >
                 Sign up
               </a>

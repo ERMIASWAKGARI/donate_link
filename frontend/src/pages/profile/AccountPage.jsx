@@ -189,9 +189,9 @@ const AccountPage = () => {
               key={tab}
               className={`px-5 py-2 font-medium ${
                 activeTab === tab
-                  ? 'text-indigo-600 border-b-2 border-indigo-600'
+                  ? 'text-[#008080] border-b-2 border-[#008080]'
                   : 'text-gray-500'
-              } transition-colors hover:text-indigo-600`}
+              } transition-colors hover:text-[#008080]`}
               onClick={() => setActiveTab(tab)}
             >
               {tab === 'password' ? 'Change Password' : 'Account Actions'}
@@ -235,13 +235,13 @@ const AccountPage = () => {
                   value={formData[name]}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#3ea8a8e8]"
                 />
               </div>
             ))}
             <button
               type="submit"
-              className="px-4 py-1.5 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700 transition"
+              className="px-4 py-1.5 bg-[rgb(0,128,115)] text-white rounded-md text-sm hover:bg-[rgb(0,128,128)] transition"
             >
               Change Password
             </button>
@@ -259,10 +259,10 @@ const AccountPage = () => {
               <button
                 onClick={() => setShowDeactivateModal(true)}
                 disabled={!user.isActive || isDeactivating}
-                className={`px-4 py-1.5 text-sm rounded-md font-medium text-white ${
+                className={`px-4 py-1.5 text-sm rounded-md font-medium ${
                   isDeactivating || !user.isActive
                     ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-amber-500 hover:bg-amber-600'
+                    : 'bg-yellow-400 text-green-900 px-3 py-1 rounded-md text-sm font-medium hover:bg-yellow-500 transition-colors shadow-sm'
                 } transition`}
               >
                 {isDeactivating ? 'Processing...' : 'Deactivate'}

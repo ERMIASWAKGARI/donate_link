@@ -1,5 +1,11 @@
+import { Spin } from 'antd'; // Importing Spin for loading state
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+
+import Header from './common/Header';
+
+import ErrorMessage from '../components/ErrorMessage';
+import SuccessMessage from '../components/SuccessMessage';
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
@@ -14,19 +20,17 @@ const ResetPassword = () => {
   const [otp, setOtp] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [message, setMessage] = useState({ type: '', text: '' });
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
-    setError('');
     setLoading(true);
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setMessage({ type: 'error', text: 'Passwords do not match.' });
       setLoading(false);
       return;
     }
@@ -39,14 +43,21 @@ const ResetPassword = () => {
         url = `http://localhost:5000/api/auth/reset-password?token=${token}`;
       } else if (phone) {
         if (!otp) {
-          setError('Please enter the OTP sent to your phone.');
+          setMessage({
+            type: 'error',
+            text: 'Please enter the OTP sent to your phone.',
+          });
+
           setLoading(false);
           return;
         }
         payload = { phone, otp, password };
         url = `http://localhost:5000/api/auth/reset-password`;
       } else {
-        setError('Invalid reset attempt.');
+        setMessage({
+          type: 'error',
+          text: 'Invalid reset attempt. Please try again.',
+        });
         setLoading(false);
         return;
       }
@@ -61,12 +72,21 @@ const ResetPassword = () => {
       console.log(data);
       if (!res.ok) throw new Error(data.message || 'Something went wrong');
 
-      setMessage('Password reset successfully! Redirecting to login...');
+      setMessage({
+        type: 'success',
+        text:
+          data.message ||
+          'Password reset successfully! Redirecting to login...',
+      });
+
       setTimeout(() => {
         navigate('/login');
       }, 2000);
     } catch (err) {
-      setError(err.message);
+      setMessage({
+        type: 'error',
+        text: err.message || 'An error occurred. Please try again.',
+      });
     } finally {
       setLoading(false);
     }
@@ -85,79 +105,103 @@ const ResetPassword = () => {
       console.log(data);
       if (!res.ok) throw new Error(data.message || 'Failed to resend OTP');
 
-      setMessage('OTP resent successfully!');
+      setMessage({
+        type: 'success',
+        text: data.message || 'OTP resent successfully!',
+      });
     } catch (err) {
-      setError(err.message);
+      setMessage({
+        type: 'error',
+        text: err.message || 'Failed to resend OTP. Please try again.',
+      });
     } finally {
       setResending(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white shadow-md rounded-lg">
-      <h2 className="text-xl font-bold mb-4">Reset Password</h2>
-      {message && <p className="text-green-600">{message}</p>}
-      {error && <p className="text-red-600">{error}</p>}
+    <>
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+          <Spin size="large" />
+        </div>
+      )}
+      <Header />
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* If resetting via phone, show OTP input & Resend OTP button */}
-        {phone && !token && (
-          <>
-            <input
-              type="text"
-              placeholder="Enter OTP"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              className="w-full p-2 border rounded"
-            />
-            <button
-              type="button"
-              className="text-blue-500"
-              onClick={handleResendOtp}
-              disabled={resending}
-            >
-              {resending ? 'Resending...' : "Didn't receive OTP? Resend"}
+      <div className="max-w-md mx-auto p-6 bg-white shadow-md rounded-lg mt-20">
+        <h2 className="text-xl font-bold mb-4">Reset Password</h2>
+        {loading && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+            <Spin size="large" />
+          </div>
+        )}
+        {message.type === 'success' && (
+          <SuccessMessage message={message.text} className="mb-4" />
+        )}
+        {message.type === 'error' && (
+          <ErrorMessage error={message.text} className="mb-4" />
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* If resetting via phone, show OTP input & Resend OTP button */}
+          {phone && !token && (
+            <>
+              <input
+                type="text"
+                placeholder="Enter OTP"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className="w-full p-2 border rounded"
+              />
+              <button
+                type="button"
+                className="text-[#008080] hover:underline"
+                onClick={handleResendOtp}
+                disabled={resending}
+              >
+                Didn&apos;t receive OTP? Resend
+              </button>
+            </>
+          )}
+
+          {/* Password fields (always shown if either token or phone is present) */}
+          {(token || phone) && (
+            <>
+              <input
+                type="password"
+                placeholder="New password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-2 border rounded"
+              />
+              <input
+                type="password"
+                placeholder="Confirm password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full p-2 border rounded"
+              />
+            </>
+          )}
+
+          {/* Show "Didn't receive email?" button ONLY if token exists and NOT phone */}
+          {token && !phone && (
+            <button type="button" className="text-blue-500">
+              Didn&apos;t receive email? Resend
             </button>
-          </>
-        )}
+          )}
 
-        {/* Password fields (always shown if either token or phone is present) */}
-        {(token || phone) && (
-          <>
-            <input
-              type="password"
-              placeholder="New password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 border rounded"
-            />
-            <input
-              type="password"
-              placeholder="Confirm password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full p-2 border rounded"
-            />
-          </>
-        )}
-
-        {/* Show "Didn't receive email?" button ONLY if token exists and NOT phone */}
-        {token && !phone && (
-          <button type="button" className="text-blue-500">
-            Didn&apos;t receive email? Resend
+          {/* Submit button */}
+          <button
+            type="submit"
+            className="w-full bg-primary text-white p-3 rounded-lg font-medium hover:bg-[#008080] transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-[#008080] focus:ring-offset-2"
+            disabled={loading}
+          >
+            Reset Password
           </button>
-        )}
-
-        {/* Submit button */}
-        <button
-          type="submit"
-          className="w-full bg-green-500 text-white p-2 rounded"
-          disabled={loading}
-        >
-          {loading ? 'Resetting...' : 'Reset Password'}
-        </button>
-      </form>
-    </div>
+        </form>
+      </div>
+    </>
   );
 };
 
