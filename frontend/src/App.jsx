@@ -38,8 +38,6 @@ function App() {
           <SocketProvider>
             <ChatProvider>
               <NotificationProvider>
-                {' '}
-                {/* Move ChatProvider here to wrap everything */}
                 <ScrollToTop />
                 <ToastContainer />
                 <Routes>

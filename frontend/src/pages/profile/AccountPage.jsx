@@ -169,7 +169,9 @@ const AccountPage = () => {
 
   if (!user) {
     return (
-      <div className="text-center py-8 text-gray-500">Loading user data...</div>
+      <div className="flex justify-center items-center h-screen">
+        <Spin size="large" />
+      </div>
     );
   }
 
@@ -180,18 +182,20 @@ const AccountPage = () => {
           <Spin size="large" />
         </div>
       )}
+
       <Header />
-      <div className="max-w-2xl mx-auto my-8 p-6 bg-white rounded-xl shadow-md">
+
+      <div className="max-w-2xl mx-auto my-8 p-6 bg-white rounded-xl shadow-md border border-gray-100">
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 mb-6 text-sm">
+        <div className="flex border-b border-gray-200 mb-6 text-sm font-medium">
           {['password', 'danger'].map((tab) => (
             <button
               key={tab}
-              className={`px-5 py-2 font-medium ${
+              className={`px-5 py-2 transition-colors ${
                 activeTab === tab
-                  ? 'text-[#008080] border-b-2 border-[#008080]'
-                  : 'text-gray-500'
-              } transition-colors hover:text-[#008080]`}
+                  ? 'text-[#008080] border-b-2 border-[#008080] bg-teal-50'
+                  : 'text-gray-500 hover:text-[#008080]'
+              }`}
               onClick={() => setActiveTab(tab)}
             >
               {tab === 'password' ? 'Change Password' : 'Account Actions'}
@@ -200,96 +204,102 @@ const AccountPage = () => {
         </div>
 
         {/* Messages */}
-        {successMsg && (
-          <SuccessMessage
-            message={successMsg}
-            dismissible
-            autoDismiss={4000}
-            onDismiss={() => setSuccessMsg(null)}
-          />
-        )}
-        {errorMsg && (
-          <ErrorMessage
-            error={errorMsg}
-            dismissible
-            autoDismiss={6000}
-            onDismiss={() => setErrorMsg(null)}
-          />
-        )}
+        <div className="space-y-4">
+          {successMsg && (
+            <SuccessMessage
+              message={successMsg}
+              dismissible
+              autoDismiss={4000}
+              onDismiss={() => setSuccessMsg(null)}
+            />
+          )}
+          {errorMsg && (
+            <ErrorMessage
+              error={errorMsg}
+              dismissible
+              autoDismiss={6000}
+              onDismiss={() => setErrorMsg(null)}
+            />
+          )}
+        </div>
 
         {/* Content */}
-        {activeTab === 'password' ? (
-          <form onSubmit={handlePasswordChange} className="space-y-5">
-            {[
-              { label: 'Current Password', name: 'currentPassword' },
-              { label: 'New Password', name: 'newPassword' },
-              { label: 'Confirm New Password', name: 'confirmPassword' },
-            ].map(({ label, name }) => (
-              <div key={name}>
-                <label className="block text-sm text-gray-700 mb-1">
-                  {label}
-                </label>
-                <input
-                  type="password"
-                  name={name}
-                  value={formData[name]}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#3ea8a8e8]"
-                />
+        <div className="mt-6">
+          {activeTab === 'password' ? (
+            <form onSubmit={handlePasswordChange} className="space-y-5">
+              {[
+                { label: 'Current Password', name: 'currentPassword' },
+                { label: 'New Password', name: 'newPassword' },
+                { label: 'Confirm New Password', name: 'confirmPassword' },
+              ].map(({ label, name }) => (
+                <div key={name}>
+                  <label className="block text-sm text-gray-700 mb-1">
+                    {label}
+                  </label>
+                  <input
+                    type="password"
+                    name={name}
+                    value={formData[name]}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#3ea8a8e8] transition"
+                  />
+                </div>
+              ))}
+              <button
+                type="submit"
+                className="px-5 py-2 bg-[rgb(0,128,115)] text-white rounded-md text-sm font-medium hover:bg-[rgb(0,128,128)] transition"
+              >
+                Change Password
+              </button>
+            </form>
+          ) : (
+            <div className="space-y-6">
+              {/* Deactivate */}
+              <div className="bg-gray-50 p-4 rounded-md border">
+                <h3 className="text-sm font-semibold text-gray-800 mb-1">
+                  Deactivate Account
+                </h3>
+                <p className="text-xs text-gray-600 mb-3">
+                  Temporarily disable your account. You can reactivate it by
+                  logging in again.
+                </p>
+                <button
+                  onClick={() => setShowDeactivateModal(true)}
+                  disabled={!user.isActive || isDeactivating}
+                  className={`px-4 py-1.5 text-sm rounded-md font-medium transition ${
+                    isDeactivating || !user.isActive
+                      ? 'bg-gray-300 text-gray-700 cursor-not-allowed'
+                      : 'bg-yellow-400 text-green-900 hover:bg-yellow-500 shadow-sm'
+                  }`}
+                >
+                  {isDeactivating ? 'Processing...' : 'Deactivate'}
+                </button>
               </div>
-            ))}
-            <button
-              type="submit"
-              className="px-4 py-1.5 bg-[rgb(0,128,115)] text-white rounded-md text-sm hover:bg-[rgb(0,128,128)] transition"
-            >
-              Change Password
-            </button>
-          </form>
-        ) : (
-          <div className="space-y-6">
-            <div className="bg-gray-50 p-4 rounded-md border">
-              <h3 className="text-sm font-semibold text-gray-800 mb-1">
-                Deactivate Account
-              </h3>
-              <p className="text-xs text-gray-600 mb-3">
-                Temporarily disable your account. You can reactivate it by
-                logging in again.
-              </p>
-              <button
-                onClick={() => setShowDeactivateModal(true)}
-                disabled={!user.isActive || isDeactivating}
-                className={`px-4 py-1.5 text-sm rounded-md font-medium ${
-                  isDeactivating || !user.isActive
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-yellow-400 text-green-900 px-3 py-1 rounded-md text-sm font-medium hover:bg-yellow-500 transition-colors shadow-sm'
-                } transition`}
-              >
-                {isDeactivating ? 'Processing...' : 'Deactivate'}
-              </button>
-            </div>
 
-            <div className="bg-gray-50 p-4 rounded-md border">
-              <h3 className="text-sm font-semibold text-gray-800 mb-1">
-                Delete Account
-              </h3>
-              <p className="text-xs text-gray-600 mb-3">
-                Permanently delete your account. This action cannot be undone.
-              </p>
-              <button
-                onClick={() => setShowDeleteModal(true)}
-                disabled={!user.isActive || isDeleting}
-                className={`px-4 py-1.5 text-sm rounded-md font-medium text-white ${
-                  isDeleting || !user.isActive
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-red-500 hover:bg-red-600'
-                } transition`}
-              >
-                {isDeleting ? 'Processing...' : 'Delete Permanently'}
-              </button>
+              {/* Delete */}
+              <div className="bg-gray-50 p-4 rounded-md border">
+                <h3 className="text-sm font-semibold text-gray-800 mb-1">
+                  Delete Account
+                </h3>
+                <p className="text-xs text-gray-600 mb-3">
+                  Permanently delete your account. This action cannot be undone.
+                </p>
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  disabled={!user.isActive || isDeleting}
+                  className={`px-4 py-1.5 text-sm rounded-md font-medium transition ${
+                    isDeleting || !user.isActive
+                      ? 'bg-gray-300 text-gray-700 cursor-not-allowed'
+                      : 'bg-red-500 text-white hover:bg-red-600'
+                  }`}
+                >
+                  {isDeleting ? 'Processing...' : 'Delete Permanently'}
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Modals */}

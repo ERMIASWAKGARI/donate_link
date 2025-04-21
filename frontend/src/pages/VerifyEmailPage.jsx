@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
+import Header from '../components/common/Header';
+
 import ErrorMessage from '../components/ErrorMessage';
 import SuccessMessage from '../components/SuccessMessage';
 
@@ -71,6 +73,7 @@ const VerifyEmailPage = () => {
     setLoading(true);
     if (!email) {
       setMessage({ type: 'error', text: 'Please enter your email.' });
+      setLoading(false);
       return;
     }
 
@@ -112,61 +115,64 @@ const VerifyEmailPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <>
       {loading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
           <Spin size="large" />
         </div>
       )}
-      <div className="bg-white p-8 rounded-lg shadow-lg w-96">
-        <h2 className="text-2xl font-bold mb-4 text-center">
-          {isVerifying ? 'Verifying Email...' : 'Verify Your Email'}
-        </h2>
+      <Header />
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="bg-white p-8 rounded-lg shadow-lg w-96">
+          <h2 className="text-2xl font-bold mb-4 text-center">
+            {isVerifying ? 'Verifying Email...' : 'Verify Your Email'}
+          </h2>
 
-        {message.type === 'success' && (
-          <SuccessMessage message={message.text} className="mb-4" />
-        )}
-        {message.type === 'error' && (
-          <ErrorMessage error={message.text} className="mb-4" />
-        )}
-        {/* If the token is NOT provided, show email verification instructions */}
-        {!token && !showEmailInput && (
-          <>
-            <p className="text-center text-gray-600 mb-4">
-              We have sent a verification email to your inbox.
-              <br />
-              Please check your email and follow the instructions.
-            </p>
-            <button
-              className="w-full bg-blue-500 text-white p-2 rounded"
-              onClick={() => setShowEmailInput(true)} // Show email input on click
-            >
-              Didn&apos;t receive the verification email?
-            </button>
-          </>
-        )}
+          {message.type === 'success' && (
+            <SuccessMessage message={message.text} className="mb-4" />
+          )}
+          {message.type === 'error' && (
+            <ErrorMessage error={message.text} className="mb-4" />
+          )}
+          {/* If the token is NOT provided, show email verification instructions */}
+          {!token && !showEmailInput && (
+            <>
+              <p className="text-center text-gray-600 mb-4">
+                We have sent a verification email to your inbox.
+                <br />
+                Please check your email and follow the instructions.
+              </p>
+              <button
+                className="w-full bg-[#008080] text-white p-2 rounded"
+                onClick={() => setShowEmailInput(true)} // Show email input on click
+              >
+                Didn&apos;t receive the verification email?
+              </button>
+            </>
+          )}
 
-        {/* Show email input for resending verification email */}
-        {showEmailInput && (
-          <>
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="w-full p-2 border border-gray-300 rounded mt-4"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <button
-              className="w-full bg-green-500 text-white p-2 rounded mt-2"
-              onClick={resendVerification}
-              disabled={isResending}
-            >
-              {isResending ? 'Resending...' : 'Resend Verification Email'}
-            </button>
-          </>
-        )}
+          {/* Show email input for resending verification email */}
+          {showEmailInput && (
+            <>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="w-full p-2 border border-gray-300 rounded mt-4"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <button
+                className="w-full bg-[#008080] text-white p-2 rounded mt-2"
+                onClick={resendVerification}
+                disabled={isResending}
+              >
+                {isResending ? 'Resending...' : 'Resend Verification Email'}
+              </button>
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
