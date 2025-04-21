@@ -158,8 +158,7 @@ const AccountPage = () => {
         throw new Error(data.message || 'Failed to delete account');
 
       setSuccessMsg('Account deleted successfully.');
-      setTimeout(() => logout(), 2000);
-      logout();
+      setTimeout(() => logout(), 4000);
     } catch (error) {
       setErrorMsg(error.message);
     } finally {

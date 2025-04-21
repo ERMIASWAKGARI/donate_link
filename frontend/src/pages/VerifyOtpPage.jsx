@@ -1,7 +1,11 @@
 /* eslint-disable no-unused-vars */
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import AlertMessage from '../components/AlertMessage';
+
+import { Spin } from 'antd';
+
+import ErrorMessage from '../components/ErrorMessage';
+import SuccessMessage from '../components/SuccessMessage';
 
 const VerifyOtpPage = () => {
   const [searchParams] = useSearchParams();
@@ -14,6 +18,7 @@ const VerifyOtpPage = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
 
+  const [loading, setLoading] = useState(false);
   // 🔹 Verify OTP
   const verifyOtp = async () => {
     if (!otp) {
@@ -21,6 +26,7 @@ const VerifyOtpPage = () => {
       return;
     }
 
+    setLoading(true);
     setIsVerifyingOtp(true);
     try {
       const response = await fetch(
@@ -40,9 +46,12 @@ const VerifyOtpPage = () => {
           text: 'Phone number verified successfully! Redirecting to login...',
         });
 
+        setLoading(false);
+
         setTimeout(() => navigate('/login'), 3000);
       } else {
         setMessage({ type: 'error', text: 'Invalid OTP. Please try again.' });
+        setLoading(false);
       }
     } catch (error) {
       setMessage({
@@ -50,12 +59,14 @@ const VerifyOtpPage = () => {
         text: 'An error occurred while verifying the OTP.',
       });
     } finally {
+      setLoading(false);
       setIsVerifyingOtp(false);
     }
   };
 
   // 🔹 Resend OTP
   const resendOtp = async () => {
+    setLoading(true);
     try {
       const response = await fetch(
         'http://localhost:5000/api/auth/resend-otp',
@@ -73,18 +84,22 @@ const VerifyOtpPage = () => {
           type: 'success',
           text: 'OTP resent. Check your messages.',
         });
+        setLoading(false);
         setOtpSent(true);
       } else {
         setMessage({
           type: 'error',
           text: data.message || 'Failed to resend OTP.',
         });
+        setLoading(false);
       }
     } catch (error) {
       setMessage({
         type: 'error',
         text: 'An error occurred. Please try again.',
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -94,8 +109,18 @@ const VerifyOtpPage = () => {
         <h2 className="text-2xl font-bold mb-4 text-center">
           Verify Your Phone Number
         </h2>
-        <AlertMessage message={message} />
+        {loading && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+            <Spin size="large" />
+          </div>
+        )}
 
+        {message.type === 'success' && (
+          <SuccessMessage message={message.text} className="mb-4" />
+        )}
+        {message.type === 'error' && (
+          <ErrorMessage error={message.text} className="mb-4" />
+        )}
         <input
           type="text"
           placeholder="Enter OTP"

@@ -2,7 +2,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import AlertMessage from '../components/AlertMessage';
+
+import ErrorMessage from '../components/ErrorMessage';
+import SuccessMessage from '../components/SuccessMessage';
+
+import { Spin } from 'antd';
 
 const VerifyEmailPage = () => {
   const [searchParams] = useSearchParams();
@@ -64,6 +68,7 @@ const VerifyEmailPage = () => {
 
   // 🔹 Resend Verification Email
   const resendVerification = async () => {
+    setLoading(true);
     if (!email) {
       setMessage({ type: 'error', text: 'Please enter your email.' });
       return;
@@ -86,12 +91,14 @@ const VerifyEmailPage = () => {
           type: 'success',
           text: 'Verification email resent. Check your inbox.',
         });
+        setLoading(false);
         setShowEmailInput(false); // Hide email input after resending
       } else {
         setMessage({
           type: 'error',
           text: data.message || 'Failed to resend verification email.',
         });
+        setLoading(false);
       }
     } catch (error) {
       setMessage({
@@ -99,19 +106,29 @@ const VerifyEmailPage = () => {
         text: 'An error occurred. Please try again.',
       });
     } finally {
+      setLoading(false);
       setIsResending(false);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+          <Spin size="large" />
+        </div>
+      )}
       <div className="bg-white p-8 rounded-lg shadow-lg w-96">
         <h2 className="text-2xl font-bold mb-4 text-center">
           {isVerifying ? 'Verifying Email...' : 'Verify Your Email'}
         </h2>
 
-        <AlertMessage message={message} />
-
+        {message.type === 'success' && (
+          <SuccessMessage message={message.text} className="mb-4" />
+        )}
+        {message.type === 'error' && (
+          <ErrorMessage error={message.text} className="mb-4" />
+        )}
         {/* If the token is NOT provided, show email verification instructions */}
         {!token && !showEmailInput && (
           <>
