@@ -26,6 +26,7 @@ import { Provider } from "react-redux";
 import { ChatProvider } from "./context/ChatContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import { SocketProvider } from "./context/SocketContext";
+import AccountPage from "./pages/profile/AccountPage";
 import UserProfilePage from "./pages/profile/UserProfilePage";
 import { store } from "./redux/store";
 
@@ -37,8 +38,6 @@ function App() {
           <SocketProvider>
             <ChatProvider>
               <NotificationProvider>
-                {" "}
-                {/* Move ChatProvider here to wrap everything */}
                 <ScrollToTop />
                 <ToastContainer />
                 <Routes>
@@ -83,6 +82,7 @@ function App() {
                     <Route path="/admin/users/:id" element={<UserDetail />} />
                     <Route path="/post-donation" element={<DonationForm />} />
                     <Route path="/profile" element={<UserProfilePage />} />
+                    <Route path="/account/settings" element={<AccountPage />} />
                   </Route>
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>

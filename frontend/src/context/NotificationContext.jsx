@@ -200,6 +200,40 @@ export const NotificationProvider = ({ children }) => {
     };
   }, [isConnected, user?._id, on, off]);
 
+  useEffect(() => {
+    if (!isConnected || !user?._id) {
+      console.log('[NotificationContext] Socket not connected or no user ID');
+      return;
+    }
+
+    console.log(
+      '[NotificationContext] Setting up socket listeners for user:',
+      user._id
+    );
+
+    const handleNotificationUpdate = (data) => {
+      console.log('[NotificationContext] Received notificationUpdate:', data);
+
+      setNotifications((prev) => {
+        const filtered = prev.filter((n) => n._id !== data.notification._id);
+        return [data.notification, ...filtered];
+      });
+
+      setUnreadCount(data.unreadCount);
+      setPagination((prev) => ({
+        ...prev,
+        total: prev.total + 1,
+      }));
+    };
+
+    on('notificationUpdate', handleNotificationUpdate);
+
+    return () => {
+      console.log('[NotificationContext] Cleaning up socket listeners');
+      off('notificationUpdate', handleNotificationUpdate);
+    };
+  }, [isConnected, user?._id, on, off]);
+
   return (
     <NotificationContext.Provider
       value={{

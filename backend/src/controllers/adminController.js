@@ -162,12 +162,14 @@ const verifyUser = asyncWrapper(async (req, res) => {
   }
 
   user.isVerified = true;
+  user.verificationStatus = 'verified';
   await user.save();
 
   sendNotification(
     user._id,
     `Dear ${user.name} your account has been verified.`,
-    'general'
+    'verification_status_approved',
+    '/profile'
   );
 
   sendSuccessResponse(res, 200, 'User verified successfully.');
@@ -205,17 +207,18 @@ const rejectUserVerification = asyncWrapper(async (req, res) => {
       };
       break;
     default:
-      // For individual donors or other roles that don't have verification docs
       break;
   }
 
   user.isVerified = false;
+  user.verificationStatus = 'not_verified';
   await user.save();
 
   sendNotification(
     user._id,
     `Dear ${user.name}, your account verification was rejected. Reason: ${rejectionReason}`,
-    'general'
+    'verification_status_rejected',
+    '/profile'
   );
 
   sendSuccessResponse(

@@ -1,16 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import PropTypes from "prop-types";
 import axios from "axios";
-import ChatModal from "../../components/ChatModal";
 import {
   FaSearch,
-  FaSpinner,
   FaExclamationCircle,
   FaMapMarkerAlt,
   FaInfoCircle,
+  FaFilter,
+  FaTimes,
+  FaCalendarCheck,
+  FaFire,
+  FaUsers,
 } from "react-icons/fa";
 import NGOProfileBadge from "./NGOProfileBadge";
 import NeedDetailsModal from "./NeedDetailsModal";
 import NGOProfileModal from "./NGOProfileModal";
+import ChatModal from "../../components/ChatModal";
 
 const ServiceNeedsList = () => {
   const [needs, setNeeds] = useState([]);
@@ -26,31 +31,35 @@ const ServiceNeedsList = () => {
   const [showChatModal, setShowChatModal] = useState(false);
   const [chatModalReady, setChatModalReady] = useState(false);
 
-  // Fetch service needs
-  useEffect(() => {
-    const fetchServiceNeeds = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(
-          "http://localhost:5000/api/donation/services/all",
-          {
-            params: {
-              search: searchTerm,
-              status: filters.status,
-              urgencyLevel: filters.urgency,
-            },
-          }
-        );
-        setNeeds(response.data?.data || []);
-      } catch (err) {
-        setError(err.response?.data?.error || "Failed to fetch service needs");
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Fetch service needs with combined filters
+  const fetchServiceNeeds = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        "http://localhost:5000/api/donation/services/all",
+        {
+          params: {
+            search: searchTerm,
+            status: filters.status,
+            urgency: filters.urgency,
+          },
+        }
+      );
+      setNeeds(response.data?.data || []);
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to fetch service needs");
+    } finally {
+      setLoading(false);
+    }
+  }, [searchTerm, filters.status, filters.urgency]);
 
-    fetchServiceNeeds();
-  }, [searchTerm, filters]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchServiceNeeds();
+    }, 300); // Reduced debounce time for better responsiveness
+
+    return () => clearTimeout(timer);
+  }, [fetchServiceNeeds]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -87,13 +96,54 @@ const ServiceNeedsList = () => {
     }
   }, [chatModalReady]);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <FaSpinner className="animate-spin text-4xl text-blue-500" />
+  // Reusable Filter Select Component
+  const FilterSelect = ({ name, value, onChange, options, icon: Icon }) => (
+    <div className="relative">
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <Icon className="text-gray-400" />
       </div>
-    );
-  }
+      <select
+        name={name}
+        value={value}
+        onChange={onChange}
+        className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+
+  // Skeleton Loading Component
+  const SkeletonLoader = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {[...Array(6)].map((_, index) => (
+        <div
+          key={index}
+          className="bg-white rounded-xl shadow-md overflow-hidden"
+        >
+          <div className="h-48 bg-gray-200 animate-pulse"></div>
+          <div className="p-6">
+            <div className="flex items-center mb-4">
+              <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse mr-3"></div>
+              <div className="h-4 bg-gray-200 animate-pulse rounded w-2/3"></div>
+            </div>
+            <div className="h-6 bg-gray-200 animate-pulse rounded mb-2 w-3/4"></div>
+            <div className="h-4 bg-gray-200 animate-pulse rounded mb-4 w-full"></div>
+            <div className="h-4 bg-gray-200 animate-pulse rounded mb-4 w-2/3"></div>
+            <div className="flex justify-between">
+              <div className="h-4 bg-gray-200 animate-pulse rounded w-1/3"></div>
+              <div className="h-4 bg-gray-200 animate-pulse rounded w-1/3"></div>
+            </div>
+            <div className="h-10 bg-gray-200 animate-pulse rounded-full mt-6 w-1/2 ml-auto"></div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 
   if (error) {
     return (
@@ -108,17 +158,17 @@ const ServiceNeedsList = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Search and Filter Section */}
+      {/* Enhanced Search and Filter Section */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Search Input */}
-          <div className="relative">
+          <div className="relative md:col-span-2">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <FaSearch className="text-gray-400" />
             </div>
             <input
               type="text"
-              placeholder="Search services..."
+              placeholder="Search services by title, description or location..."
               className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               value={searchTerm}
               onChange={handleSearchChange}
@@ -126,46 +176,57 @@ const ServiceNeedsList = () => {
           </div>
 
           {/* Status Filter */}
-          <select
+          <FilterSelect
             name="status"
             value={filters.status}
             onChange={handleFilterChange}
-            className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="">All Statuses</option>
-            <option value="Open">Open</option>
-            <option value="Fulfilled">Fulfilled</option>
-            <option value="Expired">Expired</option>
-          </select>
+            icon={FaCalendarCheck}
+            options={[
+              { value: "", label: "All Statuses" },
+              { value: "Open", label: "Open" },
+              { value: "Fulfilled", label: "Fulfilled" },
+              { value: "Expired", label: "Expired" },
+            ]}
+          />
 
           {/* Urgency Filter */}
-          <select
+          <FilterSelect
             name="urgency"
             value={filters.urgency}
             onChange={handleFilterChange}
-            className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="">All Urgency Levels</option>
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-            <option value="Critical">Critical</option>
-          </select>
+            icon={FaFire}
+            options={[
+              { value: "", label: "All Urgency Levels" },
+              { value: "Low", label: "Low" },
+              { value: "Medium", label: "Medium" },
+              { value: "High", label: "High" },
+            ]}
+          />
         </div>
 
-        <div className="mt-4 flex justify-end">
-          <button
-            type="button"
-            onClick={resetFilters}
-            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
-          >
-            Reset Filters
-          </button>
+        <div className="mt-4 flex justify-between items-center">
+          <div className="text-sm text-gray-500 flex items-center">
+            <FaFilter className="mr-2" />
+            {filters.status || filters.urgency
+              ? "Filters applied"
+              : "No filters"}
+          </div>
+          {(filters.status || filters.urgency || searchTerm) && (
+            <button
+              onClick={resetFilters}
+              className="flex items-center text-sm text-blue-600 hover:text-blue-800"
+            >
+              <FaTimes className="mr-1" />
+              Reset all
+            </button>
+          )}
         </div>
       </div>
 
       {/* Needs List */}
-      {needs.length === 0 ? (
+      {loading ? (
+        <SkeletonLoader />
+      ) : needs.length === 0 ? (
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
           <FaInfoCircle className="mx-auto text-4xl text-gray-400 mb-4" />
           <h3 className="text-xl font-semibold text-gray-700 mb-2">
@@ -232,10 +293,12 @@ const ServiceNeedsList = () => {
                 </p>
 
                 {/* Quick Details */}
-                <div className="space-y-2 text-sm text-gray-600 mb-4">
+                <div className="flex justify-between text-sm text-gray-600 mb-4">
                   <div className="flex items-center">
                     <FaMapMarkerAlt className="mr-2 text-gray-400" />
-                    <span>{need.beneficiaryInfo?.location?.address}</span>
+                    <span className="truncate max-w-[120px]">
+                      {need.beneficiaryInfo?.location?.address}
+                    </span>
                   </div>
                   <div className="flex items-center">
                     <span
@@ -247,25 +310,27 @@ const ServiceNeedsList = () => {
                           : "bg-green-500"
                       }`}
                     ></span>
-                    <span>{need.urgencyLevel} urgency</span>
+                    <span>{need.urgencyLevel}</span>
                   </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex space-x-2">
+                {/* Beneficiary Count */}
+                <div className="flex items-center text-sm text-gray-500 mb-4">
+                  <FaUsers className="mr-2 text-gray-400" />
+                  <span>
+                    {need.beneficiaryInfo?.numberOfBeneficiaries || 0}{" "}
+                    beneficiaries
+                  </span>
+                </div>
+
+                {/* Action Button */}
+                <div className="flex justify-end">
                   <button
                     type="button"
                     onClick={() => setSelectedNeed(need)}
-                    className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-lg transition-colors"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-full shadow-md transition duration-300 ease-in-out"
                   >
-                    Details
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedNeed(need)}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors"
-                  >
-                    Apply
+                    Apply Now
                   </button>
                 </div>
               </div>
@@ -300,6 +365,19 @@ const ServiceNeedsList = () => {
       )}
     </div>
   );
+};
+
+ServiceNeedsList.propTypes = {
+  name: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
+  options: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  icon: PropTypes.elementType.isRequired,
 };
 
 export default ServiceNeedsList;

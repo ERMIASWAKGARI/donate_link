@@ -63,18 +63,18 @@ export const ChatProvider = ({ children }) => {
             senderId !== currentUserId &&
             !lastMessage.readBy?.includes(currentUserId);
 
-          console.log(`[Unread Calc] Conv ${conv._id}:`, {
-            lastMsgId: lastMessage._id,
-            sender: senderId,
-            isUnread,
-            currentUser: currentUserId,
-            readBy: lastMessage.readBy,
-          });
+          // console.log(`[Unread Calc] Conv ${conv._id}:`, {
+          //   lastMsgId: lastMessage._id,
+          //   sender: senderId,
+          //   isUnread,
+          //   currentUser: currentUserId,
+          //   readBy: lastMessage.readBy,
+          // });
 
           return isUnread ? total + 1 : total;
         }, 0);
 
-        console.log(`[Unread Calc] Total unread: ${count}`);
+        // console.log(`[Unread Calc] Total unread: ${count}`);
         return count;
       } catch (error) {
         console.error("Error calculating unread count:", error);
@@ -131,7 +131,7 @@ export const ChatProvider = ({ children }) => {
           activeConversation?._id !== message?.conversationId?._id &&
           message?.sender?._id !== user?._id;
 
-        console.log("[Socket] Should increment unread?", shouldIncrement);
+        // console.log("[Socket] Should increment unread?", shouldIncrement);
 
         if (shouldIncrement) {
           setUnreadCount((prev) => {
@@ -326,7 +326,7 @@ export const ChatProvider = ({ children }) => {
 
   const sendMessage = useCallback(
     async (conversationId, content, attachments = []) => {
-      console.log("[Send] Attempting to send message...");
+      // console.log("[Send] Attempting to send message...");
       try {
         const { data } = await axios.post(
           `${API_BASE_URL}/api/chat/messages`,
@@ -340,11 +340,11 @@ export const ChatProvider = ({ children }) => {
         );
 
         const responseMessage = data.message || data.data?.message;
-        console.log("[Send] Message sent successfully:", {
-          id: responseMessage._id,
-          sender: responseMessage.sender?._id,
-          isCurrentUser: responseMessage.sender?._id === user?._id,
-        });
+        // console.log("[Send] Message sent successfully:", {
+        //   id: responseMessage._id,
+        //   sender: responseMessage.sender?._id,
+        //   isCurrentUser: responseMessage.sender?._id === user?._id,
+        // });
 
         if (!responseMessage) {
           throw new Error(data?.message || "Failed to send message");
@@ -475,6 +475,11 @@ export const ChatProvider = ({ children }) => {
         // socket,
         sendMessage,
         markMessagesAsRead,
+        // notifications,
+        // notificationUnreadCount,
+        // fetchNotifications,
+        // markNotificationAsRead,
+        // markAllNotificationsAsRead,
         setActiveConversation: (conversation) => {
           if (
             conversation?.lastMessage &&

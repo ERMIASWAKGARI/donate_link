@@ -111,9 +111,15 @@ const userSchema = new mongoose.Schema(
     },
 
     isVerified: { type: Boolean },
+    verificationStatus: {
+      type: String,
+      enum: ['not_verified', 'pending', 'verified'],
+      default: 'not_verified',
+    },
 
     // VOLUNTEER FIELDS
-    skills: { type: [String], default: undefined },
+    servicePreference: { type: [String], default: undefined },
+    languageProficiency: { type: [String], default: undefined },
     availability: {
       type: [
         {
@@ -130,11 +136,31 @@ const userSchema = new mongoose.Schema(
             ],
             required: true,
           },
-          startTime: { type: String, required: true },
-          endTime: { type: String, required: true },
+          startTime: {
+            type: String,
+            required: true,
+            validate: {
+              validator: (v) => /^\d{2}:\d{2}$/.test(v),
+              message: 'Start time must be in HH:mm format',
+            },
+          },
+          endTime: {
+            type: String,
+            required: true,
+            validate: {
+              validator: (v) => /^\d{2}:\d{2}$/.test(v),
+              message: 'End time must be in HH:mm format',
+            },
+          },
         },
       ],
-      default: undefined,
+      default: [],
+      validate: {
+        validator: function (entries) {
+          return entries.every(({ startTime, endTime }) => startTime < endTime);
+        },
+        message: 'Start time must be before end time',
+      },
     },
   },
   { timestamps: true, strict: 'throw' }

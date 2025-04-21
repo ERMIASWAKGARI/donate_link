@@ -158,7 +158,7 @@ const ApplicationForm = ({ need, onSubmit, loading }) => {
           <textarea
             {...register("motivation", {
               required: "Motivation is required",
-              minLength: { value: 50, message: "Minimum 50 characters" },
+              minLength: { value: 25, message: "Minimum 25 characters" },
               maxLength: { value: 1000, message: "Maximum 1000 characters" },
             })}
             rows={4}

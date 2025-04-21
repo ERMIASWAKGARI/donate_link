@@ -1,4 +1,4 @@
-import { BellOutlined, MoreOutlined } from '@ant-design/icons';
+import { BellOutlined, MoreOutlined } from "@ant-design/icons";
 import {
   Badge,
   Button,
@@ -9,9 +9,10 @@ import {
   Spin,
   Tabs,
   Tag,
-} from 'antd';
-import { useCallback, useRef, useState } from 'react';
-import { useNotifications } from '../context/NotificationContext';
+} from "antd";
+import { useCallback, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useNotifications } from "../context/NotificationContext";
 
 const NotificationBell = () => {
   const {
@@ -32,6 +33,7 @@ const NotificationBell = () => {
 
   const [open, setOpen] = useState(false);
   const popoverRef = useRef(null);
+  const navigate = useNavigate();
 
   // Dropdown menu for "Mark All as Read"
   const menu = (
@@ -88,49 +90,155 @@ const NotificationBell = () => {
     [markAsRead, fetchNotifications, pagination.page, activeTab]
   );
 
+  // Helper function to format notification type for display
+  const formatNotificationType = (type) => {
+    const typeMap = {
+      "donation-request": "Donation Request",
+      application: "Application",
+      need: "Need",
+      payment: "Payment",
+      verification_docs_upload: "Verification Docs",
+      verification_status_approved: "Account verified",
+      verification_status_rejected: "Account verification failed",
+      general: "General",
+    };
+    return typeMap[type] || type;
+  };
+
+  // Helper function to get tag color based on type
+  const getTagColor = (type) => {
+    const colorMap = {
+      "donation-request": "purple",
+      application: "orange",
+      need: "red",
+      payment: "green",
+      verification_docs_upload: "blue",
+      verification_status_approved: "cyan",
+      verification_status_rejected: "red",
+      general: "default",
+    };
+    return colorMap[type] || "default";
+  };
+
   const renderNotificationItem = useCallback(
     (item) => (
       <List.Item
         key={item._id}
-        onClick={() => handleNotificationClick(item)}
+        onClick={() => {
+          handleNotificationClick(item);
+          if (item.link) {
+            navigate(item.link);
+          }
+        }}
         style={{
-          cursor: 'pointer',
-          backgroundColor: item.seen ? '#fff' : '#f6ffed',
-          padding: '12px 16px',
-          borderLeft: item.seen ? 'none' : '3px solid #52c41a',
+          cursor: "pointer",
+          backgroundColor: item.seen ? "#fff" : "#f6ffed",
+          padding: "12px 16px",
+          borderLeft: item.seen ? "none" : "3px solid #52c41a",
+          ":hover": {
+            backgroundColor: item.link ? "#f0f7ff" : undefined,
+          },
         }}
       >
         <List.Item.Meta
           title={
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ whiteSpace: 'normal' }}>{item.message}</span>
-              {!item.seen && <Tag color="green">New</Tag>}
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span style={{ whiteSpace: "normal" }}>{item.message}</span>
             </div>
           }
-          description={new Date(item.createdAt).toLocaleString()}
+          description={
+            <div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <div>{new Date(item.createdAt).toLocaleString()}</div>
+                <Tag color={getTagColor(item.type)}>
+                  {formatNotificationType(item.type)}
+                </Tag>
+              </div>
+              {item.link && item.type === "verification_docs_upload" && (
+                <div style={{ marginTop: 4 }}>
+                  <Button
+                    type="link"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(item.link);
+                    }}
+                    style={{
+                      padding: 0,
+                      height: "auto",
+                      color: "#1890ff",
+                    }}
+                  >
+                    Review Uploaded Documents
+                  </Button>
+                </div>
+              )}
+              {item.link && item.type === "verification_status_approved" && (
+                <div style={{ marginTop: 4 }}>
+                  <Button
+                    type="link"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(item.link);
+                    }}
+                    style={{
+                      padding: 0,
+                      height: "auto",
+                      color: "#1890ff",
+                    }}
+                  >
+                    Go to Profile
+                  </Button>
+                </div>
+              )}
+              {item.link && item.type === "verification_status_rejected" && (
+                <div style={{ marginTop: 4 }}>
+                  <Button
+                    type="link"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(item.link);
+                    }}
+                    style={{
+                      padding: 0,
+                      height: "auto",
+                      color: "#1890ff",
+                    }}
+                  >
+                    Go to Profile
+                  </Button>
+                </div>
+              )}
+            </div>
+          }
         />
       </List.Item>
     ),
-    [handleNotificationClick]
+    [handleNotificationClick, navigate]
   );
 
   const content = (
     <div
       style={{
         width: 350,
-        display: 'flex',
-        flexDirection: 'column',
-        height: '70vh',
-        maxHeight: '500px',
+        display: "flex",
+        flexDirection: "column",
+        height: "70vh",
+        maxHeight: "500px",
       }}
     >
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '0 16px',
-          borderBottom: '1px solid #f0f0f0',
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "0 16px",
+          borderBottom: "1px solid #f0f0f0",
         }}
       >
         <Tabs
@@ -140,12 +248,12 @@ const NotificationBell = () => {
           size="small"
           style={{ flex: 1 }}
           items={[
-            { label: 'All', key: 'all' },
-            { label: `Unread (${unreadCount})`, key: 'unread' },
+            { label: "All", key: "all" },
+            { label: `Unread (${unreadCount})`, key: "unread" },
           ]}
         />
 
-        <Dropdown overlay={menu} trigger={['click']} placement="bottomRight">
+        <Dropdown overlay={menu} trigger={["click"]} placement="bottomRight">
           <Button
             type="text"
             icon={<MoreOutlined />}
@@ -159,9 +267,9 @@ const NotificationBell = () => {
       <div
         style={{
           flex: 1,
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
         <List
@@ -169,23 +277,23 @@ const NotificationBell = () => {
           dataSource={notifications}
           loading={isLoading && pagination.page === 1}
           renderItem={renderNotificationItem}
-          locale={{ emptyText: 'No notifications' }}
+          locale={{ emptyText: "No notifications" }}
           style={{
             flex: 1,
-            overflowY: 'auto',
-            padding: '0 8px',
+            overflowY: "auto",
+            padding: "0 8px",
           }}
         />
 
         <div
           style={{
-            padding: '8px 0',
-            borderTop: '1px solid #f0f0f0',
-            background: '#fff',
+            padding: "8px 0",
+            borderTop: "1px solid #f0f0f0",
+            background: "#fff",
           }}
         >
           {isLoading && pagination.page > 1 && (
-            <div style={{ textAlign: 'center' }}>
+            <div style={{ textAlign: "center" }}>
               <Spin size="small" />
             </div>
           )}
@@ -194,14 +302,14 @@ const NotificationBell = () => {
             <Button
               type="link"
               onClick={loadMore}
-              style={{ width: '100%', textAlign: 'center' }}
+              style={{ width: "100%", textAlign: "center" }}
             >
               Load More Notifications
             </Button>
           )}
 
           {!pagination.hasMore && notifications.length > 0 && (
-            <div style={{ textAlign: 'center', color: '#888' }}>
+            <div style={{ textAlign: "center", color: "#888" }}>
               No more notifications
             </div>
           )}
@@ -221,11 +329,13 @@ const NotificationBell = () => {
       placement="bottomRight"
       overlayStyle={{
         width: 350,
-        maxHeight: '70vh',
+        maxHeight: "70vh",
       }}
     >
       <Badge count={unreadCount}>
-        <BellOutlined style={{ fontSize: 20, cursor: 'pointer' }} />
+        <BellOutlined
+          style={{ fontSize: 20, cursor: "pointer", color: "white" }}
+        />
       </Badge>
     </Popover>
   );

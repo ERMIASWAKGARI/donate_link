@@ -21,6 +21,8 @@ exports.getNotifications = asyncWrapper(async (req, res) => {
     .skip(skip)
     .limit(limit);
 
+  // console.log('Notifications:', notifications);
+
   // Count total matching notifications
   const total = await Notification.countDocuments(baseQuery);
 
@@ -60,4 +62,13 @@ exports.markAllAsRead = asyncWrapper(async (req, res) => {
     { seen: true }
   );
   res.status(200).json({ message: 'All notifications marked as read' });
+});
+
+exports.clearNotifications = asyncWrapper(async () => {
+  try {
+    await Notification.deleteMany({}); // Deletes all documents
+    console.log('All notifications deleted, collection remains.');
+  } catch (error) {
+    console.error('Error deleting notifications:', error);
+  }
 });
