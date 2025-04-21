@@ -1,6 +1,10 @@
+/* eslint-disable no-unused-vars */
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import { Spin } from 'antd';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Eye, EyeOff, X } from 'lucide-react';
-import React, { useState } from 'react';
 import {
   FaBuilding,
   FaHandsHelping,
@@ -8,12 +12,13 @@ import {
   FaUser,
   FaUsers,
 } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
-import AlertMessage from '../components/AlertMessage';
 import GoogleAuth from '../components/GoogleAuth';
 import RegisterWithGoogle from '../components/RegisterWithGoogle';
 import Header from '../components/common/Header';
 import validateForm from '../utils/validateForm';
+
+import ErrorMessage from '../components/ErrorMessage';
+import SuccessMessage from '../components/SuccessMessage';
 
 // Card images
 const cardImages = {
@@ -47,6 +52,7 @@ const EnhancedRegisterPage = () => {
   const [isRegisteringWithGoogle, setIsRegisteringWithGoogle] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const roles = [
     {
@@ -119,18 +125,24 @@ const EnhancedRegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     // Validate that either email or phone is provided
     if (loginMethod === 'email' && !formData.email) {
       setErrors({ ...errors, email: 'Please enter your email' });
+      setLoading(false);
       return;
     }
     if (loginMethod === 'phone' && !formData.phone) {
       setErrors({ ...errors, phone: 'Please enter your phone number' });
+      setLoading(false);
       return;
     }
 
-    if (!validateForm(formData, selectedRole, setErrors)) return;
+    if (!validateForm(formData, selectedRole, setErrors)) {
+      setLoading(false);
+      return;
+    }
 
     let filteredData = {
       role: selectedRole,
@@ -167,6 +179,8 @@ const EnhancedRegisterPage = () => {
           text: `Registration successful! Please verify your ${data.data.verificationType}.`,
         });
 
+        setLoading(false);
+
         setTimeout(() => {
           setMessage({ type: '', text: '' });
           if (data.data.verificationType === 'email') {
@@ -180,6 +194,7 @@ const EnhancedRegisterPage = () => {
           type: 'error',
           text: `Registration Failed: ${data.message}`,
         });
+        setLoading(false);
         setTimeout(() => setMessage({ type: '', text: '' }), 3000);
       }
     } catch (error) {
@@ -188,6 +203,8 @@ const EnhancedRegisterPage = () => {
         text: 'An error occurred. Please try again.',
       });
       setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -208,7 +225,8 @@ const EnhancedRegisterPage = () => {
               Join Our Movement
             </h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Select how you'd like to participate in creating positive change
+              Select how you&apos;d like to participate in creating positive
+              change
             </p>
           </motion.div>
 
@@ -283,7 +301,7 @@ const EnhancedRegisterPage = () => {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="p-8">
-                    <div className="flex justify-between items-start mb-6">
+                    <div className="flex justify-between items-start mb-6 relative">
                       <div>
                         <h2 className="text-2xl font-bold text-gray-800">
                           Register as {currentRole?.title}
@@ -299,7 +317,22 @@ const EnhancedRegisterPage = () => {
                         <X size={24} />
                       </button>
                     </div>
-                    <AlertMessage message={message} />
+                    {loading && (
+                      <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/10 backdrop-blur-sm">
+                        <Spin size="large" />
+                      </div>
+                    )}
+                    {message.type === 'success' && (
+                      <SuccessMessage message={message.text} className="mb-4" />
+                    )}
+                    {message.type === 'error' && (
+                      <ErrorMessage error={message.text} className="mb-4" />
+                    )}
+                    {message.type === 'info' && (
+                      <div className="mb-4 p-3 bg-blue-50 text-blue-700 rounded-md border border-blue-100">
+                        {message.text}
+                      </div>
+                    )}
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                       {currentRole?.fields.includes('name') && (

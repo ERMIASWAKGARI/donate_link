@@ -13,7 +13,8 @@ const VerifyEmailPage = () => {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
-  const [showEmailInput, setShowEmailInput] = useState(false); // Show email input on resend
+  const [showEmailInput, setShowEmailInput] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const hasVerified = useRef(false); // 🛑 Prevent duplicate requests
 
@@ -26,6 +27,7 @@ const VerifyEmailPage = () => {
 
   // 🔹 Verify Email if Token is Present
   const verifyEmail = async () => {
+    setLoading(true);
     setIsVerifying(true);
     try {
       const response = await fetch(
@@ -39,6 +41,7 @@ const VerifyEmailPage = () => {
           type: 'success',
           text: 'Email verified successfully! Redirecting to login...',
         });
+        setLoading(false);
 
         setTimeout(() => navigate('/login'), 3000);
       } else {
@@ -46,6 +49,7 @@ const VerifyEmailPage = () => {
           type: 'error',
           text: data.message || 'Email verification failed.',
         });
+        setLoading(false);
       }
     } catch (error) {
       setMessage({
@@ -53,6 +57,7 @@ const VerifyEmailPage = () => {
         text: 'An error occurred while verifying your email.',
       });
     } finally {
+      setLoading(false);
       setIsVerifying(false);
     }
   };
