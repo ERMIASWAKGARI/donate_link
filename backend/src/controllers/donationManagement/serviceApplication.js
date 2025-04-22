@@ -88,14 +88,12 @@ const updateApplcationStatus = async (req, res) => {
 };
 
 const getServiceDonations = async (req, res) => {
-  console.log("getServiceDonations", req.params);
   try {
     const { need } = req.params;
     const donations = await Application.find({ need }).populate({
       path: "applicant",
       select: "name email",
     });
-    console.log("donations", donations);
     res.status(200).json({ donations });
   } catch (error) {
     res

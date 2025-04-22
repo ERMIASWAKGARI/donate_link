@@ -9,15 +9,16 @@ import {
 import NgoNeedForm from "./PostNeedsForm";
 import Axios from "../../config/axiosConfig";
 import { UserContext } from "../../context/UserContext";
+import Loading from "./Loading";
 
 function PostedNeeds() {
   const { user } = useContext(UserContext);
-  const [needs, setNeeds] = useState([]);
   const [showNeedForm, setShowNeedForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [selectedNeed, setSelectedNeed] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedNeed, setSelectedNeed] = useState(null);
+  const [needs, setNeeds] = useState([]);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -100,23 +101,7 @@ function PostedNeeds() {
   };
 
   if (loading) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-6">
-        {[...Array(6)].map((_, i) => (
-          <div
-            key={i}
-            className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse"
-          >
-            <div className="h-48 bg-gray-200"></div>
-            <div className="p-4">
-              <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-              <div className="h-10 bg-gray-200 rounded"></div>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
+    return <Loading />;
   }
 
   if (error) {
@@ -148,7 +133,7 @@ function PostedNeeds() {
               "Cancel"
             ) : (
               <>
-                <FaPlus /> Post New Need
+                <FaPlus /> create a project
               </>
             )}
           </button>

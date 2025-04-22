@@ -15,6 +15,10 @@ router.post(
 router.get("/services",authMiddleware("ngo"), needsController.getAllNGOServiceNeeds);
 router.get("/services/all", needsController.getAllServiceNeeds);
 // Other routes remain the same
+//route for generating report
+router.post("/report", authMiddleware("ngo"),uploadNeedPictures, needsController.generateReport);
+router.get("/reportPreview/:needId", authMiddleware("ngo"), needsController.getReportPreview);
+router.get("/reports", authMiddleware("ngo"), needsController.getReportByNgo);
 router.get("/getAllNeeds", needsController.getAllNeeds);
 router.get("/ngo/:ngoId", needsController.getNeedsByNgo);
 router.get("/:id", needsController.getNeedById);

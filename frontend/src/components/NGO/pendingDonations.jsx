@@ -6,13 +6,13 @@ import {
   FaMapMarkerAlt,
   FaUser,
   FaBoxOpen,
-  FaCalendarAlt,
   FaTimes,
   FaInfoCircle,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { UserContext } from "../../context/UserContext";
+import Loading from "./Loading";
 
 const PendingDonations = () => {
   const { user } = useContext(UserContext);
@@ -93,27 +93,7 @@ const PendingDonations = () => {
   };
 
   if (loading) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-        {[...Array(6)].map((_, i) => (
-          <div
-            key={i}
-            className="bg-white rounded-xl shadow-md overflow-hidden animate-pulse"
-          >
-            <div className="h-48 bg-gray-200"></div>
-            <div className="p-5 space-y-3">
-              <div className="h-6 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-4 bg-gray-200 rounded w-full"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-              <div className="flex justify-between pt-4">
-                <div className="h-10 bg-gray-200 rounded-lg w-24"></div>
-                <div className="h-10 bg-gray-200 rounded-full w-10"></div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
+    return <Loading />;
   }
 
   if (error) {

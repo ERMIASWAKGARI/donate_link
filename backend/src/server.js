@@ -5,8 +5,8 @@ const { initializeSocket } = require("./utils/socketConfig");
 dotenv.config();
 
 const server = http.createServer(app);
-initializeSocket(server);
 
+initializeSocket(server);
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {

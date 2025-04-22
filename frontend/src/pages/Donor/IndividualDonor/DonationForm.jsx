@@ -9,7 +9,7 @@ import {
 import Axios from "../../../config/axiosConfig";
 import MaterialDonationForm from "./MatterialDonationForm";
 import { UserContext } from "../../../context/UserContext";
-const DonationForm = ({ need, onSubmit }) => {
+const DonationForm = ({ need, onClose, onSubmit }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -24,6 +24,7 @@ const DonationForm = ({ need, onSubmit }) => {
         categoryName: item.categoryName,
         subCategoryName: item.subCategoryName,
         quantity: "",
+        unit: item.unit,
       })) || [],
     services:
       need?.categories?.service?.map((item) => ({
@@ -193,6 +194,7 @@ const DonationForm = ({ need, onSubmit }) => {
               categoryName: m.categoryName,
               subCategoryName: m.subCategoryName,
               quantity: parseInt(m.quantity),
+              unit: m.unit,
             }))
           )
         );
@@ -275,6 +277,9 @@ const DonationForm = ({ need, onSubmit }) => {
           // ... reset form data ...
         });
         setSuccess(null);
+
+        window.scrollTo(0, 0);
+        onClose();
       }, 3000);
     } catch (err) {
       setError(
@@ -435,7 +440,7 @@ const DonationForm = ({ need, onSubmit }) => {
           )}
 
           {/* Material Donation Form */}
-          {formData.type === "material" && formData.materials.length > 0 && (
+          {formData.type === "material" && formData?.materials?.length > 0 && (
             <MaterialDonationForm
               materials={formData.materials}
               location={formData.location}

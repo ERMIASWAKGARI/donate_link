@@ -1,53 +1,53 @@
 /* eslint-disable no-unused-vars */
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { Spin } from 'antd';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Eye, EyeOff, X } from 'lucide-react';
+import { Spin } from "antd";
+import { AnimatePresence, motion } from "framer-motion";
+import { Eye, EyeOff, X } from "lucide-react";
 import {
   FaBuilding,
   FaHandsHelping,
   FaInfoCircle,
   FaUser,
   FaUsers,
-} from 'react-icons/fa';
-import GoogleAuth from '../components/GoogleAuth';
-import RegisterWithGoogle from '../components/RegisterWithGoogle';
-import Header from '../components/common/Header';
-import validateForm from '../utils/validateForm';
+} from "react-icons/fa";
+import GoogleAuth from "../components/GoogleAuth";
+import RegisterWithGoogle from "../components/RegisterWithGoogle";
+import Header from "../components/common/Header";
+import validateForm from "../utils/validateForm";
 
-import ErrorMessage from '../components/ErrorMessage';
-import SuccessMessage from '../components/SuccessMessage';
+import ErrorMessage from "../components/ErrorMessage";
+import SuccessMessage from "../components/SuccessMessage";
 
 // Card images
 const cardImages = {
   individual_donor:
-    'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=2071&q=80',
+    "https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=2071&q=80",
   organization_donor:
-    'https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+    "https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
   volunteer:
-    'https://images.unsplash.com/photo-1521791055366-0d553872125f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2069&q=80',
-  ngo: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+    "https://images.unsplash.com/photo-1521791055366-0d553872125f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2069&q=80",
+  ngo: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
 };
 
 const EnhancedRegisterPage = () => {
   const navigate = useNavigate();
-  const [selectedRole, setSelectedRole] = useState('');
-  const [loginMethod, setLoginMethod] = useState('email'); // 'email' or 'phone'
+  const [selectedRole, setSelectedRole] = useState("");
+  const [loginMethod, setLoginMethod] = useState("email"); // 'email' or 'phone'
   const [formData, setFormData] = useState({
-    name: '',
-    organizationName: '',
-    ngoName: '',
-    email: '',
-    phone: '',
-    countryCode: '+251',
-    password: '',
-    confirmPassword: '',
-    role: '',
+    name: "",
+    organizationName: "",
+    ngoName: "",
+    email: "",
+    phone: "",
+    countryCode: "+251",
+    password: "",
+    confirmPassword: "",
+    role: "",
   });
   const [errors, setErrors] = useState({});
-  const [message, setMessage] = useState({ type: '', text: '' });
+  const [message, setMessage] = useState({ type: "", text: "" });
   const [googleUser, setGoogleUser] = useState(null);
   const [isRegisteringWithGoogle, setIsRegisteringWithGoogle] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -56,46 +56,46 @@ const EnhancedRegisterPage = () => {
 
   const roles = [
     {
-      id: 'individual_donor',
-      title: 'Individual Donor',
+      id: "individual_donor",
+      title: "Individual Donor",
       icon: <FaUser className="text-xl" />,
-      color: 'from-blue-500 to-blue-600',
-      highlight: 'hover:shadow-blue-200',
-      description: 'Make personal donations to causes you care about',
-      fields: ['name', 'email', 'phone', 'password', 'confirmPassword'],
+      color: "bg-gray-100",
+      highlight: "hover:shadow-gray-200",
+      description: "Make personal donations to causes you care about",
+      fields: ["name", "email", "phone", "password", "confirmPassword"],
     },
     {
-      id: 'organization_donor',
-      title: 'Organization Donor',
+      id: "organization_donor",
+      title: "Organization Donor",
       icon: <FaBuilding className="text-xl" />,
-      color: 'from-purple-500 to-purple-600',
-      highlight: 'hover:shadow-purple-200',
-      description: 'Corporate giving & social responsibility programs',
+      color: "bg-gray-100",
+      highlight: "hover:shadow-gray-200",
+      description: "Corporate giving & social responsibility programs",
       fields: [
-        'organizationName',
-        'email',
-        'phone',
-        'password',
-        'confirmPassword',
+        "organizationName",
+        "email",
+        "phone",
+        "password",
+        "confirmPassword",
       ],
     },
     {
-      id: 'volunteer',
-      title: 'Volunteer',
+      id: "volunteer",
+      title: "Volunteer",
       icon: <FaHandsHelping className="text-xl" />,
-      color: 'from-green-500 to-green-600',
-      highlight: 'hover:shadow-green-200',
-      description: 'Donate your time and skills to make a difference',
-      fields: ['name', 'email', 'phone', 'password', 'confirmPassword'],
+      color: "bg-gray-100",
+      highlight: "hover:shadow-gray-200",
+      description: "Donate your time and skills to make a difference",
+      fields: ["name", "email", "phone", "password", "confirmPassword"],
     },
     {
-      id: 'ngo',
-      title: 'NGO Partner',
+      id: "ngo",
+      title: "NGO Partner",
       icon: <FaUsers className="text-xl" />,
-      color: 'from-orange-500 to-orange-600',
-      highlight: 'hover:shadow-orange-200',
-      description: 'Register your nonprofit to receive support',
-      fields: ['ngoName', 'email', 'phone', 'password', 'confirmPassword'],
+      color: "bg-gray-100",
+      highlight: "hover:shadow-gray-200",
+      description: "Register your nonprofit to receive support",
+      fields: ["ngoName", "email", "phone", "password", "confirmPassword"],
     },
   ];
 
@@ -109,17 +109,17 @@ const EnhancedRegisterPage = () => {
   };
 
   const handleRoleChange = () => {
-    setSelectedRole('');
+    setSelectedRole("");
     setFormData({
-      name: '',
-      organizationName: '',
-      ngoName: '',
-      email: '',
-      phone: '',
-      countryCode: '+251',
-      password: '',
-      confirmPassword: '',
-      role: '',
+      name: "",
+      organizationName: "",
+      ngoName: "",
+      email: "",
+      phone: "",
+      countryCode: "+251",
+      password: "",
+      confirmPassword: "",
+      role: "",
     });
   };
 
@@ -128,13 +128,13 @@ const EnhancedRegisterPage = () => {
     setLoading(true);
 
     // Validate that either email or phone is provided
-    if (loginMethod === 'email' && !formData.email) {
-      setErrors({ ...errors, email: 'Please enter your email' });
+    if (loginMethod === "email" && !formData.email) {
+      setErrors({ ...errors, email: "Please enter your email" });
       setLoading(false);
       return;
     }
-    if (loginMethod === 'phone' && !formData.phone) {
-      setErrors({ ...errors, phone: 'Please enter your phone number' });
+    if (loginMethod === "phone" && !formData.phone) {
+      setErrors({ ...errors, phone: "Please enter your phone number" });
       setLoading(false);
       return;
     }
@@ -150,59 +150,59 @@ const EnhancedRegisterPage = () => {
     };
 
     // Only include the selected method
-    if (loginMethod === 'email') {
+    if (loginMethod === "email") {
       filteredData.email = formData.email;
     } else {
       filteredData.phone = `${formData.countryCode}${formData.phone}`;
     }
 
-    if (selectedRole === 'individual_donor' || selectedRole === 'volunteer') {
+    if (selectedRole === "individual_donor" || selectedRole === "volunteer") {
       filteredData.name = formData.name;
-    } else if (selectedRole === 'organization_donor') {
+    } else if (selectedRole === "organization_donor") {
       filteredData.name = formData.organizationName;
-    } else if (selectedRole === 'ngo') {
+    } else if (selectedRole === "ngo") {
       filteredData.name = formData.ngoName;
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/users/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("http://localhost:5000/api/users/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(filteredData),
       });
 
       const data = await response.json();
 
-      if (data.status === 'success') {
+      if (data.status === "success") {
         setMessage({
-          type: 'success',
+          type: "success",
           text: `Registration successful! Please verify your ${data.data.verificationType}.`,
         });
 
         setLoading(false);
 
         setTimeout(() => {
-          setMessage({ type: '', text: '' });
-          if (data.data.verificationType === 'email') {
+          setMessage({ type: "", text: "" });
+          if (data.data.verificationType === "email") {
             navigate(`/verify-email?email=${data.data.email}`);
-          } else if (data.data.verificationType === 'phone') {
+          } else if (data.data.verificationType === "phone") {
             navigate(`/verify-otp?phone=${data.data.phone}`);
           }
         }, 3000);
       } else {
         setMessage({
-          type: 'error',
+          type: "error",
           text: `Registration Failed: ${data.message}`,
         });
         setLoading(false);
-        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+        setTimeout(() => setMessage({ type: "", text: "" }), 3000);
       }
     } catch (error) {
       setMessage({
-        type: 'error',
-        text: 'An error occurred. Please try again.',
+        type: "error",
+        text: "An error occurred. Please try again.",
       });
-      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+      setTimeout(() => setMessage({ type: "", text: "" }), 3000);
     } finally {
       setLoading(false);
     }
@@ -230,8 +230,6 @@ const EnhancedRegisterPage = () => {
             </p>
           </motion.div>
 
-          {/* <AlertMessage message={message} /> */}
-
           {/* Role Selection Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {roles.map((role) => (
@@ -247,7 +245,7 @@ const EnhancedRegisterPage = () => {
                   onClick={() => handleRoleSelect(role.id)}
                   whileHover={{ y: -10, scale: 1.03 }}
                 >
-                  <div className="bg-yellow-500 h-full flex flex-col">
+                  <div className="h-full flex flex-col">
                     <div className="h-40 overflow-hidden">
                       <img
                         src={cardImages[role.id]}
@@ -256,21 +254,21 @@ const EnhancedRegisterPage = () => {
                       />
                     </div>
                     <div
-                      className={`bg-gradient-to-r ${role.color} p-6 text-white flex-1 flex flex-col`}
+                      className={`${role.color} p-6 text-gray-800 flex-1 flex flex-col`}
                     >
                       <div className="flex items-center justify-between mb-4">
-                        <div className="bg-white bg-opacity-20 p-3 rounded-full">
+                        <div className="bg-gray-200 p-3 rounded-full">
                           {role.icon}
                         </div>
-                        <FaInfoCircle className="text-white opacity-80 hover:opacity-100 transition" />
+                        <FaInfoCircle className="text-gray-600 opacity-80 hover:opacity-100 transition" />
                       </div>
                       <div className="mt-auto">
                         <h3 className="text-xl font-bold">{role.title}</h3>
-                        <p className="text-white text-opacity-90 mt-2 text-sm">
+                        <p className="text-gray-600 mt-2 text-sm">
                           {role.description}
                         </p>
                         <motion.button
-                          className="mt-4 bg-yellow-500 bg-opacity-20 hover:bg-opacity-30 text-white font-medium py-2 px-4 rounded-lg transition-all"
+                          className="mt-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-all"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                         >
@@ -322,20 +320,20 @@ const EnhancedRegisterPage = () => {
                         <Spin size="large" />
                       </div>
                     )}
-                    {message.type === 'success' && (
+                    {message.type === "success" && (
                       <SuccessMessage message={message.text} className="mb-4" />
                     )}
-                    {message.type === 'error' && (
+                    {message.type === "error" && (
                       <ErrorMessage error={message.text} className="mb-4" />
                     )}
-                    {message.type === 'info' && (
+                    {message.type === "info" && (
                       <div className="mb-4 p-3 bg-blue-50 text-blue-700 rounded-md border border-blue-100">
                         {message.text}
                       </div>
                     )}
 
                     <form onSubmit={handleSubmit} className="space-y-4">
-                      {currentRole?.fields.includes('name') && (
+                      {currentRole?.fields.includes("name") && (
                         <div>
                           <label className="block text-gray-700 mb-1">
                             Full Name
@@ -345,7 +343,7 @@ const EnhancedRegisterPage = () => {
                             name="name"
                             value={formData.name}
                             onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080]"
                             required
                           />
                           {errors.name && (
@@ -356,7 +354,7 @@ const EnhancedRegisterPage = () => {
                         </div>
                       )}
 
-                      {currentRole?.fields.includes('organizationName') && (
+                      {currentRole?.fields.includes("organizationName") && (
                         <div>
                           <label className="block text-gray-700 mb-1">
                             Organization Name
@@ -366,13 +364,13 @@ const EnhancedRegisterPage = () => {
                             name="organizationName"
                             value={formData.organizationName}
                             onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080]"
                             required
                           />
                         </div>
                       )}
 
-                      {currentRole?.fields.includes('ngoName') && (
+                      {currentRole?.fields.includes("ngoName") && (
                         <div>
                           <label className="block text-gray-700 mb-1">
                             NGO Name
@@ -382,7 +380,7 @@ const EnhancedRegisterPage = () => {
                             name="ngoName"
                             value={formData.ngoName}
                             onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080]"
                             required
                           />
                         </div>
@@ -393,29 +391,29 @@ const EnhancedRegisterPage = () => {
                         <button
                           type="button"
                           className={`flex-1 py-2 font-medium text-sm ${
-                            loginMethod === 'email'
-                              ? 'text-[#008080] border-b-2 border-[#008080]'
-                              : 'text-gray-500 hover:text-gray-700'
+                            loginMethod === "email"
+                              ? "text-[#008080] border-b-2 border-[#008080]"
+                              : "text-gray-500 hover:text-gray-700"
                           }`}
-                          onClick={() => setLoginMethod('email')}
+                          onClick={() => setLoginMethod("email")}
                         >
                           Use Email
                         </button>
                         <button
                           type="button"
                           className={`flex-1 py-2 font-medium text-sm ${
-                            loginMethod === 'phone'
-                              ? 'text-[#008080] border-b-2 border-[#008080]'
-                              : 'text-gray-500 hover:text-gray-700'
+                            loginMethod === "phone"
+                              ? "text-[#008080] border-b-2 border-[#008080]"
+                              : "text-gray-500 hover:text-gray-700"
                           }`}
-                          onClick={() => setLoginMethod('phone')}
+                          onClick={() => setLoginMethod("phone")}
                         >
                           Use Phone
                         </button>
                       </div>
 
                       {/* Email or Phone Input */}
-                      {loginMethod === 'email' ? (
+                      {loginMethod === "email" ? (
                         <div>
                           <label className="block text-gray-700 mb-1">
                             Email Address
@@ -424,7 +422,7 @@ const EnhancedRegisterPage = () => {
                             type="email"
                             name="email"
                             placeholder="your@email.com"
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080]"
                             onChange={handleChange}
                             value={formData.email}
                           />
@@ -442,7 +440,7 @@ const EnhancedRegisterPage = () => {
                           <div className="flex">
                             <select
                               name="countryCode"
-                              className="p-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500"
+                              className="p-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-[#008080]"
                               value={formData.countryCode}
                               onChange={handleChange}
                             >
@@ -455,7 +453,7 @@ const EnhancedRegisterPage = () => {
                               type="tel"
                               name="phone"
                               placeholder="1234567890"
-                              className="flex-1 p-3 border-t border-b border-r border-gray-300 rounded-r-lg focus:ring-2 focus:ring-blue-500"
+                              className="flex-1 p-3 border-t border-b border-r border-gray-300 rounded-r-lg focus:ring-2 focus:ring-[#008080]"
                               onChange={handleChange}
                               value={formData.phone}
                             />
@@ -475,10 +473,10 @@ const EnhancedRegisterPage = () => {
                         </label>
                         <div className="relative">
                           <input
-                            type={showPassword ? 'text' : 'password'}
+                            type={showPassword ? "text" : "password"}
                             name="password"
                             placeholder="••••••••"
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 pr-10"
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080] pr-10"
                             onChange={handleChange}
                             value={formData.password}
                             required
@@ -488,7 +486,7 @@ const EnhancedRegisterPage = () => {
                             className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
                             onClick={() => setShowPassword(!showPassword)}
                             aria-label={
-                              showPassword ? 'Hide password' : 'Show password'
+                              showPassword ? "Hide password" : "Show password"
                             }
                           >
                             {showPassword ? (
@@ -512,10 +510,10 @@ const EnhancedRegisterPage = () => {
                         </label>
                         <div className="relative">
                           <input
-                            type={showConfirmPassword ? 'text' : 'password'}
+                            type={showConfirmPassword ? "text" : "password"}
                             name="confirmPassword"
                             placeholder="••••••••"
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 pr-10"
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080] pr-10"
                             onChange={handleChange}
                             value={formData.confirmPassword}
                             required
@@ -528,8 +526,8 @@ const EnhancedRegisterPage = () => {
                             }
                             aria-label={
                               showConfirmPassword
-                                ? 'Hide password'
-                                : 'Show password'
+                                ? "Hide password"
+                                : "Show password"
                             }
                           >
                             {showConfirmPassword ? (
@@ -582,7 +580,7 @@ const EnhancedRegisterPage = () => {
 
                     <div className="text-center mt-6 text-gray-600">
                       <p className="text-sm">
-                        Already have an account?{' '}
+                        Already have an account?{" "}
                         <a
                           href="/login"
                           className="text-[#008080] hover:underline font-medium"

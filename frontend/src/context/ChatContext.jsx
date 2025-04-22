@@ -472,6 +472,7 @@ export const ChatProvider = ({ children }) => {
         fetchConversations,
         startConversation,
         fetchMessages,
+        // socket,
         sendMessage,
         markMessagesAsRead,
         // notifications,
