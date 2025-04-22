@@ -203,7 +203,9 @@ const DonationsList = () => {
                     setSelectedNeed(need);
                   }}
                 >
-                  <option value="">Select a need</option>
+                  <option className="bg-[#008080]" value="">
+                    Select a need
+                  </option>
                   {needs.map((need) => (
                     <option key={need._id} value={need._id}>
                       {need.title || need.description}

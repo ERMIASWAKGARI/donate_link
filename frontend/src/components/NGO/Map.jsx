@@ -103,7 +103,7 @@ const Map = ({ latitude, longitude }) => {
           onClick={handleGetDirections}
           style={{
             padding: "8px 16px",
-            backgroundColor: "#38a169",
+            backgroundColor: "#008080",
             color: "white",
             border: "none",
             borderRadius: "4px",
