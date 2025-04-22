@@ -111,7 +111,7 @@ function PostedNeeds() {
           <h1 className="text-2xl font-bold text-gray-800">Posted Needs</h1>
           <button
             onClick={() => setShowNeedForm(!showNeedForm)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary-button text-gray-800 rounded-lg hover:bg-opacity-90 transition-colors"
+            className="flex border border-[#008080] items-center gap-2 px-4 py-2  text-[#008080] rounded-lg hover:bg-opacity-90 hover:bg-[#008080] hover:text-white transition-colors"
           >
             {showNeedForm ? (
               "Cancel"
