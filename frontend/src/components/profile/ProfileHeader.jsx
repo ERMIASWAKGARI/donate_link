@@ -485,15 +485,27 @@ export const ProfileHeader = ({
 
           {/* Right: Settings Link */}
           <div className="relative group mt-4 md:mt-0">
-            <Link
-              to="/account/settings"
-              className="flex items-center gap-2 text-white hover:text-yellow-400 transition-colors duration-300"
-            >
-              <SettingOutlined className=" text-lg" />
-              <span className="text-sm font-medium hidden sm:inline">
-                Settings
-              </span>
-            </Link>
+            {user.role === 'admin' ? (
+              <Link
+                to="/admin/account/settings"
+                className="flex items-center gap-2 text-white hover:text-yellow-400 transition-colors duration-300"
+              >
+                <SettingOutlined className=" text-lg" />
+                <span className="text-sm font-medium hidden sm:inline">
+                  Settings
+                </span>
+              </Link>
+            ) : (
+              <Link
+                to="/account/settings"
+                className="flex items-center gap-2 text-white hover:text-yellow-400 transition-colors duration-300"
+              >
+                <SettingOutlined className=" text-lg" />
+                <span className="text-sm font-medium hidden sm:inline">
+                  Settings
+                </span>
+              </Link>
+            )}
           </div>
         </div>
       </div>

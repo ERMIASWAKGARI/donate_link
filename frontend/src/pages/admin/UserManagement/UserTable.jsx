@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
+import { Spin } from 'antd';
 import DataTable from '../common/DataTable';
 import ErrorDisplay from '../common/ErrorDisplay';
-import Spinner from '../common/Spinner ';
 import StatusBadge from '../common/StatusBadge';
 
 export const userColumns = [
@@ -61,7 +61,7 @@ export const userColumns = [
         <div className="flex space-x-2">
           <button
             onClick={() => onView(userId)}
-            className="px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm flex items-center"
+            className="px-3 py-1  text-green-900 hover:underline hover:cursor text-sm flex items-center"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -96,7 +96,7 @@ export const userColumns = [
           ) : (
             <button
               onClick={() => onBan(userId)}
-              className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
+              className="px-2 py-1 bg-gray-500 text-white hover:bg-red-400 rounded-md text-sm"
             >
               Ban
             </button>
@@ -122,7 +122,7 @@ export const UserTable = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Spinner size="lg" color="indigo" />
+        <Spin size="large" />
       </div>
     );
   }

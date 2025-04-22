@@ -107,7 +107,7 @@ const UserList = () => {
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-indigo-600 to-blue-500 px-6 py-4">
+      <div className="bg-gray-500 px-6 py-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <h2 className="text-2xl font-bold text-white">
             User Management Dashboard

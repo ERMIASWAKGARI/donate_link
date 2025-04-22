@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FiLogOut, FiMenu, FiUser } from 'react-icons/fi';
+import { FiLogOut, FiSettings, FiUser } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import NotificationBell from '../../../components/NotificationBell';
 import { useUser } from '../../../context/UserContext';
@@ -17,21 +17,16 @@ const TopNav = () => {
   };
 
   return (
-    <header className="bg-[#008080] shadow-sm h-16 flex items-center justify-between px-6 relative z-10">
+    <header className="shadow-sm h-16 flex items-center justify-between px-6 relative z-10">
       {/* Left: Logo/Menu */}
-      <div className="flex items-center">
-        <button className="md:hidden mr-4 text-gray-600 hover:text-indigo-600">
-          <FiMenu size={24} />
-        </button>
-        <h2 className="text-lg font-semibold text-white">Admin Dashboard</h2>
-      </div>
+      <div className="flex items-center"></div>
 
       {/* Right: Actions */}
       <div className="flex items-center">
         <NotificationBell />
 
         {/* Spacer */}
-        <div className="ml-4 relative">
+        <div className="ml-4 relative hover:bg-gray-200 rounded-md">
           <button
             className="flex items-center space-x-2 p-2  rounded-full transition"
             onClick={toggleDropdown}
@@ -45,7 +40,7 @@ const TopNav = () => {
               alt="Admin"
               className="w-8 h-8 rounded-full object-cover"
             />
-            <span className="text-sm font-medium text-white">
+            <span className="text-sm font-medium   ">
               {user?.name || 'Admin'}
             </span>
           </button>
@@ -57,10 +52,19 @@ const TopNav = () => {
                 className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                 onClick={() => {
                   setShowDropdown(false);
-                  navigate('/profile');
+                  navigate('/admin/profile');
                 }}
               >
                 <FiUser className="mr-2" /> Profile
+              </button>
+              <button
+                className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                onClick={() => {
+                  setShowDropdown(false);
+                  navigate('/admin/account/settings');
+                }}
+              >
+                <FiSettings className="mr-2" /> Account Settings
               </button>
               <button
                 className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-50"

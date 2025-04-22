@@ -1,4 +1,4 @@
-import { Spin } from 'antd'; // Importing Spin for loading state
+import { Spin } from 'antd'; // Importing Spin from antd for loading spinner
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -121,20 +121,17 @@ const ResetPassword = () => {
 
   return (
     <>
-      {loading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
-          <Spin size="large" />
-        </div>
-      )}
       <Header />
 
-      <div className="max-w-md mx-auto p-6 bg-white shadow-md rounded-lg mt-20">
-        <h2 className="text-xl font-bold mb-4">Reset Password</h2>
+      <div className="relative max-w-md mx-auto p-6 bg-white shadow-md rounded-lg mt-20">
         {loading && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+          <div className="absolute inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
             <Spin size="large" />
           </div>
         )}
+
+        <h2 className="text-xl font-bold mb-4">Reset Password</h2>
+
         {message.type === 'success' && (
           <SuccessMessage message={message.text} className="mb-4" />
         )}

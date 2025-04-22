@@ -42,7 +42,7 @@ export const UserFilters = ({
           id="role-filter"
           value={selectedRole}
           onChange={(e) => changeRole(e.target.value)}
-          className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm"
+          className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-[#008080] focus:border-[#008080] sm:text-sm rounded-md shadow-sm"
         >
           {roleOptions.map((option) => (
             <option key={option.value} value={option.value}>
@@ -64,7 +64,7 @@ export const UserFilters = ({
           id="sort-filter"
           value={selectedSort}
           onChange={(e) => changeSort(e.target.value)}
-          className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm"
+          className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-[#008080] focus:border-[#008080] sm:text-sm rounded-md shadow-sm"
         >
           {sortOptions.map((option) => (
             <option key={option.value} value={option.value}>
@@ -107,11 +107,11 @@ export const ActiveFilters = ({
     <span className="text-sm font-medium text-gray-500">Active Filters:</span>
 
     {searchQuery && (
-      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-gray-800">
         Search: {searchQuery}
         <button
           onClick={() => handleSearch('')}
-          className="ml-1.5 inline-flex text-indigo-600 hover:text-indigo-900"
+          className="ml-1.5 inline-flex text-red-400 hover:text-red-700"
         >
           &times;
         </button>
@@ -119,11 +119,11 @@ export const ActiveFilters = ({
     )}
 
     {selectedRole && (
-      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-gray-800">
         Role: {roleOptions.find((r) => r.value === selectedRole)?.label}
         <button
           onClick={() => changeRole('')}
-          className="ml-1.5 inline-flex text-blue-600 hover:text-blue-900"
+          className="ml-1.5 inline-flex text-red-400 hover:text-red-700"
         >
           &times;
         </button>
@@ -131,11 +131,11 @@ export const ActiveFilters = ({
     )}
 
     {selectedSort && (
-      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-gray-800">
         Sort: {sortOptions.find((s) => s.value === selectedSort)?.label}
         <button
           onClick={() => changeSort('')}
-          className="ml-1.5 inline-flex text-purple-600 hover:text-purple-900"
+          className="ml-1.5 inline-flex text-red-400 hover:text-red-700"
         >
           &times;
         </button>
@@ -143,12 +143,12 @@ export const ActiveFilters = ({
     )}
 
     {verifiedFilter && (
-      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-gray-800">
         Verification:{' '}
         {verifiedFilter === 'verified' ? 'Verified' : 'Unverified'}
         <button
           onClick={() => handleVerifiedChange('')}
-          className="ml-1.5 inline-flex text-yellow-600 hover:text-yellow-900"
+          className="ml-1.5 inline-flex text-red-400 hover:text-red-700"
         >
           &times;
         </button>
@@ -156,11 +156,11 @@ export const ActiveFilters = ({
     )}
 
     {bannedFilter && (
-      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-gray-800">
         Banned: {bannedFilter === 'banned' ? 'Banned' : 'Not Banned'}
         <button
           onClick={() => handleBannedChange('')}
-          className="ml-1.5 inline-flex text-red-600 hover:text-red-900"
+          className="ml-1.5 inline-flex text-red-400 hover:text-red-700"
         >
           &times;
         </button>
@@ -168,11 +168,11 @@ export const ActiveFilters = ({
     )}
 
     {activeFilter && (
-      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-gray-800">
         Active: {activeFilter === 'active' ? 'Active' : 'Inactive'}
         <button
           onClick={() => handleActiveChange('')}
-          className="ml-1.5 inline-flex text-green-600 hover:text-green-900"
+          className="ml-1.5 inline-flex text-red-400 hover:text-red-700"
         >
           &times;
         </button>

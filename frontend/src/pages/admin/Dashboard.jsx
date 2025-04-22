@@ -1,6 +1,6 @@
+import { Spin } from 'antd';
 import AdminLayout from './AdminLayout/index';
 import ErrorDisplay from './common/ErrorDisplay';
-import Spinner from './common/Spinner ';
 import useDashboardUsers from './hooks/useDashboardUsers';
 
 const AdminDashboard = () => {
@@ -55,7 +55,7 @@ const AdminDashboard = () => {
 
       {loading && (
         <div className="flex items-center justify-center h-64">
-          <Spinner size="lg" color="indigo" />
+          <Spin size="large" />
         </div>
       )}
       {error && (

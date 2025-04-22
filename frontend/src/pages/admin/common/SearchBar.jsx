@@ -16,11 +16,11 @@ const SearchBar = ({ onSearch }) => {
         placeholder="Search users..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="border border-gray-300 rounded-l px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        className="border border-gray-300  px-4 py-2 focus:outline-none focus:ring-1 focus:ring-[#008080]"
       />
       <button
         type="submit"
-        className="bg-indigo-600 text-white px-4 py-2 rounded-r hover:bg-indigo-700"
+        className="bg-yellow-400 text-green-900 px-3 py-1 text-sm font-medium hover:bg-yellow-500 transition-colors shadow-sm"
       >
         Search
       </button>

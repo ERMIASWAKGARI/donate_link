@@ -177,16 +177,14 @@ const AccountPage = () => {
 
   return (
     <div>
-      {loading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
-          <Spin size="large" />
-        </div>
-      )}
-
       <Header />
 
-      <div className="max-w-2xl mx-auto my-8 p-6 bg-white rounded-xl shadow-md border border-gray-100">
-        {/* Tabs */}
+      <div className="max-w-2xl mx-auto my-8 p-6 bg-white rounded-xl shadow-md border border-gray-100 relative">
+        {loading && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/10 backdrop-blur-sm">
+            <Spin size="large" />
+          </div>
+        )}
         <div className="flex border-b border-gray-200 mb-6 text-sm font-medium">
           {['password', 'danger'].map((tab) => (
             <button

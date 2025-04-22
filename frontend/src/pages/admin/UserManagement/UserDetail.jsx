@@ -1,3 +1,4 @@
+import { Spin } from 'antd';
 import { FiArrowLeft } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import Spinner from '../common/Spinner ';
@@ -28,7 +29,7 @@ const UserDetail = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Spinner size="lg" color="indigo" />
+        <Spin size="large" />
       </div>
     );
   }
