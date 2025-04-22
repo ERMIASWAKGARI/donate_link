@@ -294,6 +294,7 @@ const requestMaterialDonation = asyncWrapper(async (req, res, next) => {
       new AppError("This donation is not available for request", 400)
     );
   }
+
   // Verify NGO user exists
   const ngoUser = await User.findById(ngoId);
 
@@ -301,12 +302,14 @@ const requestMaterialDonation = asyncWrapper(async (req, res, next) => {
     return next(new AppError("No valid NGO found with that ID", 404));
   }
 
-  // Update donation status and add NGO
-
-  donation.NGO = ngoId;
-  donation.status = "requested";
+  // Update donation status, add NGO to requests array, and save
+  // donation.status = "requested";
+  if (!donation.requests.includes(ngoId)) {
+    donation.requests.push(ngoId);
+  }
   await donation.save();
   console.log("donation", donation);
+
   // Create notification for donor
   const notification = await Notification.create({
     recipient: donation.donor,

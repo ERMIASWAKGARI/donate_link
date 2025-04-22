@@ -13,7 +13,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { UserContext } from "../../context/UserContext";
 import Loading from "./Loading";
-
+import Map from "./Map";
 const PendingDonations = () => {
   const { user } = useContext(UserContext);
   const [donations, setDonations] = useState([]);
@@ -31,6 +31,7 @@ const PendingDonations = () => {
       });
       setDonations(response.data.message.donations);
       setLoading(false);
+      console.log(donations);
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -164,13 +165,14 @@ const PendingDonations = () => {
                           : "bg-red-100 text-red-800"
                       }`}
                     >
-                      {donation.status}
+                      {donation?.requests?.includes(user._id)
+                        ? "requested"
+                        : donation.status}
                     </span>
                   </div>
 
                   <p className="text-gray-600 mb-4 line-clamp-2">
-                    {donation.materialDetails.description ||
-                      "No description provided"}
+                    {donation.description || "No description provided"}
                   </p>
 
                   <div className="grid grid-cols-2 gap-2 mb-4">
@@ -188,14 +190,16 @@ const PendingDonations = () => {
                   <div className="flex justify-between items-center pt-3 border-t">
                     <button
                       onClick={() => handleRequest(donation._id)}
-                      disabled={donation.status !== "pending"}
+                      disabled={donation.requests.includes(user._id)}
                       className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                        donation.status === "pending"
+                        !donation.requests.includes(user._id)
                           ? "bg-yellow-500 text-white hover:bg-yellow-600"
                           : "bg-gray-200 text-gray-500 cursor-not-allowed"
                       }`}
                     >
-                      {donation.status === "pending" ? "Request" : "Requested"}
+                      {donation.requests.includes(user._id)
+                        ? "Requested"
+                        : "Request"}
                     </button>
                     <button
                       onClick={() => openDetailsModal(donation)}
@@ -213,17 +217,18 @@ const PendingDonations = () => {
 
         {/* Enhanced Details Modal */}
         {showDetailsModal && selectedDonation && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-start border-b pb-4 mb-4">
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-auto transition-all duration-300">
+              <div className="p-6 space-y-8">
+                {/* Header */}
+                <div className="flex justify-between items-start border-b pb-4">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-800">
+                    <h2 className="text-3xl font-bold text-gray-800">
                       {selectedDonation.materialDetails.category}
                     </h2>
-                    <div className="flex items-center gap-2 mt-2">
+                    <div className="flex items-center gap-2 mt-3">
                       <span
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${
                           selectedDonation.status === "pending"
                             ? "bg-yellow-100 text-yellow-800"
                             : selectedDonation.status === "accepted"
@@ -233,129 +238,19 @@ const PendingDonations = () => {
                       >
                         {selectedDonation.status}
                       </span>
-                      <span className="text-sm text-gray-500">
-                        ID: {selectedDonation.trackingId}
-                      </span>
                     </div>
                   </div>
                   <button
                     onClick={closeDetailsModal}
-                    className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100"
+                    className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 transition"
                   >
-                    <FaTimes size={24} />
+                    <FaTimes size={22} />
                   </button>
                 </div>
-
-                <div className="grid md:grid-cols-2 gap-8">
-                  <div>
-                    <div className="mb-6">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                        <FaInfoCircle className="mr-2 text-blue-500" />
-                        Material Details
-                      </h3>
-                      <div className="space-y-3">
-                        <div>
-                          <p className="text-sm text-gray-500">Category</p>
-                          <p className="font-medium">
-                            {selectedDonation.materialDetails.category}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Subcategory</p>
-                          <p className="font-medium">
-                            {selectedDonation.materialDetails.subCategory}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Description</p>
-                          <p className="font-medium">
-                            {selectedDonation.materialDetails.description ||
-                              "No description"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mb-6">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                        <FaBoxOpen className="mr-2 text-blue-500" />
-                        Item Specifications
-                      </h3>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-gray-500">Quantity</p>
-                          <p className="font-medium">
-                            {selectedDonation.materialDetails.quantity}{" "}
-                            {selectedDonation.materialDetails.unit}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Condition</p>
-                          <p className="font-medium">
-                            {selectedDonation.materialDetails.condition}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Expiration</p>
-                          <p className="font-medium">
-                            {new Date(
-                              selectedDonation.materialDetails.expirationDate
-                            ).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="mb-6">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                        <FaMapMarkerAlt className="mr-2 text-blue-500" />
-                        Location Details
-                      </h3>
-                      <div className="space-y-3">
-                        <div>
-                          <p className="text-sm text-gray-500">Address</p>
-                          <p className="font-medium">
-                            {selectedDonation.address}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Coordinates</p>
-                          <p className="font-medium">
-                            {selectedDonation.location.coordinates.join(", ")}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mb-6">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                        <FaUser className="mr-2 text-blue-500" />
-                        Donor Information
-                      </h3>
-                      <div className="space-y-3">
-                        <div>
-                          <p className="text-sm text-gray-500">Name</p>
-                          <p className="font-medium">
-                            {selectedDonation.donor?.name || "Anonymous"}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Email</p>
-                          <p className="font-medium">
-                            {selectedDonation.donor?.email || "Not provided"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 {selectedDonation.images?.length > 0 && (
-                  <div className="mt-6">
+                  <div>
                     <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                      Images
+                      our photographs
                     </h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       {selectedDonation.images.map((pic, index) => (
@@ -364,8 +259,11 @@ const PendingDonations = () => {
                           className="rounded-lg overflow-hidden shadow-sm"
                         >
                           <img
-                            src={`http://localhost:5000${pic}`}
-                            alt={`Donation ${index + 1}`}
+                            src={`http://localhost:5000/uploads/${pic.replace(
+                              /\\/g,
+                              "/"
+                            )}`}
+                            alt={`${pic}`}
                             className="w-full h-40 object-cover hover:scale-105 transition-transform duration-300"
                           />
                         </div>
@@ -374,23 +272,131 @@ const PendingDonations = () => {
                   </div>
                 )}
 
-                <div className="mt-6 pt-4 border-t flex justify-end">
+                {/* Main Content */}
+                <div className="grid md:grid-cols-2 gap-8">
+                  {/* Material & Item Details */}
+                  <div className="space-y-8">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <FaInfoCircle className="mr-2 text-blue-500" />
+                        Material Details
+                      </h3>
+                      <div className="space-y-3 text-sm text-gray-600">
+                        <p>
+                          <span className="font-medium text-gray-800">
+                            Category:
+                          </span>{" "}
+                          {selectedDonation.materialDetails.category}
+                        </p>
+                        <p>
+                          <span className="font-medium text-gray-800">
+                            Subcategory:
+                          </span>{" "}
+                          {selectedDonation.materialDetails.subCategory}
+                        </p>
+                        <p>
+                          <span className="font-medium text-gray-800">
+                            Description:
+                          </span>{" "}
+                          {selectedDonation.description || "No description"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <FaBoxOpen className="mr-2 text-blue-500" />
+                        Item Specifications
+                      </h3>
+                      <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                        <p>
+                          <span className="font-medium text-gray-800">
+                            Quantity:
+                          </span>{" "}
+                          {selectedDonation.materialDetails.quantity}{" "}
+                          {selectedDonation.materialDetails.unit}
+                        </p>
+                        <p>
+                          <span className="font-medium text-gray-800">
+                            Condition:
+                          </span>{" "}
+                          {selectedDonation.materialDetails.condition}
+                        </p>
+                        <p>
+                          <span className="font-medium text-gray-800">
+                            Expiration:
+                          </span>{" "}
+                          {new Date(
+                            selectedDonation.materialDetails.expirationDate
+                          ).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Location & Donor Details */}
+                  <div className="space-y-8">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <FaMapMarkerAlt className="mr-2 text-blue-500" />
+                        Location Details
+                      </h3>
+                      <div className="space-y-3 text-sm text-gray-600">
+                        <p>
+                          <span className="font-medium text-gray-800">
+                            Address:
+                          </span>{" "}
+                          {selectedDonation.address}
+                        </p>
+
+                        <Map
+                          latitude={selectedDonation.location.coordinates[1]}
+                          longitude={selectedDonation.location.coordinates[0]}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <FaUser className="mr-2 text-blue-500" />
+                        Donor Information
+                      </h3>
+                      <div className="space-y-3 text-sm text-gray-600">
+                        <p>
+                          <span className="font-medium text-gray-800">
+                            Name:
+                          </span>{" "}
+                          {selectedDonation.donor?.name || "Anonymous"}
+                        </p>
+                        <p>
+                          <span className="font-medium text-gray-800">
+                            Email:
+                          </span>{" "}
+                          {selectedDonation.donor?.email || "Not provided"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="pt-4 border-t flex justify-end gap-3">
                   <button
                     onClick={() => handleRequest(selectedDonation._id)}
-                    disabled={selectedDonation.status !== "pending"}
-                    className={`px-5 py-2 rounded-lg font-medium mr-3 ${
-                      selectedDonation.status === "pending"
+                    disabled={selectedDonation.requests.includes(user._id)}
+                    className={`px-5 py-2 rounded-lg font-medium transition ${
+                      !selectedDonation.requests.includes(user._id)
                         ? "bg-yellow-500 text-white hover:bg-yellow-600"
                         : "bg-gray-200 text-gray-500 cursor-not-allowed"
                     }`}
                   >
-                    {selectedDonation.status === "pending"
+                    {!selectedDonation.requests.includes(user._id)
                       ? "Request Donation"
                       : "Already Requested"}
                   </button>
                   <button
                     onClick={closeDetailsModal}
-                    className="px-5 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                    className="px-5 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
                   >
                     Close
                   </button>
