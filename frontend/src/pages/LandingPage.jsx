@@ -13,7 +13,6 @@ function LandingPage() {
   return (
     <div>
       <Header />
-
       <Hero />
       <FeaturedCauses />
       <HowItWorksSection />

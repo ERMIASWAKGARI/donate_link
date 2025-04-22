@@ -1,6 +1,7 @@
 import { useState } from "react";
 import NeedInformation from "./NeedInformation";
 import MapComponent from "./MapComponent";
+import Map from "../../../components/NGO/Map";
 import DonationForm from "./DonationForm";
 import { FaTimes, FaMapMarkerAlt } from "react-icons/fa";
 import { IoMdTime } from "react-icons/io";
@@ -86,22 +87,14 @@ const NeedDetail = ({ need, onClose }) => {
                     <FaMapMarkerAlt className="mr-2 text-primary" />
                     Location
                   </h3>
-                  <button
-                    onClick={getCurrentLocation}
-                    className="text-sm bg-primary-button text-gray-800 px-3 py-1 rounded hover:bg-yellow-300 transition-colors"
-                  >
-                    Get Directions
-                  </button>
                 </div>
-                <div className="h-64 bg-gray-200 rounded-lg overflow-hidden">
-                  {/* <MapComponent
-                    location={need.beneficiaryInfo.location}
-                    currentLocation={currentLocation}
-                  /> */}
-                  <div className="flex items-center justify-center h-full text-gray-500">
-                    Map preview would be displayed here
-                  </div>
-                </div>
+                {/* <div className="h-64 bg-gray-200 rounded-lg overflow-hidden"> */}
+                <Map
+                  latitude={need.beneficiaryInfo.location.latitude}
+                  longitude={need.beneficiaryInfo.location.longitude}
+                />
+
+                {/* </div> */}
               </div>
             </div>
 

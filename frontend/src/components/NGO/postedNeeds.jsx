@@ -104,22 +104,6 @@ function PostedNeeds() {
     return <Loading />;
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center p-6 bg-white rounded-lg shadow-md max-w-md">
-          <p className="text-red-500 font-medium">{error}</p>
-          <button
-            onClick={fetchNeeds}
-            className="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-white min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
@@ -156,12 +140,6 @@ function PostedNeeds() {
             <p className="text-gray-500 mb-4">
               Start by posting your first need to get donations
             </p>
-            <button
-              onClick={() => setShowNeedForm(true)}
-              className="px-4 py-2 bg-primary-button text-gray-800 rounded hover:bg-opacity-90"
-            >
-              Post a Need
-            </button>
           </div>
         ) : (
           <>

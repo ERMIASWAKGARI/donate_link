@@ -7,18 +7,19 @@ import {
   FaDonate,
   FaBoxOpen,
   FaHandsHelping,
-  FaTimes,
   FaMapMarkerAlt,
+  FaSadTear,
+  FaTimes,
 } from "react-icons/fa";
 import {
   FiLoader,
+  FiChevronRight,
   FiCheckCircle,
   FiXCircle,
-  FiChevronRight,
 } from "react-icons/fi";
 import Modal from "react-modal";
+import { Link } from "react-router-dom";
 
-// Set app element for accessibility (should be set to your app's root element)
 Modal.setAppElement("#root");
 
 const DonationsList = () => {
@@ -37,11 +38,28 @@ const DonationsList = () => {
   });
   const [selectedDonation, setSelectedDonation] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [hasFetchedInitialData, setHasFetchedInitialData] = useState(false);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage] = useState(10);
+  const getDonationsByType = () => {
+    if (selectedCategory === "money") return donations.money;
+    if (selectedCategory === "items") return donations.materials;
+    if (selectedCategory === "service") return donations.services;
+    return [];
+  };
+  // Check if NGO has any needs at all
+  const hasNoNeeds =
+    !loading.needs && needs.length === 0 && hasFetchedInitialData;
+
+  // Check if selected need has no donations
+  const hasNoDonationsForSelectedNeed =
+    !loading.donations &&
+    selectedNeed &&
+    getDonationsByType().length === 0 &&
+    hasFetchedInitialData;
 
   // Fetch needs with pagination
   useEffect(() => {
@@ -56,8 +74,10 @@ const DonationsList = () => {
         });
         setNeeds(response.data.data || []);
         setTotalPages(Math.ceil((response.data.total || 0) / itemsPerPage));
+        setHasFetchedInitialData(true);
       } catch (err) {
         console.error("Error fetching needs:", err);
+        // setHasFetchedInitialData(false);
       } finally {
         setLoading((prev) => ({ ...prev, needs: false }));
       }
@@ -111,13 +131,6 @@ const DonationsList = () => {
 
     fetchDonations();
   }, [selectedNeed, selectedCategory]);
-
-  const getDonationsByType = () => {
-    if (selectedCategory === "money") return donations.money;
-    if (selectedCategory === "items") return donations.materials;
-    if (selectedCategory === "service") return donations.services;
-    return [];
-  };
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -175,7 +188,7 @@ const DonationsList = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4">
           <h3 className="text-xl font-semibold text-gray-800">Select Need</h3>
 
-          {needs.length > 0 && (
+          {!hasNoNeeds ? (
             <div className="flex items-center gap-4">
               {loading.needs ? (
                 <div className="flex justify-center py-4">
@@ -218,153 +231,204 @@ const DonationsList = () => {
                 <FaChevronRight />
               </button>
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* Category Selection */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        {["money", "items", "service"].map((category) => (
-          <button
-            key={category}
-            onClick={() => setSelectedCategory(category)}
-            className={`flex items-center justify-center p-4 rounded-xl transition-all ${
-              selectedCategory === category
-                ? "bg-primary text-white shadow-md"
-                : "bg-white text-gray-700 hover:bg-gray-50 shadow-sm border border-gray-200"
-            }`}
-          >
-            {getCategoryIcon(category)}
-            {category.charAt(0).toUpperCase() + category.slice(1)}
-          </button>
-        ))}
-      </div>
-
-      {/* Donations List */}
-      <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2 sm:mb-0">
-            {getCategoryIcon(selectedCategory)}
-            {selectedCategory.charAt(0).toUpperCase() +
-              selectedCategory.slice(1)}{" "}
-            Donations
-          </h2>
-          {selectedNeed && (
-            <span className="text-primary font-medium bg-primary/10 px-3 py-1 rounded-full">
-              {selectedNeed.title || selectedNeed.description}
-            </span>
-          )}
-        </div>
-
-        {loading.donations ? (
-          <div className="flex justify-center py-12">
-            <FiLoader className="animate-spin text-primary text-3xl" />
-            <span className="ml-3 text-gray-600">Loading donations...</span>
-          </div>
-        ) : selectedCategory === "items" && getDonationsByType()?.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Donor Name
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Address
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Status
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {getDonationsByType().map((donation) => (
-                  <tr key={donation._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {donation.donorId?.name || "Anonymous"}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <FaMapMarkerAlt className="flex-shrink-0 mr-2 text-gray-400" />
-                        <div className="text-sm text-gray-500">
-                          {donation.location?.address || "Not specified"}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadge(
-                          donation.status
-                        )}`}
-                      >
-                        {donation.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => openDonationDetails(donation)}
-                        className="text-primary hover:text-primary-dark flex items-center"
-                      >
-                        Details <FiChevronRight className="ml-1" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : getDonationsByType()?.length > 0 ? (
-          <div className="space-y-4">
-            {getDonationsByType().map((donation) => (
-              <div
-                key={donation._id || donation.id}
-                className="p-5 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-sm transition-shadow"
+          ) : (
+            <div className="w-full text-center py-8">
+              <FaSadTear className="inline-block text-4xl text-gray-400 mb-3" />
+              <h3 className="text-lg font-medium text-gray-700 mb-2">
+                No Needs Created Yet
+              </h3>
+              <p className="text-gray-500 mb-4">
+                You haven't created any needs that could receive donations.
+              </p>
+              <Link
+                to="/create-need"
+                className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
               >
-                {/* ... existing non-table content ... */}
-              </div>
+                Create Your First Need
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Only show category selection and donations list if NGO has needs */}
+      {!hasNoNeeds && (
+        <>
+          {/* Category Selection */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            {["money", "items", "service"].map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`flex items-center justify-center p-4 rounded-xl transition-all ${
+                  selectedCategory === category
+                    ? "bg-primary text-white shadow-md"
+                    : "bg-white text-gray-700 hover:bg-gray-50 shadow-sm border border-gray-200"
+                }`}
+              >
+                {getCategoryIcon(category)}
+                {category.charAt(0).toUpperCase() + category.slice(1)}
+              </button>
             ))}
           </div>
-        ) : (
-          <div className="text-center py-12">
-            <div className="text-gray-400 mb-4">
-              <FaDonate className="inline-block text-4xl" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-600 mb-1">
-              No donations available
-            </h3>
-            <p className="text-gray-500">
-              {selectedNeed
-                ? `No ${selectedCategory} donations for this need yet`
-                : "Select a need to view donations"}
-            </p>
-          </div>
-        )}
-      </div>
 
-      {/* Donation Details Modal */}
+          {/* Donations List */}
+          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-2 sm:mb-0">
+                {getCategoryIcon(selectedCategory)}
+                {selectedCategory.charAt(0).toUpperCase() +
+                  selectedCategory.slice(1)}{" "}
+                Donations
+              </h2>
+              {selectedNeed && (
+                <span className="text-primary font-medium bg-primary/10 px-3 py-1 rounded-full">
+                  {selectedNeed.title || selectedNeed.description}
+                </span>
+              )}
+            </div>
+
+            {loading.donations ? (
+              <div className="flex justify-center py-12">
+                <FiLoader className="animate-spin text-primary text-3xl" />
+                <span className="ml-3 text-gray-600">Loading donations...</span>
+              </div>
+            ) : selectedNeed ? (
+              hasNoDonationsForSelectedNeed ? (
+                <div className="text-center py-12">
+                  <FaBoxOpen className="inline-block text-4xl text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-700 mb-2">
+                    No {selectedCategory} donations received yet
+                  </h3>
+                  <p className="text-gray-500 mb-4">
+                    This need hasn't received any {selectedCategory} donations
+                    yet.
+                  </p>
+                  <div className="flex justify-center gap-4">
+                    <button
+                      onClick={() => window.location.reload()}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                    >
+                      Refresh
+                    </button>
+                    <Link
+                      to="/share-need"
+                      className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+                    >
+                      Share This Need
+                    </Link>
+                  </div>
+                </div>
+              ) : selectedCategory === "items" &&
+                getDonationsByType()?.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Donor Name
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Address
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Status
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {getDonationsByType().map((donation) => (
+                        <tr key={donation._id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">
+                              {donation.donorId?.name || "Anonymous"}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <FaMapMarkerAlt className="flex-shrink-0 mr-2 text-gray-400" />
+                              <div className="text-sm text-gray-500">
+                                {donation.location?.address || "Not specified"}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span
+                              className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadge(
+                                donation.status
+                              )}`}
+                            >
+                              {donation.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button
+                              onClick={() => openDonationDetails(donation)}
+                              className="text-primary hover:text-primary-dark flex items-center"
+                            >
+                              Details <FiChevronRight className="ml-1" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : getDonationsByType()?.length > 0 ? (
+                <div className="space-y-4">
+                  {/* Non-table donation cards */}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="text-gray-400 mb-4">
+                    <FaDonate className="inline-block text-4xl" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-600 mb-1">
+                    No donations available
+                  </h3>
+                  <p className="text-gray-500">
+                    Select a need to view donations
+                  </p>
+                </div>
+              )
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-gray-400 mb-4">
+                  <FaHandsHelping className="inline-block text-4xl" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-600 mb-1">
+                  Select a need to view donations
+                </h3>
+                <p className="text-gray-500">
+                  Choose from your created needs to see donation details
+                </p>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
       <Modal
         isOpen={isModalOpen}
         onRequestClose={closeModal}
         contentLabel="Donation Details"
-        className="modal-content bg-white rounded-lg shadow-xl max-w-2xl w-full mx-auto p-6 relative"
-        overlayClassName="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+        className="bg-white overflow-y-auto rounded-lg shadow-xl max-w-2xl w-full z-50 mx-auto p-6 relative max-h-[90vh]"
+        overlayClassName="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center p-4 z-50"
       >
         {selectedDonation && (
           <div>
