@@ -556,10 +556,10 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
 
           <button
             type="submit"
-            className={`w-full py-3 px-4 rounded-lg font-bold text-white transition-colors ${
+            className={`w-full py-3 px-4 rounded-lg font-bold border transition-all ${
               isSubmitting
-                ? "bg-primary/70 cursor-not-allowed"
-                : "bg-primary-button hover:bg-yellow-400"
+                ? "border-[#008080] text-[#008080] cursor-not-allowed"
+                : "border-[#008080] text-[#008080] hover:bg-[#008080] hover:text-white"
             }`}
             disabled={isSubmitting}
           >
