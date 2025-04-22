@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+
 const User = require('../models/User');
 const asyncWrapper = require('../middleware/asyncWrapper');
 const AppError = require('../utils/appError');
@@ -8,8 +9,13 @@ const sendSuccessResponse = require('../utils/responseHelper');
 const sendOTP = require('../utils/sendOTP');
 const APIFeatures = require('../utils/apiFeatures');
 const { sendNotification } = require('../utils/notificationService');
+
 const JWT_SECRET = process.env.JWT_SECRET;
 const BACKEND_URL = process.env.BACKEND_URL;
+
+const fs = require('fs');
+
+const { checkImageContent } = require('../utils/imageModeration');
 
 const {
   sendVerificationEmail,
@@ -160,6 +166,7 @@ const registerUser = asyncWrapper(async (req, res) => {
     }
   );
 });
+
 const uploadProfilePicture = asyncWrapper(async (req, res) => {
   const user = await User.findById(req.user._id);
 
@@ -171,13 +178,37 @@ const uploadProfilePicture = asyncWrapper(async (req, res) => {
     throw new AppError('No file uploaded.', 400);
   }
 
-  // Store the profile picture filename in the user model
-  user.profilePicture = req.file.filename;
-  await user.save();
+  try {
+    await checkImageContent(req.file.path);
 
-  sendSuccessResponse(res, 200, 'Profile picture updated successfully!', {
-    profilePicture: req.file.filename,
-  });
+    user.profilePicture = req.file.filename;
+    await user.save();
+
+    sendSuccessResponse(res, 200, 'Profile picture updated successfully!', {
+      profilePicture: req.file.filename,
+    });
+  } catch (error) {
+    if (req.file) {
+      fs.unlink(req.file.path, (err) => {
+        if (err) console.error('Error deleting file:', err);
+      });
+    }
+
+    if (error instanceof AppError) {
+      throw error;
+    }
+
+    if (error.response) {
+      console.error('Sightengine API error:', error.response.data);
+      throw new AppError(
+        'Image verification failed. Please try another image.',
+        400
+      );
+    } else {
+      console.error('Error:', error.message);
+      throw new AppError('Failed to process image. Please try again.', 500);
+    }
+  }
 });
 
 const uploadVerificationDocs = asyncWrapper(async (req, res) => {
