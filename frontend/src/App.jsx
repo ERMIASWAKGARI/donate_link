@@ -29,6 +29,7 @@ import { SocketProvider } from "./context/SocketContext";
 import AccountPage from "./pages/profile/AccountPage";
 import UserProfilePage from "./pages/profile/UserProfilePage";
 import { store } from "./redux/store";
+import NGOReportViewer from "./components/NGO/NGOReport";
 
 function App() {
   return (
@@ -64,6 +65,9 @@ function App() {
 
                   <Route element={<PrivateRoute />}>
                     <Route path="/ngo/dashboard" element={<NgoDashboard />} />
+                  </Route>
+                  <Route element={<PrivateRoute />}>
+                    <Route path="/report/:id" element={<NGOReportViewer />} />
                   </Route>
 
                   <Route element={<PrivateRoute />}>
