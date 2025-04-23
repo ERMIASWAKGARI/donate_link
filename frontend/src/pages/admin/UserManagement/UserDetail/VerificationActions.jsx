@@ -43,7 +43,7 @@ const VerificationActions = ({ user, onVerify, onReject }) => {
         <div className="flex gap-3">
           <button
             onClick={handleVerifyClick}
-            className="flex items-center gap-1 text-green-600 hover:text-white hover:bg-green-600 border border-green-600 px-3 py-1.5 rounded-md text-sm font-medium transition duration-200"
+            className="flex items-center gap-1 text-[#008080] hover:text-white hover:bg-[#008080] border border-[#008080] px-3 py-1.5 rounded-md text-sm font-medium transition duration-200"
           >
             <FiCheckCircle size={16} />
             Verify

@@ -20,7 +20,7 @@ const SearchBar = ({ onSearch }) => {
       />
       <button
         type="submit"
-        className="bg-yellow-400 text-green-900 px-3 py-1 text-sm font-medium hover:bg-yellow-500 transition-colors shadow-sm"
+        className="flex items-center gap-1  px-3 py-1.5 rounded-md text-sm font-medium transition duration-200 text-gray-700 hover:bg-teal-100 border border-[#008080]"
       >
         Search
       </button>

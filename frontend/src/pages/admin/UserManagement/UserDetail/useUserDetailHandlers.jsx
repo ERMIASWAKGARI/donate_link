@@ -96,38 +96,38 @@ export const useUserDetailHandlers = () => {
       return {
         label: 'Verification Status',
         text: user.isVerified ? 'Verified' : 'Not Verified',
-        color: user.isVerified ? 'text-green-600' : 'text-red-600',
+        color: user.isVerified ? 'text-[#008080]' : 'text-red-500',
       };
     }
     return {
       label: 'Verification Status',
       text: "Doesn't need verification",
-      color: 'text-blue-600',
+      color: 'text-gray-700',
     };
   };
 
   const getBanStatus = () => ({
     text: user?.isBanned ? 'Banned' : 'Not Banned',
-    color: user?.isBanned ? 'text-red-600' : 'text-green-600',
+    color: user?.isBanned ? 'text-red-500' : 'text-[#008080]',
   });
 
   const getEmailStatus = () => {
     if (!user?.email) return { text: 'Not provided', color: 'text-gray-400' };
     return user.isEmailVerified
-      ? { text: 'Verified', color: 'text-green-600' }
-      : { text: 'Pending verification', color: 'text-yellow-600' };
+      ? { text: 'Verified', color: 'text-[#008080]' }
+      : { text: 'Pending verification', color: 'text-yellow-500' };
   };
 
   const getPhoneStatus = () => {
     if (!user?.phone) return { text: 'Not provided', color: 'text-gray-400' };
     return user.isPhoneVerified
-      ? { text: 'Verified', color: 'text-green-600' }
-      : { text: 'Pending verification', color: 'text-yellow-600' };
+      ? { text: 'Verified', color: 'text-[#008080]' }
+      : { text: 'Pending verification', color: 'text-yellow-500' };
   };
 
   const getAccountStatus = () => ({
     text: user?.isActive ? 'Active' : 'Inactive',
-    color: user?.isActive ? 'text-green-600' : 'text-red-600',
+    color: user?.isActive ? 'text-[#008080]' : 'text-red-600',
   });
 
   // Format date helper

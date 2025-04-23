@@ -461,7 +461,7 @@ export const ProfileHeader = ({
               </h1>
               <div className="mt-2 flex flex-wrap justify-center md:justify-start gap-2">
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-semibold bg-yellow-400 text-teal-700`}
+                  className={`px-3 py-1 rounded-md text-xs font-semibold bg-yellow-400 text-[#008080]  min-w-[100px] text-center`}
                 >
                   {user.role
                     .replace('_', ' ')

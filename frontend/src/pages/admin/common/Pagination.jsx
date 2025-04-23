@@ -7,14 +7,14 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 
   return (
     <div className="flex justify-center mt-6">
-      <nav className="inline-flex rounded-md shadow">
+      <nav className="inline-flex rounded-md shadow gap-3">
         <button
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage === 1}
           className={`px-3 py-2 rounded-l-md border border-gray-300 ${
             currentPage === 1
               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : 'bg-white text-gray-700 hover:bg-gray-50'
+              : 'bg-white text-gray-700 hover:border-[#008080] '
           }`}
         >
           Previous
@@ -24,10 +24,10 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
           <button
             key={number}
             onClick={() => onPageChange(number)}
-            className={`px-3 py-2 border-t border-b border-gray-300 ${
+            className={`px-3 py-2 border-t border-b border-gray-300 rounded-md ${
               currentPage === number
-                ? 'bg-indigo-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
+                ? 'bg-[#008080] text-white'
+                : 'bg-white text-gray-700 hover:border-[#008080] '
             }`}
           >
             {number}
@@ -37,10 +37,10 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         <button
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
           disabled={currentPage === totalPages}
-          className={`px-3 py-2 rounded-r-md border border-gray-300 ${
+          className={`px-3 py-1 rounded-r-md border border-gray-300 ${
             currentPage === totalPages
               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : 'bg-white text-gray-700 hover:bg-gray-50'
+              : 'bg-white text-gray-700 hover:border-[#008080] '
           }`}
         >
           Next
