@@ -7,10 +7,11 @@ const socketIO = require("../../utils/socketConfig"); // Adjust path as needed
 const Application = require("../../models/applicationModel");
 const MaterialDonation = require("../../models/matterialDonation");
 const onlineUsers = socketIO.onlineUsers; // Adjust path as needed
-const io=socketIO.getIO; // Adjust path as needed
-console.log("onlineUsers", onlineUsers,io);
+const io = socketIO.getIO; // Adjust path as needed
+console.log("onlineUsers", onlineUsers, io);
 const Report = require("../../models/Report");
-const sendNotificationToGroup=require("../../utils/socketConfig").sendNotificationToGroup; // Adjust path as needed
+const sendNotificationToGroup =
+  require("../../utils/socketConfig").sendNotificationToGroup; // Adjust path as needed
 // Helper function to handle the upload
 const handleUpload = (req, res) => {
   return new Promise((resolve, reject) => {
@@ -124,9 +125,9 @@ const postNgosNeed = async (req, res, next) => {
         })),
       },
     });
-    
+
     sendNotificationToGroup("role_ngo", "newNeed", need);
-             
+
     // Validate the document against the schema
     const validationError = need.validateSync();
     if (validationError) {
@@ -162,7 +163,6 @@ const postNgosNeed = async (req, res, next) => {
   }
 };
 // Endpoint to make isReportGenerated false for all needs
-
 
 getAllServiceNeeds = async (req, res) => {
   try {
@@ -207,7 +207,7 @@ getAllServiceNeeds = async (req, res) => {
 
     // 7. EXECUTE QUERY
     const needs = await Need.find(query)
-      .populate("NGO", "name email phone")
+      .populate("NGO", "name profilePicture email phone")
       .sort(sortOption)
       .skip(skip)
       .limit(limit)
@@ -234,7 +234,7 @@ const getAllNGOServiceNeeds = async (req, res) => {
     const need = await Need.find({
       NGO: req.user?._id,
       needTypes: ["service"],
-    }).populate("NGO", "name email"); // Populate NGO basic info
+    }).populate("NGO", "name  email"); // Populate NGO basic info
 
     if (!need || need.length === 0) {
       return res.status(404).json({
@@ -368,16 +368,16 @@ const getNeedsByNgo = async (req, res) => {
 };
 const getReportPreview = async (req, res) => {
   try {
-       const { needId,categories } = req.params;
-       const { needTypes } = req.query;
-console.log("needId", needId);
-    if ( !needTypes || needTypes.length === 0) {
+    const { needId, categories } = req.params;
+    const { needTypes } = req.query;
+    console.log("needId", needId);
+    if (!needTypes || needTypes.length === 0) {
       return res.status(400).json({
         success: false,
         error: " and at least one need type are required",
       });
     }
-    const validNeedTypes = ["material", "service","money"];
+    const validNeedTypes = ["material", "service", "money"];
     const invalidTypes = needTypes.filter(
       (type) => !validNeedTypes.includes(type)
     );
@@ -398,40 +398,39 @@ console.log("needId", needId);
 
     const [approvedApplications, materialDonations] = await Promise.all([
       needTypes.includes("service")
-        ?await  Application.find({
+        ? await Application.find({
             need: needId,
             status: "Approved",
           }).populate("applicant", "name email phone")
         : Promise.resolve([]),
 
       needTypes.includes("material")
-        ?await MaterialDonation.find({
+        ? await MaterialDonation.find({
             needId: needId,
-           
           }).populate("donorId", "name email phone")
         : Promise.resolve([]),
     ]);
- const materialsSummary = {};
+    const materialsSummary = {};
 
- materialDonations.forEach((donation) => {
-   donation.materials.forEach((material) => {
-     const key = `${material.categoryName}-${material.subCategoryName}`;
+    materialDonations.forEach((donation) => {
+      donation.materials.forEach((material) => {
+        const key = `${material.categoryName}-${material.subCategoryName}`;
 
-     if (!materialsSummary[key]) {
-       materialsSummary[key] = {
-         category: material.categoryName,
-         subCategory: material.subCategoryName,
-         totalQuantity: 0,
-         unit: material.unit || "",
-       };
-     }
+        if (!materialsSummary[key]) {
+          materialsSummary[key] = {
+            category: material.categoryName,
+            subCategory: material.subCategoryName,
+            totalQuantity: 0,
+            unit: material.unit || "",
+          };
+        }
 
-     materialsSummary[key].totalQuantity += material.quantity;
-   });
- });
+        materialsSummary[key].totalQuantity += material.quantity;
+      });
+    });
 
- // Convert object to array for report
- const summarizedMaterials = Object.values(materialsSummary);
+    // Convert object to array for report
+    const summarizedMaterials = Object.values(materialsSummary);
 
     // Transform data to match schema
     const transformedData = {
@@ -456,9 +455,9 @@ console.log("needId", needId);
       ),
     };
 
-    const newReport ={
+    const newReport = {
       need: needId,
-  
+
       donations: transformedData,
       totals,
       status: "pending",
@@ -481,60 +480,60 @@ console.log("needId", needId);
         process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
-  }
-  // Endpoint to identify the status of last need that created by the NGO 
+};
+// Endpoint to identify the status of last need that created by the NGO
 
-  const getLastNeedStatus = async (req, res) => {
-    try {
-      const ngoId = req.user._id; // Get the NGO ID from the authenticated user
-      const lastNeed = await Need.findOne({ NGO: ngoId })
-        .sort({ createdAt: -1 }) // Sort by createdAt in descending order
-        .limit(1); // Get the most recent need
+const getLastNeedStatus = async (req, res) => {
+  try {
+    const ngoId = req.user._id; // Get the NGO ID from the authenticated user
+    const lastNeed = await Need.findOne({ NGO: ngoId })
+      .sort({ createdAt: -1 }) // Sort by createdAt in descending order
+      .limit(1); // Get the most recent need
 
-      if (!lastNeed) {
-        return res.status(404).json({
-          success: false,
-          message: "No needs found for this NGO",
-        });
-      }
-
-      res.status(200).json({
-        success: true,
-        data: {
-          status: lastNeed.status,
-          createdAt: lastNeed.createdAt,
-          title: lastNeed.title,
-        },
-      });
-    } catch (error) {
-      console.error("Error fetching last need status:", error);
-      res.status(500).json({
+    if (!lastNeed) {
+      return res.status(404).json({
         success: false,
-        error: "Server error",
+        message: "No needs found for this NGO",
       });
     }
-  };
+
+    res.status(200).json({
+      success: true,
+      data: {
+        status: lastNeed.status,
+        createdAt: lastNeed.createdAt,
+        title: lastNeed.title,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching last need status:", error);
+    res.status(500).json({
+      success: false,
+      error: "Server error",
+    });
+  }
+};
 
 const generateReport = async (req, res) => {
   try {
-  const pictures =
-    req.files?.map((file) =>
-      path.join("donations", path.basename(file.path))
-    ) || [];
-console.log("body",req.query);
-   
-       const { needId,  } = req.body;
-       let { needTypes } = req.body;
+    const pictures =
+      req.files?.map((file) =>
+        path.join("donations", path.basename(file.path))
+      ) || [];
+    console.log("body", req.query);
 
-  needTypes = JSON.parse(needTypes);
+    const { needId } = req.body;
+    let { needTypes } = req.body;
 
-    if ( !needTypes || needTypes.length === 0) {
+    needTypes = JSON.parse(needTypes);
+
+    if (!needTypes || needTypes.length === 0) {
       return res.status(400).json({
         success: false,
         error: " and at least one need type are required",
       });
     }
-    const validNeedTypes = ["material", "service","money"];
+    const validNeedTypes = ["material", "service", "money"];
     const invalidTypes = needTypes.filter(
       (type) => !validNeedTypes.includes(type)
     );
@@ -555,40 +554,39 @@ console.log("body",req.query);
 
     const [approvedApplications, materialDonations] = await Promise.all([
       needTypes.includes("service")
-        ?await  Application.find({
+        ? await Application.find({
             need: needId,
             status: "Approved",
           }).populate("applicant", "name email phone")
         : Promise.resolve([]),
 
       needTypes.includes("material")
-        ?await MaterialDonation.find({
+        ? await MaterialDonation.find({
             needId: needId,
-           
           }).populate("donorId", "name email phone")
         : Promise.resolve([]),
     ]);
- const materialsSummary = {};
+    const materialsSummary = {};
 
- materialDonations.forEach((donation) => {
-   donation.materials.forEach((material) => {
-     const key = `${material.categoryName}-${material.subCategoryName}`;
+    materialDonations.forEach((donation) => {
+      donation.materials.forEach((material) => {
+        const key = `${material.categoryName}-${material.subCategoryName}`;
 
-     if (!materialsSummary[key]) {
-       materialsSummary[key] = {
-         category: material.categoryName,
-         subCategory: material.subCategoryName,
-         totalQuantity: 0,
-         unit: material.unit || "",
-       };
-     }
+        if (!materialsSummary[key]) {
+          materialsSummary[key] = {
+            category: material.categoryName,
+            subCategory: material.subCategoryName,
+            totalQuantity: 0,
+            unit: material.unit || "",
+          };
+        }
 
-     materialsSummary[key].totalQuantity += material.quantity;
-   });
- });
+        materialsSummary[key].totalQuantity += material.quantity;
+      });
+    });
 
- // Convert object to array for report
- const summarizedMaterials = Object.values(materialsSummary);
+    // Convert object to array for report
+    const summarizedMaterials = Object.values(materialsSummary);
 
     // Transform data to match schema
     const transformedData = {
@@ -604,18 +602,18 @@ console.log("body",req.query);
 
       materials: summarizedMaterials,
     };
-      const newReport = {
-        need: needId,
-description: req.body.description,
-        donations: transformedData,
-        pictures,
-        status: "pending",
-        NGO: req.user._id,
-        createdBy: req.user._id,
-      };
-      const report = await Report.create(newReport);
-      need.isReportGenerated = true;
-      need.save();
+    const newReport = {
+      need: needId,
+      description: req.body.description,
+      donations: transformedData,
+      pictures,
+      status: "pending",
+      NGO: req.user._id,
+      createdBy: req.user._id,
+    };
+    const report = await Report.create(newReport);
+    need.isReportGenerated = true;
+    need.save();
     res.status(200).json({
       success: true,
       data: need,

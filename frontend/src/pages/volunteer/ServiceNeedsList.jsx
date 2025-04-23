@@ -156,6 +156,13 @@ const ServiceNeedsList = () => {
     );
   }
 
+  console.log("All needs data:", needs);
+  needs.forEach((need) => {
+    console.log("Need ID:", need._id);
+    console.log("NGO Data:", need.NGO);
+    console.log("Profile Picture Path:", need.NGO?.profilePicture);
+  });
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Enhanced Search and Filter Section */}
@@ -265,7 +272,11 @@ const ServiceNeedsList = () => {
 
               <div className="p-6">
                 <NGOProfileBadge
-                  ngo={need.NGO}
+                  ngo={{
+                    ...need.NGO,
+                    // Ensure we're using the correct profile picture path
+                    profilePicture: need.NGO?.profilePicture,
+                  }}
                   onClick={() => handleNGOProfileClick(need.NGO)}
                 />
 
