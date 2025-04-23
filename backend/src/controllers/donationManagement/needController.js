@@ -8,8 +8,11 @@ const Application = require("../../models/applicationModel");
 const MaterialDonation = require("../../models/matterialDonation");
 const onlineUsers = socketIO.onlineUsers; // Adjust path as needed
 const io=socketIO.getIO; // Adjust path as needed
+const User = require("../../models/User");
+const fs = require("fs");
 console.log("onlineUsers", onlineUsers,io);
 const Report = require("../../models/Report");
+const {sendNotification} = require("../../utils/notificationService");
 const sendNotificationToGroup=require("../../utils/socketConfig").sendNotificationToGroup; // Adjust path as needed
 // Helper function to handle the upload
 const handleUpload = (req, res) => {
@@ -125,7 +128,16 @@ const postNgosNeed = async (req, res, next) => {
       },
     });
     
-    sendNotificationToGroup("role_ngo", "newNeed", need);
+     const donors = await User.find({ role: "individual_donor" || "organization_donor" });
+     donors.forEach((donor) => {
+       sendNotification(
+         donor._id,
+         `New need posted by ${req.user.name}`,
+         "need",
+         `/admin/users/${req.user._id}`
+       );
+     });
+    
              
     // Validate the document against the schema
     const validationError = need.validateSync();

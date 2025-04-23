@@ -1,11 +1,11 @@
 /* eslint-disable react/prop-types */
 // SocketContext.js
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import io from 'socket.io-client';
-import { useUser } from './UserContext';
+import { createContext, useContext, useEffect, useRef, useState } from "react";
+import io from "socket.io-client";
+import { useUser } from "./UserContext";
 
 const SocketContext = createContext();
-const API_BASE_URL = import.meta.env.BACKEND_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.BACKEND_URL || "http://localhost:5000";
 
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
@@ -52,24 +52,23 @@ export const SocketProvider = ({ children }) => {
 
     const newSocket = io(API_BASE_URL, {
       query: { userId: user._id },
-      transports: ['websocket'],
+      transports: ["websocket"],
       auth: {
-        token: localStorage.getItem('accessToken'),
+        token: localStorage.getItem("accessToken"),
       },
     });
 
-    newSocket.on('connect', () => {
-      console.log('Socket connected:', newSocket.id);
+    newSocket.on("connect", () => {
+      console.log("Socket connected:", newSocket.id);
       setIsConnected(true);
-      newSocket.emit('userOnline', user._id);
-    });
 
-    newSocket.on('disconnect', () => {
-      setIsConnected(false);
+      newSocket.emit("joinRoleRoom", user.role); // Join role room
+      newSocket.emit("userOnline", user._id);
     });
+    //join role room by emit
 
-    newSocket.on('connect_error', (err) => {
-      console.error('Socket connection error:', err);
+    newSocket.on("connect_error", (err) => {
+      console.error("Socket connection error:", err);
       setIsConnected(false);
     });
 
@@ -100,7 +99,7 @@ export const SocketProvider = ({ children }) => {
 export const useSocket = () => {
   const context = useContext(SocketContext);
   if (context === undefined) {
-    throw new Error('useSocket must be used within a SocketProvider');
+    throw new Error("useSocket must be used within a SocketProvider");
   }
   return context;
 };
