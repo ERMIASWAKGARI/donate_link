@@ -9,6 +9,7 @@ import {
   FaTimes,
   FaCamera,
   FaInfoCircle,
+  FaDirections,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -351,7 +352,7 @@ const PendingDonations = () => {
                           label="Address"
                           value={selectedDonation.address}
                         />
-                        <div className="h-48 rounded-lg overflow-hidden z-0 border border-gray-200">
+                        <div className=" rounded-lg overflow-hidden z-0 border border-gray-200">
                           <Map
                             latitude={selectedDonation.location.coordinates[1]}
                             longitude={selectedDonation.location.coordinates[0]}

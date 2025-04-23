@@ -293,10 +293,6 @@ const DesktopNav = ({ user, handleLogout }) => {
         </AnimatePresence>
       </div>
 
-      {/* <NotificationDropdown
-        onNotificationClick={() => setActiveDropdown(null)}
-      /> */}
-
       <div>
         <NotificationBell />
       </div>
