@@ -326,7 +326,44 @@ const requestMaterialDonation = asyncWrapper(async (req, res, next) => {
 
   sendSuccessResponse(res, 200, { donation, notification });
 });
+// Request a donation (POST)
 
+// Cancel a request (DELETE)
+const cancelMaterialDonationRequest = asyncWrapper(async (req, res, next) => {
+  const donation = await Donations.findById(req.params.id);
+  const { ngoId } = req.body;
+
+  if (!donation) {
+    return next(new AppError("No donation found with that ID", 404));
+  }
+
+  if (!donation.requests.includes(ngoId)) {
+    return next(new AppError("You haven't requested this donation", 400));
+  }
+
+  // Remove the request
+  donation.requests = donation.requests.filter(id => id.toString() !== ngoId);
+  await donation.save();
+
+  // Create cancellation notification
+  const notification = await Notification.create({
+    recipient: donation.donor,
+    sender: ngoId,
+    type: "donation-request-cancelled",
+    title: "Donation Request Cancelled",
+    message: `An NGO has cancelled their request for your donation (Tracking ID: ${donation.trackingId})`,
+    data: {
+      donationId: donation._id,
+      trackingId: donation.trackingId,
+    },
+  });
+
+  sendSuccessResponse(res, 200, { 
+    message: "Request cancelled successfully",
+    donation,
+    notification 
+  });
+});
 // @desc    Respond to donation request (Accept/Reject)
 // @route   PATCH /api/donations/material/:id/respond
 // @access  Private (Organization Donor)
@@ -499,6 +536,7 @@ module.exports = {
   getAllMaterialDonations,
   requestMaterialDonation,
   respondToDonationRequest,
+  cancelMaterialDonationRequest,
   completeDonation,
   getDonationByTrackingId,
   createOtherDonation,

@@ -179,7 +179,7 @@ const postNgosNeed = async (req, res, next) => {
 
 
 
-getAllServiceNeeds = async (req, res) => {
+const getAllServiceNeeds = async (req, res) => {
   try {
     // 1. BASE QUERY - Only service needs
     let query = { needTypes: "service" };
@@ -716,69 +716,7 @@ const getNeedById = async (req, res) => {
     });
   }
 };
-getAllServiceNeeds = async (req, res) => {
-  try {
-    // 1. BASE QUERY - Only service needs
-    let query = { needTypes: "service" };
 
-    // 2. FILTERING - Status and Urgency with combined conditions
-    const filterConditions = {};
-    if (req.query.status) filterConditions.status = req.query.status;
-    if (req.query.urgency) filterConditions.urgencyLevel = req.query.urgency;
-
-    // Combine filters with AND condition
-    if (Object.keys(filterConditions).length > 0) {
-      query = { ...query, ...filterConditions };
-    }
-
-    // 3. SEARCH - Debounced search across multiple fields
-    if (req.query.search && req.query.search.trim() !== "") {
-      const searchRegex = new RegExp(req.query.search.trim(), "i");
-      query.$or = [
-        { title: searchRegex },
-        { description: searchRegex },
-        { "NGO.name": searchRegex },
-        { "beneficiaryInfo.location.address": searchRegex },
-      ];
-    }
-
-    // 4. COUNT TOTAL (for pagination) - Before applying pagination
-    const totalCount = await Need.countDocuments(query);
-
-    // 5. SORTING
-    let sortOption = { createdAt: -1 }; // Default: newest first
-    if (req.query.sortBy && req.query.order) {
-      sortOption = {};
-      sortOption[req.query.sortBy] = req.query.order === "asc" ? 1 : -1;
-    }
-
-    // 6. PAGINATION
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 6; // Match frontend default
-    const skip = (page - 1) * limit;
-
-    // 7. EXECUTE QUERY
-    const needs = await Need.find(query)
-      .populate("NGO", "name profilePicture email phone")
-      .sort(sortOption)
-      .skip(skip)
-      .limit(limit)
-      .select("-__v"); // Exclude version field
-
-    res.status(200).json({
-      success: true,
-      count: needs.length,
-      total: totalCount,
-      data: needs,
-    });
-  } catch (error) {
-    console.error("Error fetching service needs:", error);
-    res.status(500).json({
-      success: false,
-      error: "Server error",
-    });
-  }
-};
 //get report by NGO means of user._id
 const getReportByNgo = async (req, res) => {
   try {

@@ -312,12 +312,6 @@ const DonationsList = () => {
                     >
                       Refresh
                     </button>
-                    <Link
-                      to="/share-need"
-                      className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
-                    >
-                      Share This Need
-                    </Link>
                   </div>
                 </div>
               ) : selectedCategory === "items" &&
