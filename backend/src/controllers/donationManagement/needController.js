@@ -174,6 +174,10 @@ const postNgosNeed = async (req, res, next) => {
   }
 };
 // Endpoint to make isReportGenerated false for all needs
+// controllers/statisticsController.js
+
+
+
 
 getAllServiceNeeds = async (req, res) => {
   try {
@@ -712,6 +716,69 @@ const getNeedById = async (req, res) => {
     });
   }
 };
+getAllServiceNeeds = async (req, res) => {
+  try {
+    // 1. BASE QUERY - Only service needs
+    let query = { needTypes: "service" };
+
+    // 2. FILTERING - Status and Urgency with combined conditions
+    const filterConditions = {};
+    if (req.query.status) filterConditions.status = req.query.status;
+    if (req.query.urgency) filterConditions.urgencyLevel = req.query.urgency;
+
+    // Combine filters with AND condition
+    if (Object.keys(filterConditions).length > 0) {
+      query = { ...query, ...filterConditions };
+    }
+
+    // 3. SEARCH - Debounced search across multiple fields
+    if (req.query.search && req.query.search.trim() !== "") {
+      const searchRegex = new RegExp(req.query.search.trim(), "i");
+      query.$or = [
+        { title: searchRegex },
+        { description: searchRegex },
+        { "NGO.name": searchRegex },
+        { "beneficiaryInfo.location.address": searchRegex },
+      ];
+    }
+
+    // 4. COUNT TOTAL (for pagination) - Before applying pagination
+    const totalCount = await Need.countDocuments(query);
+
+    // 5. SORTING
+    let sortOption = { createdAt: -1 }; // Default: newest first
+    if (req.query.sortBy && req.query.order) {
+      sortOption = {};
+      sortOption[req.query.sortBy] = req.query.order === "asc" ? 1 : -1;
+    }
+
+    // 6. PAGINATION
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 6; // Match frontend default
+    const skip = (page - 1) * limit;
+
+    // 7. EXECUTE QUERY
+    const needs = await Need.find(query)
+      .populate("NGO", "name profilePicture email phone")
+      .sort(sortOption)
+      .skip(skip)
+      .limit(limit)
+      .select("-__v"); // Exclude version field
+
+    res.status(200).json({
+      success: true,
+      count: needs.length,
+      total: totalCount,
+      data: needs,
+    });
+  } catch (error) {
+    console.error("Error fetching service needs:", error);
+    res.status(500).json({
+      success: false,
+      error: "Server error",
+    });
+  }
+};
 //get report by NGO means of user._id
 const getReportByNgo = async (req, res) => {
   try {
@@ -755,8 +822,93 @@ const getReportByNgo = async (req, res) => {
     });
   }
 };
+const getNGOStatistics = async (req, res) => {
+  try {
+    const ngoId = req.user._id;
+
+    const totalNeedsPosted = await Need.countDocuments({ NGO: ngoId });
+
+    const beneficiariesReached = await Need.aggregate([
+      { $match: { NGO: ngoId } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$beneficiaryInfo.numberOfBeneficiaries" },
+        },
+      },
+    ]);
+
+    const totalMaterialItems = await MaterialDonation.aggregate([
+      { $match: { NGO: ngoId } },
+      { $unwind: "$materials" },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$materials.quantity" },
+        },
+      },
+    ]);
+
+    const volunteerHours = await Application.aggregate([
+      { $match: { status: "Approved", NGO: ngoId } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$hoursPerWeek" },
+        },
+      },
+    ]);
+
+    // 👇 NEW: Group material donations by month
+    const monthlyDonations = await MaterialDonation.aggregate([
+      { $match: { NGO: ngoId } },
+      { $unwind: "$materials" },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+          },
+          totalQuantity: { $sum: "$materials.quantity" },
+        },
+      },
+      {
+        $sort: { "_id.year": 1, "_id.month": 1 },
+      },
+    ]);
+
+    // Format monthly donations nicely for frontend
+    const formattedMonthlyDonations = monthlyDonations.map((entry) => {
+      const month = entry._id.month.toString().padStart(2, "0");
+      const year = entry._id.year;
+      return {
+        month: `${year}-${month}`, // e.g., "2025-04"
+        quantity: entry.totalQuantity,
+      };
+    });
+
+    const result = {
+      monetaryDonations: "$N/A", // Still placeholder
+      materialDonations: totalMaterialItems[0]?.total || 0,
+      volunteerServiceHours: volunteerHours[0]?.total || 0,
+      beneficiariesReached: beneficiariesReached[0]?.total || 0,
+      totalNeedsPosted,
+      donationTrends: formattedMonthlyDonations, // 👈 Add this to the result
+    };
+
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("Error fetching NGO statistics:", err);
+    res.status(500).json({ error: "Failed to fetch statistics" });
+  }
+};
+
+
+
+
 module.exports = {
   getNeedById,
+  getNGOStatistics,
   getReportByNgo,
   getNeedsByNgo,
   getAllServiceNeeds,
