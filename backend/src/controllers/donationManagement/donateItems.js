@@ -1,6 +1,7 @@
 const MaterialDonation = require('../../models/matterialDonation');
 const AppError = require('../../utils/appError');
 const asyncWrapper = require('../../middleware/asyncWrapper');
+const {sendNotification} = require("../../utils/notificationService");
 
 // Create material donation
 const createMaterialDonation = async (req, res) => {
@@ -40,6 +41,14 @@ const createMaterialDonation = async (req, res) => {
     });
 
     await newDonation.save();
+     sendNotification(
+       newDonation.NGO,
+       `New donation made for your need  by ${req.user.name} with tracking ID ${trackingId}`,
+       "report",
+       `/ngo/dasboard/#donationList`
+     );
+             
+    
 
     res.status(201).json({
       message: 'Material donation submitted successfully',

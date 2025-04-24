@@ -1,11 +1,11 @@
-import { Modal, Spin } from 'antd';
-import { useEffect, useState } from 'react';
-import ErrorMessage from '../../components/ErrorMessage';
-import SuccessMessage from '../../components/SuccessMessage'; // Your new component
-import Header from '../../components/header/Header';
-import api from '../../config/axiosConfig'; // Adjust the import path as necessary
-import ProfileBasicInfo from './../../components/profile/ProfileBasicInfo';
-import { validateProfile } from './../../components/profile/ProfileDataValidator';
+import { Modal, Spin } from "antd";
+import { useEffect, useState } from "react";
+import ErrorMessage from "../../components/ErrorMessage";
+import SuccessMessage from "../../components/SuccessMessage"; // Your new component
+import Header from "../../components/header/Header";
+import api from "../../config/axiosConfig"; // Adjust the import path as necessary
+import ProfileBasicInfo from "./../../components/profile/ProfileBasicInfo";
+import { validateProfile } from "./../../components/profile/ProfileDataValidator";
 
 const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
@@ -17,14 +17,14 @@ const ProfilePage = () => {
   const [verificationModal, setVerificationModal] = useState({
     visible: false,
     type: null, // 'email' or 'phone'
-    message: '',
+    message: "",
   });
 
   const formatFieldName = (field) => {
     // Handle known special cases
     const specialCases = {
-      languagePreference: 'Language preference',
-      servicePreference: 'Service preference',
+      languagePreference: "Language preference",
+      servicePreference: "Service preference",
       // Add other special cases as needed
     };
 
@@ -36,7 +36,7 @@ const ProfilePage = () => {
     return (
       field
         // Insert space before capital letters
-        .replace(/([A-Z])/g, ' $1')
+        .replace(/([A-Z])/g, " $1")
         // Capitalize first letter of the string and letters following spaces
         .replace(/(?:^|\s)\S/g, (letter) => letter.toUpperCase())
         // Trim any extra spaces
@@ -50,14 +50,14 @@ const ProfilePage = () => {
       setError(null);
       const response = await api.get(`/users/me`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
       });
       setUser(response.data.data[0]);
     } catch (err) {
-      console.error('Failed to fetch profile:', err);
+      console.error("Failed to fetch profile:", err);
       setError({
-        message: err.response?.data?.message || 'Failed to fetch profile',
+        message: err.response?.data?.message || "Failed to fetch profile",
         details: err.response?.data?.details,
         status: err.response?.status,
       });
@@ -76,8 +76,8 @@ const ProfilePage = () => {
 
     if (Object.keys(errors).length > 0) {
       setError({
-        message: `Validation failed: ${Object.values(errors).join(', ')}.`,
-        details: 'Some fields contain invalid data',
+        message: `Validation failed: ${Object.values(errors).join(", ")}.`,
+        details: "Some fields contain invalid data",
         status: 400,
       });
       return;
@@ -86,27 +86,27 @@ const ProfilePage = () => {
     try {
       setUpdateLoading(true);
       setError(null);
-      const response = await api.patch('/users/me/update', updateData, {
+      const response = await api.patch("/users/me/update", updateData, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
       });
 
       const { data } = response;
-      console.log('Update response:', data);
+      console.log("Update response:", data);
 
-      if (data.message.updatedFields.includes('email')) {
+      if (data.message.updatedFields.includes("email")) {
         // Handle email verification flow
         setVerificationModal({
           visible: true,
-          type: 'email',
+          type: "email",
           message: data.message,
         });
-      } else if (data.message.updatedFields.includes('phone')) {
+      } else if (data.message.updatedFields.includes("phone")) {
         // Handle phone verification flow
         setVerificationModal({
           visible: true,
-          type: 'phone',
+          type: "phone",
           message: data.message,
         });
       } else {
@@ -119,9 +119,9 @@ const ProfilePage = () => {
 
       await fetchUserProfile();
     } catch (err) {
-      console.error('Update failed:', err);
+      console.error("Update failed:", err);
       setError({
-        message: err.response?.data?.message || 'Failed to update profile',
+        message: err.response?.data?.message || "Failed to update profile",
         details: err.response?.data?.errors,
         status: err.response?.status,
       });
@@ -131,37 +131,37 @@ const ProfilePage = () => {
   };
 
   const handleProfilePictureUpload = async (file) => {
-    console.log('Uploading profile picture:', file);
+    console.log("Uploading profile picture:", file);
     try {
       setUpdateLoading(true);
       setError(null);
 
       const formData = new FormData();
-      formData.append('profilePicture', file);
+      formData.append("profilePicture", file);
 
       const response = await api.patch(
-        '/users/me/upload-profile-picture',
+        "/users/me/upload-profile-picture",
         formData,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            "Content-Type": "multipart/form-data",
           },
         }
       );
 
       setSuccess({
         message: response.data.message,
-        updatedFields: ['Profile picture :)'],
+        updatedFields: ["Profile picture :)"],
       });
 
       // Refresh the user data
       await fetchUserProfile();
     } catch (err) {
-      console.error('Profile picture upload failed:', err);
+      console.error("Profile picture upload failed:", err);
       setError({
         message:
-          err.response?.data?.message || 'Failed to upload profile picture',
+          err.response?.data?.message || "Failed to upload profile picture",
         details: err.response?.data?.errors,
         status: err.response?.status,
       });
@@ -177,31 +177,31 @@ const ProfilePage = () => {
       setError(null);
 
       const response = await api.patch(
-        '/users/me/upload-verification-docs',
+        "/users/me/upload-verification-docs",
         formData,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            "Content-Type": "multipart/form-data",
           },
         }
       );
 
-      console.log('Verification docs upload response:', response.data);
+      console.log("Verification docs upload response:", response.data);
 
       setSuccess({
         message:
-          'Verification documents submitted successfully! Your account will be verified shortly.',
+          "Verification documents submitted successfully! Your account will be verified shortly.",
       });
 
       // Refresh the user data
       await fetchUserProfile();
     } catch (err) {
-      console.error('Verification docs upload failed:', err);
+      console.error("Verification docs upload failed:", err);
       setError({
         message:
           err.response?.data?.message ||
-          'Failed to upload verification documents',
+          "Failed to upload verification documents",
         details: err.response?.data?.errors,
         status: err.response?.status,
       });
@@ -214,7 +214,7 @@ const ProfilePage = () => {
     setVerificationModal({
       visible: false,
       type: null,
-      message: '',
+      message: "",
     });
   };
 
@@ -230,7 +230,7 @@ const ProfilePage = () => {
     return (
       <div className="flex justify-center items-center h-screen">
         <ErrorMessage
-          error={error || 'User data not available'}
+          error={error || "User data not available"}
           title="Profile Error"
           dismissible={false}
         />
@@ -249,9 +249,9 @@ const ProfilePage = () => {
       {/* Verification Modal */}
       <Modal
         title={
-          verificationModal.type === 'email'
-            ? 'Email Verification Required'
-            : 'Phone Verification Required'
+          verificationModal.type === "email"
+            ? "Email Verification Required"
+            : "Phone Verification Required"
         }
         visible={verificationModal.visible}
         onOk={handleVerificationModalClose}
@@ -267,7 +267,7 @@ const ProfilePage = () => {
         ]}
       >
         <div className="space-y-4">
-          {verificationModal.type === 'email' ? (
+          {verificationModal.type === "email" ? (
             <>
               <p className="bg-blue-50 px-2 py-1 font-medium rounded-md">
                 Email Update Successful!
@@ -309,7 +309,7 @@ const ProfilePage = () => {
           {error && (
             <ErrorMessage
               error={error}
-              title={error.status ? `Error (${error.status})` : 'Error'}
+              title={error.status ? `Error (${error.status})` : "Error"}
               dismissible
               onDismiss={() => setError(null)}
               className="mb-6"

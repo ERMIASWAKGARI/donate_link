@@ -178,7 +178,7 @@ const MaterialDonationForm = ({
           <button
             type="button"
             onClick={() => setShowMap(true)}
-            className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
+            className="bg-[#008080] text-white px-3 py-1 rounded text-sm"
           >
             {mapPosition ? "Change Location" : "Select on Map"}
           </button>
@@ -200,7 +200,7 @@ const MaterialDonationForm = ({
                   }
                 );
               }}
-              className="bg-green-500 text-white px-3 py-1 rounded text-sm"
+              className="border border-[#008080] hover:bg-[#008080] hover:text-white px-3 py-1 rounded text-sm"
             >
               Use Current Location
             </button>
@@ -234,8 +234,8 @@ const MaterialDonationForm = ({
 
       {/* Map Modal */}
       {showMap && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+        <div className="fixed inset-0  z-2000 bg-black bg-opacity-50 flex items-center justify-center  p-4">
+          <div className="bg-white  rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
             <div className="p-4 border-b">
               <h3 className="text-lg font-medium">Select Location on Map</h3>
               <p className="text-sm text-gray-600">
@@ -243,7 +243,7 @@ const MaterialDonationForm = ({
               </p>
             </div>
 
-            <div className="h-96 w-full relative">
+            <div className="h-96 w-full z-2000 relative">
               <MapContainer
                 center={[9.145, 40.4897]} // Center on Ethiopia
                 zoom={6}

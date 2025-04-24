@@ -26,11 +26,10 @@ import { Provider } from 'react-redux';
 import { ChatProvider } from './context/ChatContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { SocketProvider } from './context/SocketContext';
-import AdminAcccountPage from './pages/admin/AdminAccountPage';
-import AdminProfilePage from './pages/admin/AdminProfilePage';
 import AccountPage from './pages/profile/AccountPage';
 import UserProfilePage from './pages/profile/UserProfilePage';
 import { store } from './redux/store';
+import NGOReportViewer from './components/NGO/NGOReport';
 
 function App() {
   return (
@@ -66,6 +65,9 @@ function App() {
 
                   <Route element={<PrivateRoute />}>
                     <Route path="/ngo/dashboard" element={<NgoDashboard />} />
+                  </Route>
+                  <Route element={<PrivateRoute />}>
+                    <Route path="/report/:id" element={<NGOReportViewer />} />
                   </Route>
 
                   <Route element={<PrivateRoute />}>

@@ -15,25 +15,32 @@ const initializeSocket = (server) => {
   io.on("connection", (socket) => {
     console.log(`User connected: ${socket.id}`);
 
+    socket.on("joinRoleRoom", (role) => {
+      if (!role) {
+        console.error("No role provided");
+        return;
+      }
+      console.log("Joining role room:", role);
+      const roleRoom = `role_${role.toLowerCase()}`; // normalize role name
+      socket.join(roleRoom);
+      console.log(`Socket ${socket.id} joined ${roleRoom}`);
+    });
     // User authentication middleware
     socket.use(([event, ...args], next) => {
       const token = socket.handshake.auth.token;
       if (!token) return next(new Error("Unauthorized"));
       next();
     });
-socket.emit("newNeed","")
-    // Handle user online status
+
     socket.on("userOnline", (userId) => {
-      onlineUsers.set(userId, socket.id);
-      socket.join(userId); // Join user's personal room
+      console.log("User online:", userId);
+     // Ensure userId is a string
+      onlineUsers.set(userId, userId);
+      socket.join(userId);
       console.log(`User ${userId} is online`);
     });
-//join room based on user role 
-    socket.on("joinRoleRoom", (role) => {
-      const roleRoom = `role_${role}`;
-      socket.join(roleRoom);
-      console.log(`Socket ${socket.id} joined role room ${roleRoom}`);
-    });
+
+    // Handle role room joining
     // Handle conversation joining
     socket.on("joinConversation", (conversationId) => {
       socket.join(conversationId);

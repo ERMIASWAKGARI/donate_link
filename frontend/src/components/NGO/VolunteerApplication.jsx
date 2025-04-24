@@ -4,7 +4,7 @@ import Profile from "../../pages/Profile";
 import ChatModal from "../ChatModal";
 import { motion, AnimatePresence } from "framer-motion";
 import ConfirmationModal from "./ConfirmationModal";
-import { Eye } from "lucide-react";
+import { Eye, Users, Frown } from "lucide-react";
 import VolunteerCard from "./VolunteerCard";
 
 function VolunteerApplication() {
@@ -21,6 +21,7 @@ function VolunteerApplication() {
   const [actionType, setActionType] = useState("");
   const [currentVolunteerId, setCurrentVolunteerId] = useState("");
   const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [needsLoading, setNeedsLoading] = useState(true);
 
   const toggleDropdown = (id) => {
     setOpenDropdownId(openDropdownId === id ? null : id);
@@ -46,6 +47,7 @@ function VolunteerApplication() {
   useEffect(() => {
     const getServiceNeeds = async () => {
       try {
+        setNeedsLoading(true);
         const response = await axiosInstance.get("donation/services");
         if (response.data.success) {
           setServiceNeeds(response.data.data);
@@ -53,6 +55,7 @@ function VolunteerApplication() {
       } catch (error) {
         console.error("Error fetching service needs:", error);
       } finally {
+        setNeedsLoading(false);
         setLoading(false);
       }
     };
@@ -123,228 +126,282 @@ function VolunteerApplication() {
       >
         {/* Header Section */}
         <div className="text-center mb-10">
-          <h1 className="text-2xl font-bold text-gray-900 sm:text-2xl sm:tracking-tight lg:text-2xl">
+          <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
             Volunteer Management
           </h1>
-          <p className="mt-5 max-w-xl mx-auto text-xl text-gray-500">
+          <p className="mt-3 max-w-xl mx-auto text-lg text-gray-600">
             Review and manage volunteer applications for your NGO
           </p>
         </div>
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-5 border border-gray-100">
-          <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center">
-            <label
-              htmlFor="service-need"
-              className="block text-lg font-medium text-gray-700 mb-3"
-            >
-              Select Service Need
-            </label>
-            <div className="relative">
-              <select
-                id="service-need"
-                value={selectedNeed}
-                onChange={handleNeedChange}
-                className="block w-full pl-4 pr-10 py-3 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 rounded-xl"
+
+        {/* Service Needs Selection */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-200">
+          <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <label
+                htmlFor="service-need"
+                className="block text-lg font-medium text-gray-700 mb-1"
               >
-                <option value="">-- Select a service need --</option>
-                {serviceNeeds.map((need) => (
-                  <option key={need._id} value={need._id}>
-                    {need.title} ({need.urgencyLevel})
-                  </option>
-                ))}
-              </select>
+                Select Service Need
+              </label>
+              <p className="text-sm text-gray-500">
+                Choose a need to view volunteer applications
+              </p>
+            </div>
+            <div className="w-full sm:w-96">
+              {needsLoading ? (
+                <div className="h-12 bg-gray-100 rounded-lg animate-pulse"></div>
+              ) : serviceNeeds.length > 0 ? (
+                <select
+                  id="service-need"
+                  value={selectedNeed}
+                  onChange={handleNeedChange}
+                  className="block w-full pl-4 pr-10 py-3 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 rounded-lg"
+                >
+                  <option value="">-- Select a service need --</option>
+                  {serviceNeeds.map((need) => (
+                    <option key={need._id} value={need._id}>
+                      {need.title} ({need.urgencyLevel})
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-100">
+                  <div className="flex flex-col items-center">
+                    <Frown className="w-8 h-8 text-yellow-600 mb-2" />
+                    <h3 className="font-medium text-yellow-800">
+                      No Service Needs Found
+                    </h3>
+                    <p className="text-sm text-yellow-600 mt-1">
+                      Create service needs to receive volunteer applications
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
-        {selectedNeed && (
+
+        {/* Volunteer Applications Section */}
+        {selectedNeed ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100"
+            className="bg-white rounded-xl shadow-sm p-6 border border-gray-200"
           >
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4 sm:mb-0">
-                Volunteer Applications
-              </h2>
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                <svg
-                  className="-ml-1 mr-1.5 h-2 w-2 text-yellow-500"
-                  fill="currentColor"
-                  viewBox="0 0 8 8"
-                >
-                  <circle cx="4" cy="4" r="3" />
-                </svg>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">
+                  Volunteer Applications
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Review and manage applications for this need
+                </p>
+              </div>
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-teal-100 text-teal-800">
+                <Users className="w-4 h-4 mr-1.5" />
                 {volunteers.length}{" "}
                 {volunteers.length === 1 ? "application" : "applications"}
               </span>
             </div>
 
             {loading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
+              <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+                <p className="text-gray-500">Loading applications...</p>
               </div>
             ) : volunteers.length > 0 ? (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {volunteers.map((volunteer) => (
                   <motion.div
                     key={volunteer._id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-all duration-300 relative"
+                    className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-all duration-200 relative"
                   >
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="text-lg font-semibold text-gray-800">
                           {volunteer.applicant.name}
                         </h3>
-                        <p className="text-sm text-gray-500 capitalize">
-                          {volunteer.status}
-                        </p>
+                        <div className="flex items-center mt-1">
+                          <span
+                            className={`px-2 py-0.5 text-xs font-medium rounded-full capitalize ${
+                              volunteer.status === "pending"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : volunteer.status === "accepted"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {volunteer.status}
+                          </span>
+                          <span className="text-sm text-gray-500 ml-2">
+                            Applied on{" "}
+                            {new Date(volunteer.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
                       </div>
                       <button
                         onClick={() => handleViewDetails(volunteer)}
-                        className="p-2 rounded-full hover:bg-gray-100"
+                        className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-800 transition"
+                        aria-label="View details"
                       >
-                        <Eye className="w-5 h-5 text-gray-600" />
+                        <Eye className="w-5 h-5" />
                       </button>
                     </div>
                   </motion.div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-16">
-                <svg
-                  className="mx-auto h-24 w-24 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1"
-                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <h3 className="mt-5 text-xl font-medium text-gray-900">
+              <div className="text-center py-12 bg-gray-50 rounded-lg">
+                <Users className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-4 text-lg font-medium text-gray-900">
                   No applications yet
                 </h3>
-                <p className="mt-2 text-gray-500">
-                  Volunteers haven&apos;t applied to this need yet. Check back
-                  later.
+                <p className="mt-2 text-gray-600 max-w-md mx-auto">
+                  Volunteers haven't applied to this need yet. Try sharing the
+                  need to attract more volunteers.
                 </p>
               </div>
             )}
           </motion.div>
-        )}
-
-        {selectedVolunteer && (
-          <AnimatePresence>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-gray-500 bg-opacity-75  z-40"
-              onClick={handleCloseDetails}
-            />
-          </AnimatePresence>
-        )}
-        {selectedVolunteer && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-white max-w-2xl w-full rounded-xl overflow-y-auto max-h-[90vh] p-6 relative shadow-lg"
-            >
-              <button
-                onClick={handleCloseDetails}
-                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
-              <VolunteerCard
-                volunteer={selectedVolunteer}
-                handleViewProfile={handleViewProfile}
-                toggleDropdown={toggleDropdown}
-                openDropdownId={openDropdownId}
-                confirmAction={confirmAction}
-                setShowChatModal={setShowChatModal}
-                setOpenDropdownId={setOpenDropdownId}
-              />
-            </motion.div>
+        ) : (
+          <div className="bg-white rounded-xl shadow-sm p-8 text-center border border-gray-200">
+            <div className="max-w-md mx-auto">
+              <Users className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Select a Service Need
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Choose a service need from the dropdown above to view volunteer
+                applications.
+              </p>
+              {serviceNeeds.length === 0 && (
+                <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-100">
+                  <p className="text-sm text-yellow-700">
+                    You haven't created any service needs yet. Create one to
+                    start receiving volunteer applications.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         )}
+
+        {/* Volunteer Detail Modal */}
+        {selectedVolunteer && (
+          <>
+            <AnimatePresence>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-gray-500 bg-opacity-75 z-40"
+                onClick={handleCloseDetails}
+              />
+            </AnimatePresence>
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="bg-white max-w-2xl w-full rounded-xl overflow-y-auto max-h-[90vh] p-6 relative shadow-lg"
+              >
+                <button
+                  onClick={handleCloseDetails}
+                  className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition"
+                  aria-label="Close"
+                >
+                  ✕
+                </button>
+                <VolunteerCard
+                  volunteer={selectedVolunteer}
+                  handleViewProfile={handleViewProfile}
+                  toggleDropdown={toggleDropdown}
+                  openDropdownId={openDropdownId}
+                  confirmAction={confirmAction}
+                  setShowChatModal={setShowChatModal}
+                  setOpenDropdownId={setOpenDropdownId}
+                />
+              </motion.div>
+            </div>
+          </>
+        )}
+
         {/* Profile Modal */}
         {showProfileModal && (
-          <AnimatePresence>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-gray-500 bg-opacity-75 backdrop-blur-sm z-40"
-              onClick={() => {
-                setShowProfileModal(false);
-                setVolunteerDetails(null);
-              }}
-            />
-          </AnimatePresence>
-        )}
-        {showProfileModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
-            >
-              <div className="px-6 pt-6 pb-4 flex justify-between items-center border-b border-gray-100">
-                <h3 className="text-2xl font-bold text-gray-900">
-                  Volunteer Profile
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowProfileModal(false);
-                    setVolunteerDetails(null);
-                  }}
-                  className="text-gray-400 hover:text-gray-500 focus:outline-none"
-                >
-                  <svg
-                    className="h-6 w-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+          <>
+            <AnimatePresence>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-gray-500 bg-opacity-75 backdrop-blur-sm z-40"
+                onClick={() => {
+                  setShowProfileModal(false);
+                  setVolunteerDetails(null);
+                }}
+              />
+            </AnimatePresence>
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
+              >
+                <div className="px-6 pt-6 pb-4 flex justify-between items-center border-b border-gray-100">
+                  <h3 className="text-xl font-bold text-gray-900">
+                    Volunteer Profile
+                  </h3>
+                  <button
+                    onClick={() => {
+                      setShowProfileModal(false);
+                      setVolunteerDetails(null);
+                    }}
+                    className="text-gray-400 hover:text-gray-500 p-1 rounded-full hover:bg-gray-100 transition"
+                    aria-label="Close profile"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
+                    <svg
+                      className="h-6 w-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
 
-              <div className="px-6 py-4 max-h-[70vh] overflow-y-auto">
-                {profileLoading ? (
-                  <div className="flex justify-center items-center h-40">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
-                  </div>
-                ) : volunteerDetails ? (
-                  <Profile
-                    user={volunteerDetails}
-                    volunteerApplication={selectedVolunteer}
-                  />
-                ) : (
-                  <div className="text-center py-12 text-gray-500">
-                    Failed to load profile details
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </div>
+                <div className="px-6 py-4 max-h-[70vh] overflow-y-auto">
+                  {profileLoading ? (
+                    <div className="flex justify-center items-center h-40">
+                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+                    </div>
+                  ) : volunteerDetails ? (
+                    <Profile
+                      user={volunteerDetails}
+                      volunteerApplication={selectedVolunteer}
+                    />
+                  ) : (
+                    <div className="text-center py-12 text-gray-500">
+                      Failed to load profile details
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            </div>
+          </>
         )}
+
         {/* Chat Modal */}
         {showChatModal && (
           <ChatModal
@@ -352,6 +409,7 @@ function VolunteerApplication() {
             showChatModal={showChatModal}
           />
         )}
+
         {/* Confirmation Modal */}
         <ConfirmationModal
           isOpen={showConfirmation}

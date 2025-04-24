@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 import ApplicationForm from "./ApplicationForm";
 import axios from "axios";
+import MapLocation from "./MapLocation";
 
 const NeedDetailsModal = ({ need, onClose }) => {
   const [loading, setLoading] = useState(false);
@@ -195,14 +196,16 @@ const NeedDetailsModal = ({ need, onClose }) => {
                     {need.beneficiaryInfo?.numberOfBeneficiaries} people
                   </span>
                 </div>
-                <div className="flex items-start">
+                <div className="">
                   <FaMapMarkerAlt className="text-gray-400 mr-2 mt-1" />
                   <div>
                     <p>{need.beneficiaryInfo?.location?.address}</p>
-                    <p className="text-xs text-gray-500">
-                      (Lat: {need.beneficiaryInfo?.location?.latitude}, Lng:{" "}
-                      {need.beneficiaryInfo?.location?.longitude})
-                    </p>
+                    <div className="mb-3">
+                      <MapLocation
+                        latitude={need.beneficiaryInfo?.location?.latitude}
+                        longitude={need.beneficiaryInfo?.location?.longitude}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

@@ -13,6 +13,7 @@ const notificationSchema = new mongoose.Schema({
       'donation-request',
       'application',
       'need',
+      'report',
       'payment',
       'verification_docs_upload',
       'verification_status_approved',
