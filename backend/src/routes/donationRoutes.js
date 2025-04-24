@@ -20,6 +20,7 @@ router.post("/report", authMiddleware("ngo"),uploadNeedPictures, needsController
 router.get("/reportPreview/:needId", authMiddleware("ngo"), needsController.getReportPreview);
 router.get("/reports", authMiddleware("ngo"), needsController.getReportByNgo);
 
+router.get("/statistics", authMiddleware("ngo"), needsController.getNGOStatistics);
 router.get("/report/:id", needsController.getReportById);
 router.get("/getAllNeeds", needsController.getAllNeeds);
 router.get("/ngo/:ngoId", needsController.getNeedsByNgo);
@@ -28,7 +29,6 @@ router.get("/:id", needsController.getNeedById);
 router.post("/material",authMiddleware("individual_donor" || "organization_donor"),uploadNeedPictures, donateItems.createMaterialDonation);
 router.get("/material/:ngoId/:needId", donateItems.getMaterialDonation);
 router.put("/material/:id", donateItems.updateMaterialDonation);
-
 // Service Donation Routes
 router.post("/service", authMiddleware("individual_donor" || "organization_donor" || "volunteer"), serviceApplication.createServiceApplication);
 router.get("/service/:need", serviceApplication.getServiceDonations);
