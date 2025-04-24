@@ -23,13 +23,15 @@ import Users from './pages/admin/Users';
 import VolunteerDashboard from './pages/volunteer/VolunteerDashboard';
 // import UserProfile from "./components/header/UserProfile";
 import { Provider } from 'react-redux';
+import NGOReportViewer from './components/NGO/NGOReport';
 import { ChatProvider } from './context/ChatContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { SocketProvider } from './context/SocketContext';
+import AdminAcccountPage from './pages/admin/AccountPage';
+import AdminProfilePage from './pages/admin/ProfilePage';
 import AccountPage from './pages/profile/AccountPage';
 import UserProfilePage from './pages/profile/UserProfilePage';
 import { store } from './redux/store';
-import NGOReportViewer from './components/NGO/NGOReport';
 
 function App() {
   return (
