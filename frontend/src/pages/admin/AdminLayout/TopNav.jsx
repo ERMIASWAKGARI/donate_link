@@ -17,7 +17,7 @@ const TopNav = () => {
   };
 
   return (
-    <header className="shadow-sm h-16 flex items-center justify-between px-6 relative z-10">
+    <header className="shadow-sm h-16 bg-[#008080] flex items-center justify-between px-6 relative z-10">
       {/* Left: Logo/Menu */}
       <div className="flex items-center"></div>
 
@@ -26,7 +26,7 @@ const TopNav = () => {
         <NotificationBell />
 
         {/* Spacer */}
-        <div className="ml-4 relative hover:bg-gray-200 rounded-md">
+        <div className="ml-4 relative hover:bg-yellow-500 rounded-md">
           <button
             className="flex items-center space-x-2 p-2  rounded-full transition"
             onClick={toggleDropdown}
@@ -40,7 +40,7 @@ const TopNav = () => {
               alt="Admin"
               className="w-8 h-8 rounded-full object-cover"
             />
-            <span className="text-sm font-medium   ">
+            <span className="text-sm font-medium text-white   ">
               {user?.name || 'Admin'}
             </span>
           </button>
