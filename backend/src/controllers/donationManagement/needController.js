@@ -245,29 +245,49 @@ const getAllServiceNeeds = async (req, res) => {
 //get all NGO service needs
 const getAllNGOServiceNeeds = async (req, res) => {
   try {
-    // Find the specific need for the given NGO
-    const need = await Need.find({
-      NGO: req.user?._id,
-      needTypes: ["service"],
-    }).populate("NGO", "name  email"); // Populate NGO basic info
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
 
-    if (!need || need.length === 0) {
+    // Find all service needs for the given NGO with pagination
+    const [needs, totalCount] = await Promise.all([
+      Need.find({
+        NGO: req.user?._id,
+        needTypes: ["service"],
+      })
+        .populate("NGO", "name email") // Populate NGO basic info
+        .sort({ createdAt: -1 }) // Sort by newest first
+        .skip(skip)
+        .limit(limit),
+      Need.countDocuments({
+        NGO: req.user?._id,
+        needTypes: ["service"],
+      }),
+    ]);
+
+    if (!needs || needs.length === 0) {
       return res.status(404).json({
         success: false,
-        error: "Service need not found for the specified NGO",
+        error: "No service needs found for the specified NGO",
       });
     }
 
     res.status(200).json({
       success: true,
-      data: need,
+      data: needs,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalCount / limit),
+        totalItems: totalCount,
+        itemsPerPage: limit,
+      },
     });
   } catch (error) {
-    console.error("Error fetching NGO service need:", error);
+    console.error("Error fetching NGO service needs:", error);
     if (error.kind === "ObjectId") {
       return res.status(400).json({
         success: false,
-        error: "Invalid NGO ID or Need ID",
+        error: "Invalid NGO ID",
       });
     }
     res.status(500).json({
@@ -460,6 +480,7 @@ const getReportPreview = async (req, res) => {
       })),
 
       materials: summarizedMaterials,
+      numberOfBeneficiaries:need.beneficiaryInfo.numberOfBeneficiaries
     };
 
     const totals = {

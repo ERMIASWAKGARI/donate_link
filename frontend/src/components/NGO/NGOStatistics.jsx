@@ -3,6 +3,15 @@ import { Bar } from "react-chartjs-2";
 import "chart.js/auto";
 import axios from "../../config/axiosConfig";
 
+// Icon imports
+import {
+  FaHandHoldingUsd,
+  FaBoxOpen,
+  FaUserClock,
+  FaUsers,
+  FaClipboardList,
+} from "react-icons/fa";
+
 const NGOStatistics = () => {
   const [statistics, setStatistics] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -11,7 +20,7 @@ const NGOStatistics = () => {
   useEffect(() => {
     const fetchStatistics = async () => {
       try {
-        const response = await axios.get("/donation/statistics"); // Adjust if route differs
+        const response = await axios.get("/donation/statistics");
         setStatistics(response.data);
       } catch (err) {
         setError("Failed to load statistics");
@@ -38,15 +47,21 @@ const NGOStatistics = () => {
       {
         label: "Material Donations (items)",
         data: statistics?.donationTrends?.map((d) => d.quantity) || [],
-        backgroundColor: "rgba(75, 192, 192, 0.6)",
+        backgroundColor: "#008080",
         borderColor: "rgba(75, 192, 192, 1)",
         borderWidth: 1,
       },
     ],
   };
 
-  if (loading)
-    return <div className="text-center mt-10">Loading statistics...</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="w-12 h-12 border-4 border-[#008080] border-dashed rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   if (error)
     return <div className="text-center text-red-500 mt-10">{error}</div>;
 
@@ -57,22 +72,27 @@ const NGOStatistics = () => {
         <StatCard
           title="Monetary Donations"
           value={statistics.monetaryDonations}
+          Icon={FaHandHoldingUsd}
         />
         <StatCard
           title="Material Donations"
           value={`${statistics.materialDonations} items`}
+          Icon={FaBoxOpen}
         />
         <StatCard
           title="Volunteer Service Hours"
           value={`${statistics.volunteerServiceHours} hours`}
+          Icon={FaUserClock}
         />
         <StatCard
           title="Beneficiaries Reached"
           value={`${statistics.beneficiariesReached} people`}
+          Icon={FaUsers}
         />
         <StatCard
           title="Total Needs Posted"
           value={statistics.totalNeedsPosted}
+          Icon={FaClipboardList}
         />
       </div>
 
@@ -92,10 +112,14 @@ const NGOStatistics = () => {
   );
 };
 
-const StatCard = ({ title, value }) => (
+// eslint-disable-next-line react/prop-types
+const StatCard = ({ title, value, Icon }) => (
   <div className="stat-card border border-gray-300 rounded-lg p-4 shadow-md flex-1 max-w-xs text-center">
-    <h3 className="text-lg font-semibold mb-2">{title}</h3>
-    <p className="text-xl font-bold">{value}</p>
+    <div className="flex items-center justify-center gap-2 mb-2">
+      <Icon className="text-teal-600 text-xl" />
+      <h3 className="text-lg font-semibold">{title}</h3>
+    </div>
+    <p className="text-xl text-[#008080] font-bold">{value}</p>
   </div>
 );
 
