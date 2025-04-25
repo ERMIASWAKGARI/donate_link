@@ -1,8 +1,9 @@
-//prepare the component to be used in the NGO report where it get id from search params and then use it to get the report data from the backend and show it in the component
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import axios from "../../config/axiosConfig";
 import dayjs from "dayjs";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import Header from "../header/Header";
 
 const NGOReportViewer = () => {
@@ -10,6 +11,7 @@ const NGOReportViewer = () => {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const reportRef = useRef(null);
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -47,6 +49,20 @@ const NGOReportViewer = () => {
     );
   };
 
+  const handleDownloadPDF = async () => {
+    if (!reportRef.current) return;
+
+    const canvas = await html2canvas(reportRef.current, { scale: 2 });
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save(`report-${id}.pdf`);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -79,7 +95,19 @@ const NGOReportViewer = () => {
     <>
       <Header />
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={handleDownloadPDF}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+          >
+            Download as PDF
+          </button>
+        </div>
+
+        <div
+          ref={reportRef}
+          className="bg-white rounded-xl shadow-md overflow-hidden"
+        >
           {/* Report Header */}
           <div className="p-6 border-b border-gray-200">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -90,7 +118,7 @@ const NGOReportViewer = () => {
             </div>
           </div>
 
-          {/* Basic Information */}
+          {/* Basic Info */}
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-gray-200">
             <div>
               <h3 className="text-sm font-medium text-gray-500">Created By</h3>
@@ -289,8 +317,6 @@ const NGOReportViewer = () => {
                               {service.endDate
                                 ? dayjs(service.endDate).format("MMM D, YYYY")
                                 : "Ongoing"}
-                              {service.hoursPerWeek &&
-                                ` (${service.hoursPerWeek} hrs/week)`}
                             </p>
                           </div>
                         </div>
