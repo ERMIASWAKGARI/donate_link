@@ -1,20 +1,20 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const paymentSchema = new mongoose.Schema(
   {
     needId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Needs",
+      ref: 'Needs',
       required: true,
     },
     donorId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     NGOId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     amount: {
@@ -24,87 +24,32 @@ const paymentSchema = new mongoose.Schema(
     },
     currency: {
       type: String,
-      default: "ETB",
-      enum: ["ETB", "USD", "EUR", "GBP"], // Common currencies
+      default: 'ETB',
+      enum: ['ETB', 'USD', 'EUR', 'GBP'], // Common currencies
     },
+
     description: {
       type: String,
       maxlength: 500,
     },
-    paymentMethod: {
-      type: String,
-      enum: [
-        "Bank Transfer",
-        "Mobile Wallet",
-        "International Transfer",
-        "Credit Card",
-        "Cash",
-        "Check",
-      ],
-      required: true,
-    },
-    paymentDetails: {
-      // Flexible field for method-specific details
-      bankName: String,
-      accountNumber: String,
-      mobileProvider: String,
-      phoneNumber: String,
-      cardLastFour: String,
-      checkNumber: String,
-      swiftCode: String,
-      iban: String,
-    },
-    recipientBankDetails: {
-      bankCode: String,
-      accountNumber: String,
-      accountName: String,
-    },
-    transactionID: {
-      type: String,
-      required: true,
-      unique: true,
-      index: true,
-    },
+
     reference: {
       type: String,
-      index: true,
-    },
-    receiptURL: {
-      type: String,
-      validate: {
-        validator: function (v) {
-          return /^https?:\/\//.test(v);
-        },
-        message: "Receipt URL must be a valid HTTP/HTTPS link",
-      },
-    },
-    status: {
-      type: String,
-      enum: [
-        "Initiated",
-        "Pending",
-        "Processing",
-        "Completed",
-        "Failed",
-        "Refunded",
-        "On Hold",
-      ],
-      default: "Initiated",
     },
 
-    isRecurring: {
-      type: Boolean,
-      default: false,
+    tx_ref: {
+      type: String,
     },
-    recurringDetails: {
-      frequency: {
-        type: String,
-        enum: ["Weekly", "Monthly", "Quarterly", "Yearly"],
-      },
-      nextPaymentDate: Date,
-      endDate: Date,
+
+    status: {
+      type: String,
+      enum: ['Pending', 'Completed', 'Failed'],
+      default: 'pending',
     },
+
+    receiptUrl: { type: String },
   },
+
   {
     timestamps: true,
     toJSON: { virtuals: true },
@@ -113,8 +58,8 @@ const paymentSchema = new mongoose.Schema(
 );
 
 // Add status to history when status changes
-paymentSchema.pre("save", function (next) {
-  if (this.isModified("status")) {
+paymentSchema.pre('save', function (next) {
+  if (this.isModified('status')) {
     this.statusHistory = this.statusHistory || [];
     this.statusHistory.push({
       status: this.status,
@@ -124,4 +69,4 @@ paymentSchema.pre("save", function (next) {
   next();
 });
 
-module.exports = mongoose.model("Payment", paymentSchema);
+module.exports = mongoose.model('Payment', paymentSchema);

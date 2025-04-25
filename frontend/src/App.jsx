@@ -9,8 +9,8 @@ import ResetPassword from './components/ResetPassword';
 import ScrollToTop from './components/common/ScrollToTop';
 import { UserProvider } from './context/UserContext';
 import IndividualDashboard from './pages/Donor/IndividualDonor/DashboardIndividual';
+import DonationForm from './pages/Donor/IndividualDonor/DonationForm';
 import NeedDetail from './pages/Donor/IndividualDonor/NeedDetail';
-import DonationForm from './pages/Donor/OrganizationalDonor/DonationForm';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import NotFoundPage from './pages/NotFound';
@@ -27,11 +27,14 @@ import NGOReportViewer from './components/NGO/NGOReport';
 import { ChatProvider } from './context/ChatContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { SocketProvider } from './context/SocketContext';
+import PaymentSuccess from './pages/Donor/IndividualDonor/PaymentSuccess';
 import AdminAcccountPage from './pages/admin/AdminAccountPage';
 import AdminProfilePage from './pages/admin/AdminProfilePage';
 import AccountPage from './pages/profile/AccountPage';
 import UserProfilePage from './pages/profile/UserProfilePage';
 import { store } from './redux/store';
+
+/////
 
 function App() {
   return (
@@ -99,6 +102,16 @@ function App() {
                     <Route path="/account/settings" element={<AccountPage />} />
                   </Route>
                   <Route path="*" element={<NotFoundPage />} />
+
+                  {/* Add more routes as needed */}
+                  <Route
+                    path="/donor/donation-form"
+                    element={<DonationForm />}
+                  />
+                  <Route
+                    path="/donor/payment-success"
+                    element={<PaymentSuccess />}
+                  />
                 </Routes>
               </NotificationProvider>
             </ChatProvider>
