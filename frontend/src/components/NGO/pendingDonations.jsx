@@ -14,7 +14,7 @@ import {
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { UserContext } from "../../context/UserContext";
-import Loading from "./Loading";
+
 import Map from "./Map";
 const PendingDonations = () => {
   const { user } = useContext(UserContext);
@@ -59,15 +59,7 @@ const PendingDonations = () => {
         }
       );
 
-      setDonations((prevDonations) =>
-        prevDonations.map((donation) =>
-          donation._id === donationId
-            ? { ...donation, status: "requested" }
-            : donation
-        )
-      );
-      fetchDonations(); // Refetch donations to get updated status
-      toast.success("Donation requested successfully!", {
+      toast.success("Donation request sent successfully!", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -75,6 +67,13 @@ const PendingDonations = () => {
         pauseOnHover: true,
         progressStyle: { backgroundColor: "#4CAF50" },
       });
+      fetchDonations(); // Refresh the list
+      if (selectedDonation?._id === donationId) {
+        setSelectedDonation((prev) => ({
+          ...prev,
+          requests: [...prev.requests, ngoId],
+        }));
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to request donation", {
         position: "top-right",
@@ -84,6 +83,7 @@ const PendingDonations = () => {
       });
     }
   };
+
   const handleCancelRequest = async (donationId) => {
     try {
       const ngoId = user?._id;
@@ -95,15 +95,30 @@ const PendingDonations = () => {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-          data: { ngoId }, // For DELETE with body
+          data: { ngoId },
         }
       );
 
-      // Update local state or refetch data
-      fetchDonations(); // Refetch donations to get updated status
-      toast.success("Request cancelled successfully!");
+      toast.success("Request cancelled successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        progressStyle: { backgroundColor: "#4CAF50" },
+      });
+      fetchDonations(); // Refresh the list
+      if (selectedDonation?._id === donationId) {
+        setSelectedDonation((prev) => ({
+          ...prev,
+          requests: prev.requests.filter((id) => id !== ngoId),
+        }));
+      }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to cancel request");
+      toast.error(error.response?.data?.message || "Failed to cancel request", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        progressStyle: { backgroundColor: "#F44336" },
+      });
     }
   };
 
@@ -118,7 +133,11 @@ const PendingDonations = () => {
   };
 
   if (loading) {
-    return <Loading />;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="w-12 h-12 border-4 border-[#008080] border-dashed rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   if (error) {
@@ -454,6 +473,7 @@ const PendingDonations = () => {
 };
 
 export default PendingDonations;
+// eslint-disable-next-line react/prop-types
 const DetailRow = ({ label, value }) => (
   <div>
     <p className="text-sm font-medium text-gray-500">{label}</p>

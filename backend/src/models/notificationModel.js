@@ -11,6 +11,7 @@ const notificationSchema = new mongoose.Schema({
     type: String,
     enum: [
       'donation-request',
+      'donation-request-cancelled',
       'application',
       'need',
       'report',

@@ -14,18 +14,16 @@ import {
   FaImages,
   FaBoxes,
   FaHandsHelping,
-  FaHandHoldingHeart,
 } from "react-icons/fa";
 import NgoNeedForm from "./PostNeedsForm";
 import Axios from "../../config/axiosConfig";
 import { UserContext } from "../../context/UserContext";
-import Loading from "./Loading";
 
 function PostedNeeds() {
   const { user } = useContext(UserContext);
   const [showNeedForm, setShowNeedForm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [, setError] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedNeed, setSelectedNeed] = useState(null);
   const [needs, setNeeds] = useState([]);
@@ -52,6 +50,7 @@ function PostedNeeds() {
 
       setNeeds(response.data.data || []);
       setTotalItems(response.data.total || 0);
+      // eslint-disable-next-line no-unused-vars
     } catch (err) {
       setError("No posts added yet");
     } finally {
@@ -111,7 +110,11 @@ function PostedNeeds() {
   };
 
   if (loading) {
-    return <Loading />;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="w-12 h-12 border-4 border-[#008080] border-dashed rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   return (
