@@ -291,7 +291,7 @@ const Header = () => {
 
               <motion.button
                 onClick={() => navigate("/register")}
-                className="bg-yellow-400 text-green-900 px-6 py-2 rounded-full font-medium hover:bg-yellow-500 transition cursor-pointer shadow-md"
+                className="bg-yellow-400 text-[#000] px-6 py-2 rounded-full font-medium hover:bg-yellow-500 transition cursor-pointer shadow-md"
                 whileHover={{
                   scale: 1.05,
                   boxShadow: "0 5px 15px rgba(234, 179, 8, 0.4)",
