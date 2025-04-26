@@ -66,7 +66,7 @@ const NGOProfileModal = ({ ngo, onClose, onMessageClick }) => {
           {/* Header */}
           <div className="flex items-start gap-4 mb-6">
             <div className="bg-blue-100 p-3 rounded-full">
-              <FaBuilding className="text-blue-600 text-xl" />
+              <FaBuilding className="bg-[#008080] text-white  text-xl" />
             </div>
             <div>
               <h2 className="text-2xl font-bold text-gray-800">{ngo.name}</h2>
@@ -115,8 +115,8 @@ const NGOProfileModal = ({ ngo, onClose, onMessageClick }) => {
               disabled={isLoading}
               className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg transition-all ${
                 isLoading
-                  ? "bg-blue-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
+                  ? "bg-[#008080] text-white border-[#008080]"
+                  : "bg-[#008080] text-white border-[#008080]"
               } text-white shadow-md`}
             >
               {isLoading ? (

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
+
 import {
   FaSearch,
   FaExclamationCircle,
@@ -11,6 +12,7 @@ import {
   FaCalendarCheck,
   FaFire,
   FaUsers,
+  FaHandHoldingHeart,
 } from "react-icons/fa";
 import NGOProfileBadge from "./NGOProfileBadge";
 import NeedDetailsModal from "./NeedDetailsModal";
@@ -97,6 +99,7 @@ const ServiceNeedsList = () => {
   }, [chatModalReady]);
 
   // Reusable Filter Select Component
+  // Reusable Filter Select Component
   const FilterSelect = ({ name, value, onChange, options, icon: Icon }) => (
     <div className="relative">
       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -106,17 +109,20 @@ const ServiceNeedsList = () => {
         name={name}
         value={value}
         onChange={onChange}
-        className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080] focus:border-[#008080]"
       >
         {options.map((option) => (
-          <option key={option.value} value={option.value}>
+          <option
+            key={option.value}
+            value={option.value}
+            className="hover:bg-[#008080] hover:text-white"
+          >
             {option.label}
           </option>
         ))}
       </select>
     </div>
   );
-
   // Skeleton Loading Component
   const SkeletonLoader = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -166,7 +172,7 @@ const ServiceNeedsList = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Enhanced Search and Filter Section */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+      <div className="bg-white rounded-lg shadow-md p-2 mb-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Search Input */}
           <div className="relative md:col-span-2">
@@ -176,7 +182,7 @@ const ServiceNeedsList = () => {
             <input
               type="text"
               placeholder="Search services by title, description or location..."
-              className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080] focus:border-[#008080]"
               value={searchTerm}
               onChange={handleSearchChange}
             />
@@ -196,19 +202,25 @@ const ServiceNeedsList = () => {
             ]}
           />
 
-          {/* Urgency Filter */}
-          <FilterSelect
-            name="urgency"
-            value={filters.urgency}
-            onChange={handleFilterChange}
-            icon={FaFire}
-            options={[
-              { value: "", label: "All Urgency Levels" },
-              { value: "Low", label: "Low" },
-              { value: "Medium", label: "Medium" },
-              { value: "High", label: "High" },
-            ]}
-          />
+          {/* Urgency Filter with Donation Button */}
+          <div className="flex gap-2">
+            <FilterSelect
+              name="urgency"
+              value={filters.urgency}
+              onChange={handleFilterChange}
+              icon={FaFire}
+              options={[
+                { value: "", label: "All Urgency Levels" },
+                { value: "Low", label: "Low" },
+                { value: "Medium", label: "Medium" },
+                { value: "High", label: "High" },
+              ]}
+            />
+            <button className="border border-gray-300 text-gray-500 px-4 py-3 rounded-lg hover:bg-[#006666] hover:text-white transition-colors flex items-center">
+              <FaHandHoldingHeart className="mr-2" />
+              Donations
+            </button>
+          </div>
         </div>
 
         <div className="mt-4 flex justify-between items-center">
@@ -221,7 +233,7 @@ const ServiceNeedsList = () => {
           {(filters.status || filters.urgency || searchTerm) && (
             <button
               onClick={resetFilters}
-              className="flex items-center text-sm text-blue-600 hover:text-blue-800"
+              className="flex items-center text-sm text-[#008080] hover:text-[#006666]"
             >
               <FaTimes className="mr-1" />
               Reset all
@@ -339,7 +351,7 @@ const ServiceNeedsList = () => {
                   <button
                     type="button"
                     onClick={() => setSelectedNeed(need)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-full shadow-md transition duration-300 ease-in-out"
+                    className="bg-yellow-400 text-[#000] px-6 py-2 rounded-full font-normal hover:bg-yellow-500 transition cursor-pointer shadow-md"
                   >
                     Apply Now
                   </button>
