@@ -7,11 +7,13 @@ const socketIO = require("../../utils/socketConfig"); // Adjust path as needed
 const Application = require("../../models/applicationModel");
 const MaterialDonation = require("../../models/matterialDonation");
 const onlineUsers = socketIO.onlineUsers; // Adjust path as needed
-const io = socketIO.getIO; // Adjust path as needed
-console.log("onlineUsers", onlineUsers, io);
+const io=socketIO.getIO; // Adjust path as needed
+const User = require("../../models/User");
+const fs = require("fs");
+console.log("onlineUsers", onlineUsers,io);
 const Report = require("../../models/Report");
-const sendNotificationToGroup =
-  require("../../utils/socketConfig").sendNotificationToGroup; // Adjust path as needed
+const {sendNotification} = require("../../utils/notificationService");
+const sendNotificationToGroup=require("../../utils/socketConfig").sendNotificationToGroup; // Adjust path as needed
 // Helper function to handle the upload
 const handleUpload = (req, res) => {
   return new Promise((resolve, reject) => {
@@ -125,9 +127,18 @@ const postNgosNeed = async (req, res, next) => {
         })),
       },
     });
-
-    sendNotificationToGroup("role_ngo", "newNeed", need);
-
+    
+     const donors = await User.find({ role: "individual_donor" || "organization_donor" });
+     donors.forEach((donor) => {
+       sendNotification(
+         donor._id,
+         `New need posted by ${req.user.name}`,
+         "need",
+         `/admin/users/${req.user._id}`
+       );
+     });
+    
+             
     // Validate the document against the schema
     const validationError = need.validateSync();
     if (validationError) {
@@ -497,23 +508,39 @@ const getLastNeedStatus = async (req, res) => {
       });
     }
 
-    res.status(200).json({
-      success: true,
-      data: {
-        status: lastNeed.status,
-        createdAt: lastNeed.createdAt,
-        title: lastNeed.title,
-      },
-    });
+      res.status(200).json({
+        success: true,
+        data: {
+          status: lastNeed.status,
+          createdAt: lastNeed.createdAt,
+          title: lastNeed.title,
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching last need status:", error);
+      res.status(500).json({
+        success: false,
+        error: "Server error",
+      });
+    }
+  };
+const getReportById = async (req, res) => {
+  try {
+    const report = await Report.findById(req.params.id)
+      .populate('need', 'title')
+      .populate('NGO', 'name')
+      .populate('createdBy', 'name')
+      .populate('donations.services.applicant', 'name');
+      
+    if (!report) {
+      return res.status(404).json({ message: 'Report not found' });
+    }
+    
+    res.json(report);
   } catch (error) {
-    console.error("Error fetching last need status:", error);
-    res.status(500).json({
-      success: false,
-      error: "Server error",
-    });
+    res.status(500).json({ message: error.message });
   }
 };
-
 const generateReport = async (req, res) => {
   try {
     const pictures =
@@ -602,18 +629,40 @@ const generateReport = async (req, res) => {
 
       materials: summarizedMaterials,
     };
-    const newReport = {
-      need: needId,
-      description: req.body.description,
-      donations: transformedData,
-      pictures,
-      status: "pending",
-      NGO: req.user._id,
-      createdBy: req.user._id,
-    };
-    const report = await Report.create(newReport);
-    need.isReportGenerated = true;
-    need.save();
+      const newReport = {
+        need: needId,
+description: req.body.description,
+        donations: transformedData,
+        pictures,
+        status: "pending",
+        NGO: req.user._id,
+        createdBy: req.user._id,
+      };
+     
+        
+      const report = await Report.create(newReport);
+      need.isReportGenerated = true;
+      need.save();
+         const donors = await User.find({
+           role: "individual_donor" || "organization_donor",
+         });
+         donors.forEach((donor) => {
+           sendNotification(
+             donor._id,
+             `New report posted by ${req.user.name}`,
+             "report",
+             `/report/${report._id}`
+           );
+         });
+          const admins = await User.find({ role: 'admin' });
+          admins.forEach((admin) => {
+            sendNotification(
+              admin._id,
+              `New report posted by ${req.user.name}`,
+              "report",
+              `/report/${report._id}`
+            );
+          });
     res.status(200).json({
       success: true,
       data: need,
@@ -715,5 +764,6 @@ module.exports = {
   getReportPreview,
   generateReport,
   getAllNeeds,
+  getReportById,
   postNgosNeed,
 };

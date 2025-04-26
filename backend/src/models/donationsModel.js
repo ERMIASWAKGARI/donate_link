@@ -14,6 +14,7 @@ const donationsSchema = new mongoose.Schema(
     NGO: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "NGO",
+      default: null,
     },
     donationType: {
       type: String,
@@ -146,8 +147,14 @@ const donationsSchema = new mongoose.Schema(
       type: [String], // Array of image URLs
       default: [],
     },
-
-    // --- Tracking & Status ---
+//add filds for requests comes by array of NGO's ID
+    requests: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+  
     trackingId: {
       type: String,
       unique: true,
