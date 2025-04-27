@@ -15,6 +15,7 @@ const Report = require("../../models/Report");
 const {sendNotification} = require("../../utils/notificationService");
 const sendNotificationToGroup=require("../../utils/socketConfig").sendNotificationToGroup; // Adjust path as needed
 // Helper function to handle the upload
+const Payment=require("../../models/paymentModel");
 const handleUpload = (req, res) => {
   return new Promise((resolve, reject) => {
     uploadNeedPictures(req, res, (err) => {
@@ -405,17 +406,19 @@ const getReportPreview = async (req, res) => {
   try {
     const { needId, categories } = req.params;
     const { needTypes } = req.query;
-    console.log("needId", needId);
+
     if (!needTypes || needTypes.length === 0) {
       return res.status(400).json({
         success: false,
         error: " and at least one need type are required",
       });
     }
+
     const validNeedTypes = ["material", "service", "money"];
     const invalidTypes = needTypes.filter(
       (type) => !validNeedTypes.includes(type)
     );
+
     if (invalidTypes.length > 0) {
       return res.status(400).json({
         success: false,
@@ -431,22 +434,30 @@ const getReportPreview = async (req, res) => {
       });
     }
 
-    const [approvedApplications, materialDonations] = await Promise.all([
-      needTypes.includes("service")
-        ? await Application.find({
-            need: needId,
-            status: "Approved",
-          }).populate("applicant", "name email phone")
-        : Promise.resolve([]),
+    const [approvedApplications, materialDonations, monetaryDonations] =
+      await Promise.all([
+        needTypes.includes("service")
+          ? await Application.find({
+              need: needId,
+              status: "Approved",
+            }).populate("applicant", "name email phone")
+          : Promise.resolve([]),
 
-      needTypes.includes("material")
-        ? await MaterialDonation.find({
-            needId: needId,
-          }).populate("donorId", "name email phone")
-        : Promise.resolve([]),
-    ]);
+        needTypes.includes("material")
+          ? await MaterialDonation.find({
+              needId: needId,
+            }).populate("donorId", "name email phone")
+          : Promise.resolve([]),
+
+        needTypes.includes("money")
+          ? await Payment.find({
+              needId: needId,
+            }).populate("donorId", "name email phone")
+          : Promise.resolve([]),
+      ]);
+
+    // Calculate material donations summary
     const materialsSummary = {};
-
     materialDonations.forEach((donation) => {
       donation.materials.forEach((material) => {
         const key = `${material.categoryName}-${material.subCategoryName}`;
@@ -464,8 +475,17 @@ const getReportPreview = async (req, res) => {
       });
     });
 
-    // Convert object to array for report
-    const summarizedMaterials = Object.values(materialsSummary);
+    // Calculate money donations summary
+    const moneySummary = {
+      totalDonors: monetaryDonations.length,
+      totalETB: monetaryDonations
+        .filter((d) => d.currency === "ETB")
+        .reduce((sum, donation) => sum + donation.amount, 0),
+      totalUSD: monetaryDonations
+        .filter((d) => d.currency === "USD")
+        .reduce((sum, donation) => sum + donation.amount, 0),
+   
+    };
 
     // Transform data to match schema
     const transformedData = {
@@ -479,21 +499,26 @@ const getReportPreview = async (req, res) => {
         motivation: app.motivation,
       })),
 
-      materials: summarizedMaterials,
-      numberOfBeneficiaries:need.beneficiaryInfo.numberOfBeneficiaries
+      materials: Object.values(materialsSummary),
+      numberOfBeneficiaries: need.beneficiaryInfo.numberOfBeneficiaries,
+      money: moneySummary,
     };
 
     const totals = {
       services: transformedData.services.length,
       materials: transformedData.materials.reduce(
-        (sum, item) => sum + item.quantity,
+        (sum, item) => sum + item.totalQuantity,
         0
       ),
+      money: {
+        totalDonors: moneySummary.totalDonors,
+        totalETB: moneySummary.totalETB,
+        totalUSD: moneySummary.totalUSD,
+      },
     };
 
     const newReport = {
       need: needId,
-
       donations: transformedData,
       totals,
       status: "pending",
@@ -796,7 +821,15 @@ const getNGOStatistics = async (req, res) => {
         },
       },
     ]);
-
+const monetaryDonations= await Payment.aggregate([
+      { $match: { NGOId: ngoId } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$amount" },
+        },
+      },
+    ]);
     const totalMaterialItems = await MaterialDonation.aggregate([
       { $match: { NGO: ngoId } },
       { $unwind: "$materials" },
@@ -847,7 +880,7 @@ const getNGOStatistics = async (req, res) => {
     });
 
     const result = {
-      monetaryDonations: "$N/A", // Still placeholder
+      monetaryDonations: monetaryDonations[0].total || 0, // Still placeholder
       materialDonations: totalMaterialItems[0]?.total || 0,
       volunteerServiceHours: volunteerHours[0]?.total || 0,
       beneficiariesReached: beneficiariesReached[0]?.total || 0,

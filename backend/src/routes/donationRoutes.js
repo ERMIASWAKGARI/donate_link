@@ -5,6 +5,7 @@ const uploadNeedPictures = require("../middleware/uploadNeedPictures");
 const authMiddleware = require("../middleware/authenticationMiddleware");
 const donateItems = require("../controllers/donationManagement/donateItems");
 const serviceApplication = require("../controllers/donationManagement/serviceApplication");
+const paymentController = require("../controllers/paymentController");
 // Post NGO's Need with file upload support
 router.post(
   "/postNgosNeed",
@@ -34,4 +35,5 @@ router.post("/service", authMiddleware("individual_donor" || "organization_donor
 router.get("/service/:need", serviceApplication.getServiceDonations);
 router.put("/service/:id",authMiddleware("ngo"), serviceApplication.updateApplcationStatus);
 // router.put("/service/:id", serviceApplication.updateServiceDonation);
+router.get("/money/:needId", paymentController.getMoneyDonations);
 module.exports = router;

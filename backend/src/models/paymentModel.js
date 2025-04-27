@@ -27,84 +27,29 @@ const paymentSchema = new mongoose.Schema(
       default: "ETB",
       enum: ["ETB", "USD", "EUR", "GBP"], // Common currencies
     },
+
     description: {
       type: String,
       maxlength: 500,
     },
-    paymentMethod: {
-      type: String,
-      enum: [
-        "Bank Transfer",
-        "Mobile Wallet",
-        "International Transfer",
-        "Credit Card",
-        "Cash",
-        "Check",
-      ],
-      required: true,
-    },
-    paymentDetails: {
-      // Flexible field for method-specific details
-      bankName: String,
-      accountNumber: String,
-      mobileProvider: String,
-      phoneNumber: String,
-      cardLastFour: String,
-      checkNumber: String,
-      swiftCode: String,
-      iban: String,
-    },
-    recipientBankDetails: {
-      bankCode: String,
-      accountNumber: String,
-      accountName: String,
-    },
-    transactionID: {
-      type: String,
-      required: true,
-      unique: true,
-      index: true,
-    },
+
     reference: {
       type: String,
-      index: true,
-    },
-    receiptURL: {
-      type: String,
-      validate: {
-        validator: function (v) {
-          return /^https?:\/\//.test(v);
-        },
-        message: "Receipt URL must be a valid HTTP/HTTPS link",
-      },
-    },
-    status: {
-      type: String,
-      enum: [
-        "Initiated",
-        "Pending",
-        "Processing",
-        "Completed",
-        "Failed",
-        "Refunded",
-        "On Hold",
-      ],
-      default: "Initiated",
     },
 
-    isRecurring: {
-      type: Boolean,
-      default: false,
+    tx_ref: {
+      type: String,
     },
-    recurringDetails: {
-      frequency: {
-        type: String,
-        enum: ["Weekly", "Monthly", "Quarterly", "Yearly"],
-      },
-      nextPaymentDate: Date,
-      endDate: Date,
+
+    status: {
+      type: String,
+      enum: ["Pending", "Completed", "Failed"],
+      default: "pending",
     },
+
+    receiptUrl: { type: String },
   },
+
   {
     timestamps: true,
     toJSON: { virtuals: true },

@@ -1,14 +1,16 @@
-import { useState, useContext } from "react";
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
+import { useContext, useState } from "react";
 import {
+  FaBoxOpen,
+  FaCalendarAlt,
+  FaClock,
   FaHandHoldingHeart,
   FaMoneyBillWave,
-  FaBoxOpen,
-  FaClock,
-  FaCalendarAlt,
 } from "react-icons/fa";
 import Axios from "../../../config/axiosConfig";
-import MaterialDonationForm from "./MatterialDonationForm";
 import { UserContext } from "../../../context/UserContext";
+import MaterialDonationForm from "./MatterialDonationForm";
 const DonationForm = ({ need, onClose, onSubmit }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -18,6 +20,7 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
   console.log("need", need);
   const [formData, setFormData] = useState({
     type: need.needTypes.includes("money") ? "money" : need.needTypes[0],
+    currency: "ETB",
     amount: "",
     materials:
       need.categories.material?.map((item) => ({
@@ -174,13 +177,22 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
       // Submit based on donation type
       let response;
       if (formData.type === "money") {
-        response = await Axios.post("/donation/money", {
+        response = await Axios.post("/payment/initialize", {
+          amount: parseFloat(formData.amount),
+          currency: formData.currency,
+          email: user.email || "",
+          name: user.name || "",
+          phone: user.phone || "",
           NGO: need.NGO._id,
           donorId: user._id,
           needId: need._id,
-          amount: parseFloat(formData.amount),
           message: formData.message || "",
         });
+
+        console.log("response pay", response);
+
+        window.location.href = response.data.data.checkout_url;
+        return;
       } else if (formData.type === "material") {
         const formDataToSend = new FormData();
         formDataToSend.append("NGO", need.NGO._id);
@@ -282,6 +294,7 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
         onClose();
       }, 3000);
     } catch (err) {
+      console.error("Error submitting donation:", err);
       setError(
         err.response?.data?.message || err.message || "An error occurred"
       );
@@ -409,8 +422,25 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
           {/* Money Donation Form */}
           {formData.type === "money" && (
             <div className="mb-6 bg-primary/10 p-4 rounded-lg">
+              {/* Currency Selection */}
+              <div className="mb-4">
+                <label className="block text-gray-700 font-medium mb-2">
+                  Currency
+                </label>
+                <select
+                  name="currency"
+                  value={formData.currency}
+                  onChange={handleChange}
+                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                >
+                  <option value="ETB">Ethiopian Birr (ETB)</option>
+                  <option value="USD">US Dollar (USD)</option>
+                </select>
+              </div>
+
+              {/* Amount Input */}
               <label className="block text-gray-700 font-medium mb-2">
-                Amount ($)
+                Amount
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
@@ -425,7 +455,7 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
                   step="0.01"
                   className="w-full pl-8 p-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                   required
-                  placeholder="Enter amount"
+                  placeholder={`Enter amount in ${formData.currency}`}
                 />
               </div>
               {need.targetMoney && (

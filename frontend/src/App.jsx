@@ -30,6 +30,7 @@ import AccountPage from "./pages/profile/AccountPage";
 import UserProfilePage from "./pages/profile/UserProfilePage";
 import { store } from "./redux/store";
 import NGOReportViewer from "./components/NGO/NGOReport";
+import PaymentSuccess from "./pages/Donor/IndividualDonor/PaymentSuccess";
 
 function App() {
   return (
@@ -76,7 +77,10 @@ function App() {
                       element={<VolunteerDashboard />}
                     />
                   </Route>
-
+                  <Route
+                    path="/donor/payment-success"
+                    element={<PaymentSuccess />}
+                  />
                   <Route element={<PrivateRoute />}>
                     <Route
                       path="/admin/dashboard"
