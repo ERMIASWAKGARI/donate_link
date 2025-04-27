@@ -8,6 +8,7 @@ const { generateTrackingId } = require("../utils/helpers");
 const asyncWrapper = require("../middleware/asyncWrapper");
 const AppError = require("../utils/appError");
 const sendSuccessResponse = require("../utils/responseHelper");
+const  {sendNotification}=require( "../utils/notificationService");
 
 // @desc    Create a new material donation post
 // @route   POST /api/donations/material
@@ -282,7 +283,6 @@ const getAllMaterialDonations = asyncWrapper(async (req, res, next) => {
 // @access  Private (NGO)
 const requestMaterialDonation = asyncWrapper(async (req, res, next) => {
   const donation = await Donations.findById(req.params.id);
-  console.log("donation", donation);
   const { ngoId } = req.body;
 
   if (!donation) {
@@ -295,22 +295,18 @@ const requestMaterialDonation = asyncWrapper(async (req, res, next) => {
     );
   }
 
-  // Verify NGO user exists
   const ngoUser = await User.findById(ngoId);
-
   if (!ngoUser || ngoUser.role !== "ngo") {
     return next(new AppError("No valid NGO found with that ID", 404));
   }
 
-  // Update donation status, add NGO to requests array, and save
-  // donation.status = "requested";
-  if (!donation.requests.includes(ngoId)) {
-    donation.requests.push(ngoId);
+  if (donation.requests.includes(ngoId)) {
+    return next(new AppError("You have already requested this donation", 400));
   }
-  await donation.save();
-  console.log("donation", donation);
 
-  // Create notification for donor
+  donation.requests.push(ngoId);
+  await donation.save();
+
   const notification = await Notification.create({
     recipient: donation.donor,
     sender: ngoId,
@@ -323,10 +319,66 @@ const requestMaterialDonation = asyncWrapper(async (req, res, next) => {
       actionRequired: true,
     },
   });
+    sendNotification(
+      donation.donor,
+      `New request comes for the donation by ${req.user.name}`,
+      "donation-request",
+      `/admin/users/${req.user._id}`
+    );
 
-  sendSuccessResponse(res, 200, { donation, notification });
+  sendSuccessResponse(res, 200, {
+    message: "Request submitted successfully",
+    donation,
+    notification,
+  });
 });
+// Request a donation (POST)
 
+// Cancel a request (DELETE)
+const cancelMaterialDonationRequest = asyncWrapper(async (req, res, next) => {
+  const donation = await Donations.findById(req.params.id);
+  const { ngoId } = req.body;
+
+  if (!donation) {
+    return next(new AppError("No donation found with that ID", 404));
+  }
+
+  if (!donation.requests.includes(ngoId)) {
+    return next(new AppError("You haven't requested this donation", 400));
+  }
+
+  donation.requests = donation.requests.filter((id) => id.toString() !== ngoId);
+  await donation.save();
+
+  const ngoUser = await User.findById(ngoId);
+  const notification = await Notification.create({
+    recipient: donation.donor,
+    sender: ngoId,
+    type: "donation-request-cancelled",
+    title: "Donation Request Cancelled",
+    message: `${
+      ngoUser?.name || "An NGO"
+    } has cancelled their request for your donation (Tracking ID: ${
+      donation.trackingId
+    })`,
+    data: {
+      donationId: donation._id,
+      trackingId: donation.trackingId,
+    },
+  });
+    sendNotification(
+      donation.donor,
+      `New request comes for the donation by ${req.user.name}`,
+      "donation-request",
+      `/admin/users/${req.user._id}`
+    );
+
+  sendSuccessResponse(res, 200, {
+    message: "Request cancelled successfully",
+    donation,
+    notification,
+  });
+});
 // @desc    Respond to donation request (Accept/Reject)
 // @route   PATCH /api/donations/material/:id/respond
 // @access  Private (Organization Donor)
@@ -441,6 +493,7 @@ const completeDonation = asyncWrapper(async (req, res, next) => {
     },
   });
 
+
   sendSuccessResponse(res, 200, {
     donation,
     notifications: [donorNotification, ngoNotification],
@@ -499,6 +552,7 @@ module.exports = {
   getAllMaterialDonations,
   requestMaterialDonation,
   respondToDonationRequest,
+  cancelMaterialDonationRequest,
   completeDonation,
   getDonationByTrackingId,
   createOtherDonation,

@@ -27,6 +27,7 @@ const DonationsList = () => {
   const [selectedNeed, setSelectedNeed] = useState(null);
   const { user } = useUser();
   const [needs, setNeeds] = useState([]);
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const [donations, setDonations] = useState({
     money: [],
     materials: [],
@@ -66,12 +67,14 @@ const DonationsList = () => {
     const fetchNeeds = async () => {
       setLoading((prev) => ({ ...prev, needs: true }));
       try {
+        setIsPageLoading(true);
         const response = await AxiosInstance.get(`/donation/ngo/${user._id}`, {
           params: {
             page: currentPage,
             limit: itemsPerPage,
           },
         });
+        setIsPageLoading(false);
         setNeeds(response.data.data || []);
         setTotalPages(Math.ceil((response.data.total || 0) / itemsPerPage));
         setHasFetchedInitialData(true);
@@ -144,6 +147,13 @@ const DonationsList = () => {
         return null;
     }
   };
+  if (isPageLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="w-12 h-12 border-4 border-[#008080] border-dashed rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -195,18 +205,22 @@ const DonationsList = () => {
                 </div>
               ) : (
                 <select
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  className="w-full p-3 pl-3 pr-6 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   value={selectedNeed?._id || ""}
                   onChange={(e) => {
                     const need = needs.find((n) => n._id === e.target.value);
                     setSelectedNeed(need);
                   }}
                 >
-                  <option className="bg-[#008080]" value="">
+                  <option className="" value="">
                     Select a need
                   </option>
                   {needs.map((need) => (
-                    <option key={need._id} value={need._id}>
+                    <option
+                      className="hover:bg-[#008080]"
+                      key={need._id}
+                      value={need._id}
+                    >
                       {need.title || need.description}
                     </option>
                   ))}
@@ -239,7 +253,7 @@ const DonationsList = () => {
                 No Needs Created Yet
               </h3>
               <p className="text-gray-500 mb-4">
-                You haven't created any needs that could receive donations.
+                You haven&apos;t created any needs that could receive donations.
               </p>
               <Link
                 to="/create-need"
@@ -256,12 +270,12 @@ const DonationsList = () => {
       {!hasNoNeeds && (
         <>
           {/* Category Selection */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3  mb-6">
             {["money", "items", "service"].map((category) => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`flex items-center justify-center p-4 rounded-xl transition-all ${
+                className={`flex items-center justify-center p-4  transition-all ${
                   selectedCategory === category
                     ? "bg-primary text-white shadow-md"
                     : "bg-white text-gray-700 hover:bg-gray-50 shadow-sm border border-gray-200"
@@ -302,8 +316,8 @@ const DonationsList = () => {
                     No {selectedCategory} donations received yet
                   </h3>
                   <p className="text-gray-500 mb-4">
-                    This need hasn't received any {selectedCategory} donations
-                    yet.
+                    This need hasn&apos;t received any {selectedCategory}{" "}
+                    donations yet.
                   </p>
                   <div className="flex justify-center gap-4">
                     <button
@@ -312,12 +326,6 @@ const DonationsList = () => {
                     >
                       Refresh
                     </button>
-                    <Link
-                      to="/share-need"
-                      className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
-                    >
-                      Share This Need
-                    </Link>
                   </div>
                 </div>
               ) : selectedCategory === "items" &&

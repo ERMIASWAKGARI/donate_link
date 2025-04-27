@@ -13,6 +13,7 @@ import {
 
 // Fix for default marker icons in React-Leaflet
 
+// eslint-disable-next-line react/prop-types
 const NgoNeedForm = ({ onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
     title: "",
@@ -47,11 +48,6 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
         },
       },
     }));
-  };
-
-  const handleDoubleClick = (e) => {
-    handleMapClick(e);
-    setShowMap(false);
   };
 
   const handleChange = (e) => {
@@ -278,8 +274,9 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 max-w-4xl mx-auto my-6">
       <p className="text-sm text-yellow-700">
-        <strong>Note:</strong> Posts cannot be edited after submission. Please
-        verify all details before posting.
+        <strong>⚠️ Warning:</strong>
+        Posts cannot be edited after submission. Please verify all details
+        before posting.
       </p>
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Post a New Need</h2>
 

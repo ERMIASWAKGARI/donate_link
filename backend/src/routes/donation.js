@@ -5,6 +5,7 @@ const { protect, restrictTo } = require("../middleware/authMiddleware");
 const { upload } = require("../services/multer");
 
 const donationController = require("../controllers/donationController");
+const authMiddleware = require("../middleware/authenticationMiddleware");
 
 const router = express.Router();
 
@@ -38,9 +39,10 @@ router.get(
 router.post(
   "/material/:id/request",
 
+
   donationController.requestMaterialDonation
 );
-
+router.delete("/material/:id/request",authMiddleware("ngo") ,donationController.cancelMaterialDonationRequest);
 router.patch(
   "/material/:id/respond",
 

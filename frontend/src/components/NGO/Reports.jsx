@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Axios from "../../config/axiosConfig";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle } from "lucide-react";
@@ -11,7 +11,7 @@ const Reports = () => {
   const [selectedNeed, setSelectedNeed] = useState("");
   const [needs, setNeeds] = useState([]);
   const [reports, setReports] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { user } = useUser();
 
@@ -34,8 +34,10 @@ const Reports = () => {
           limit: itemsPerPage,
         },
       });
+      setLoading(false);
       setNeeds(response.data.data || []);
       setTotalItems(response.data.total || 0);
+      // eslint-disable-next-line no-unused-vars
     } catch (err) {
       setError("Failed to fetch needs. Please try again.");
     } finally {
@@ -50,7 +52,13 @@ const Reports = () => {
   const handleGenerateReport = (newReport) => {
     setReports([...reports, newReport]);
   };
-
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="w-12 h-12 border-4 border-teal-500 border-dashed rounded-full animate-spin"></div>
+      </div>
+    );
+  }
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   return (
@@ -66,7 +74,7 @@ const Reports = () => {
             No needs available for report generation.
           </h2>
           <p className="text-gray-500 mb-4">
-            You haven't created any needs yet that could generate reports.
+            You haven&apos;t created any needs yet that could generate reports.
           </p>
           <button
             onClick={() => fetchNeeds()}
