@@ -17,6 +17,7 @@ import {
   FiCheckCircle,
   FiXCircle,
 } from "react-icons/fi";
+import MoneyDonationsTable from "./moneyDonationsList";
 import Modal from "react-modal";
 import { Link } from "react-router-dom";
 
@@ -123,6 +124,19 @@ const DonationsList = () => {
           setDonations((prev) => ({
             ...prev,
             services: serviceResponse.data.donations || [],
+          }));
+        } else if (selectedCategory === "money") {
+          const moneyResponse = await AxiosInstance.get(
+            `donation/money/${selectedNeed._id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+              },
+            }
+          );
+          setDonations((prev) => ({
+            ...prev,
+            money: moneyResponse.data.data || [],
           }));
         }
       } catch (error) {
@@ -400,7 +414,17 @@ const DonationsList = () => {
                 </div>
               ) : getDonationsByType()?.length > 0 ? (
                 <div className="space-y-4">
-                  {/* Non-table donation cards */}
+                  {selectedCategory === "money" &&
+                  getDonationsByType()?.length > 0 ? (
+                    <MoneyDonationsTable
+                      donations={getDonationsByType()}
+                      loading={loading.donations}
+                    />
+                  ) : getDonationsByType()?.length > 0 ? (
+                    <div className="space-y-4">
+                      {/* Other donation types can go here */}
+                    </div>
+                  ) : null}
                 </div>
               ) : (
                 <div className="text-center py-12">

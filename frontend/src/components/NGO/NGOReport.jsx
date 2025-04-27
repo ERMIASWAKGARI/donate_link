@@ -1,17 +1,17 @@
-import { useState, useEffect, useRef } from "react";
+// components/NGOReportViewer.js
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "../../config/axiosConfig";
 import dayjs from "dayjs";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import { BlobProvider } from "@react-pdf/renderer";
 import Header from "../header/Header";
+import PDFReportDocument from "./PDFDocument";
 
 const NGOReportViewer = () => {
   const { id } = useParams();
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const reportRef = useRef(null);
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -49,20 +49,6 @@ const NGOReportViewer = () => {
     );
   };
 
-  const handleDownloadPDF = async () => {
-    if (!reportRef.current) return;
-
-    const canvas = await html2canvas(reportRef.current, { scale: 2 });
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
-
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-    pdf.save(`report-${id}.pdf`);
-  };
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -96,18 +82,63 @@ const NGOReportViewer = () => {
       <Header />
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="flex justify-end mb-4">
-          <button
-            onClick={handleDownloadPDF}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-          >
-            Download as PDF
-          </button>
+          {report && (
+            <BlobProvider document={<PDFReportDocument report={report} />}>
+              {({ blob, url, loading: pdfLoading }) => (
+                <button
+                  onClick={() => {
+                    if (blob) {
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `report-${id}-${dayjs().format(
+                        "YYYYMMDD"
+                      )}.pdf`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                    }
+                  }}
+                  disabled={pdfLoading}
+                  className={`bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition flex items-center ${
+                    pdfLoading ? "opacity-70" : ""
+                  }`}
+                >
+                  {pdfLoading ? (
+                    <>
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Generating PDF...
+                    </>
+                  ) : (
+                    "Download as PDF"
+                  )}
+                </button>
+              )}
+            </BlobProvider>
+          )}
         </div>
 
-        <div
-          ref={reportRef}
-          className="bg-white rounded-xl shadow-md overflow-hidden"
-        >
+        {/* Report View */}
+        <div className="bg-white rounded-xl shadow-md overflow-hidden">
           {/* Report Header */}
           <div className="p-6 border-b border-gray-200">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -171,10 +202,9 @@ const NGOReportViewer = () => {
                     className="w-full sm:w-48 h-48 rounded-lg overflow-hidden"
                   >
                     <img
-                      src={`http://localhost:5000/uploads/${pic.replace(
-                        /\\/g,
-                        "/"
-                      )}`}
+                      src={`
+                       http:// localhost:5000
+                      /uploads/${pic.replace(/\\/g, "/")}`}
                       alt={`Report image ${index + 1}`}
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
                     />
@@ -232,8 +262,6 @@ const NGOReportViewer = () => {
               )}
             </div>
           )}
-
-          {/* Donations Received */}
           {(report.donations?.materials?.length > 0 ||
             report.donations?.services?.length > 0) && (
             <div className="p-6">
