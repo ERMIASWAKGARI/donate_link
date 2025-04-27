@@ -298,7 +298,7 @@ const ReportForm = ({ selectedNeeds, onGenerate, clearSelection }) => {
                   {/* Report Overview */}
                   <div className="space-y-4">
                     <h4 className="text-lg font-semibold text-gray-800 border-b pb-2">
-                      {selectedNeeds.title}
+                      <strong>Project:</strong> {selectedNeeds.title}
                     </h4>
                     <div className="prose max-w-none">
                       <p className="text-gray-700 whitespace-pre-line">
@@ -450,6 +450,50 @@ const ReportForm = ({ selectedNeeds, onGenerate, clearSelection }) => {
                                   </div>
                                 </div>
                               )}
+                            {previewData.donations?.money && (
+                              <div className="mb-6">
+                                <h6 className="text-xs font-medium text-gray-500 mb-2">
+                                  MONEY DONATIONS SUMMARY
+                                </h6>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                  <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-xs">
+                                    <div className="flex justify-between items-center">
+                                      <span className="font-medium text-gray-800">
+                                        Total Donors
+                                      </span>
+                                      <span className="text-teal-600 font-medium text-lg">
+                                        {
+                                          previewData.donations.money
+                                            .totalDonors
+                                        }
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-xs">
+                                    <div className="flex justify-between items-center">
+                                      <span className="font-medium text-gray-800">
+                                        Total ETB
+                                      </span>
+                                      <span className="text-teal-600 font-medium text-lg">
+                                        {previewData.donations.money.totalETB?.toLocaleString()}{" "}
+                                        ETB
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-xs">
+                                    <div className="flex justify-between items-center">
+                                      <span className="font-medium text-gray-800">
+                                        Total USD
+                                      </span>
+                                      <span className="text-teal-600 font-medium text-lg">
+                                        {previewData.donations.money.totalUSD?.toLocaleString()}{" "}
+                                        USD
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -457,7 +501,40 @@ const ReportForm = ({ selectedNeeds, onGenerate, clearSelection }) => {
                   )}
                 </div>
 
-                <div className="sticky bottom-0 bg-white border-t px-6 py-4 flex justify-end">
+                <div className="sticky bottom-0 bg-white border-t px-6 gap-3 py-4 flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={!canPreview || isSubmitting}
+                    className="px-6 py-2 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <svg
+                          className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Submitting...
+                      </>
+                    ) : (
+                      "Generate Report"
+                    )}
+                  </button>
                   <button
                     onClick={() => setShowPreview(false)}
                     className="px-6 py-2 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition"
