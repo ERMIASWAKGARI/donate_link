@@ -134,7 +134,7 @@ const NGOStatistics = () => {
     return <div className="text-center text-red-500 mt-10">{error}</div>;
 
   return (
-    <div className="ngo-statistics p-6 max-w-7xl mx-auto">
+    <div className="ngo-statistics p-6 max-w-8xl mx-auto">
       <h2 className="text-2xl font-bold text-center mb-6">NGO Statistics</h2>
 
       <div className="statistics-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">

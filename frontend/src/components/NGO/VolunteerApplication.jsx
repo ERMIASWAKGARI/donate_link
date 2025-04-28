@@ -7,6 +7,7 @@ import ConfirmationModal from "./ConfirmationModal";
 import { Eye, Users, Frown, ChevronLeft, ChevronRight } from "lucide-react";
 import VolunteerCard from "./VolunteerCard";
 import { Spin } from "antd";
+import VolunteersList from "./VolunteersList";
 
 function VolunteerApplication() {
   const [loading, setLoading] = useState(true);
@@ -29,7 +30,7 @@ function VolunteerApplication() {
     totalItems: 0,
     itemsPerPage: 5,
   });
-
+  const [status, setStatus] = useState("");
   const toggleDropdown = (id) => {
     setOpenDropdownId(openDropdownId === id ? null : id);
   };
@@ -38,6 +39,15 @@ function VolunteerApplication() {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
       getServiceNeeds(newPage);
     }
+  };
+  const updateVolunteerStatus = (volunteerId, newStatus) => {
+    setVolunteers((prevVolunteers) =>
+      prevVolunteers.map((volunteer) =>
+        volunteer._id === volunteerId
+          ? { ...volunteer, status: newStatus }
+          : volunteer
+      )
+    );
   };
 
   const handleViewProfile = async (volunteer) => {
@@ -125,6 +135,7 @@ function VolunteerApplication() {
         `donation/service/${currentVolunteerId}`,
         { status: actionType }
       );
+      setStatus(response.data.application.status);
       if (response.data.success && selectedNeed) {
         getApplications(selectedNeed);
       }
@@ -285,142 +296,13 @@ function VolunteerApplication() {
               </div>
             ) : volunteers.length > 0 ? (
               <div className="space-y-4">
-                {volunteers.map((volunteer) => (
-                  <motion.div
-                    key={volunteer._id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-all duration-200 relative"
-                  >
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th
-                              scope="col"
-                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            >
-                              Volunteer Name
-                            </th>
-                            <th
-                              scope="col"
-                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            >
-                              Email
-                            </th>
-                            <th
-                              scope="col"
-                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            >
-                              Status
-                            </th>
-                            <th
-                              scope="col"
-                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            >
-                              Application Date
-                            </th>
-                            <th
-                              scope="col"
-                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            >
-                              Actions
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {volunteers.map((volunteer) => (
-                            <motion.tr
-                              key={volunteer._id}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ duration: 0.3 }}
-                              className="hover:bg-gray-50"
-                            >
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex items-center">
-                                  <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                    <span className="text-gray-600 font-medium">
-                                      {volunteer.applicant.name
-                                        .charAt(0)
-                                        .toUpperCase()}
-                                    </span>
-                                  </div>
-                                  <div className="ml-4">
-                                    <div className="text-sm font-medium text-gray-900">
-                                      {volunteer.applicant.name}
-                                    </div>
-                                    <div className="text-sm text-gray-500">
-                                      {volunteer.applicant.phone || "No phone"}
-                                    </div>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-900">
-                                  {volunteer.applicant.email}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span
-                                  className={`px-2 py-1 text-xs font-medium rounded-full capitalize ${
-                                    volunteer.status === "pending"
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : volunteer.status === "accepted"
-                                      ? "bg-green-100 text-green-800"
-                                      : "bg-red-100 text-red-800"
-                                  }`}
-                                >
-                                  {volunteer.status}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-500">
-                                  {new Date(
-                                    volunteer.createdAt
-                                  ).toLocaleDateString()}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <div className="flex space-x-2">
-                                  <button
-                                    onClick={() => handleViewDetails(volunteer)}
-                                    className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-800 transition"
-                                    aria-label="View details"
-                                  >
-                                    <Eye className="w-5 h-5" />
-                                  </button>
-                                  {volunteer.status === "pending" && (
-                                    <>
-                                      <button
-                                        onClick={() =>
-                                          handleAccept(volunteer._id)
-                                        }
-                                        className="p-2 rounded-lg hover:bg-green-50 text-green-600 hover:text-green-800 transition"
-                                        aria-label="Accept"
-                                      >
-                                        <Check className="w-5 h-5" />
-                                      </button>
-                                      <button
-                                        onClick={() =>
-                                          handleReject(volunteer._id)
-                                        }
-                                        className="p-2 rounded-lg hover:bg-red-50 text-red-600 hover:text-red-800 transition"
-                                        aria-label="Reject"
-                                      >
-                                        <X className="w-5 h-5" />
-                                      </button>
-                                    </>
-                                  )}
-                                </div>
-                              </td>
-                            </motion.tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </motion.div>
+                {volunteers.map((volunteer, index) => (
+                  <VolunteersList
+                    key={index}
+                    volunteer={volunteer}
+                    volunteers={volunteers}
+                    handleViewDetails={handleViewDetails}
+                  />
                 ))}
               </div>
             ) : (
@@ -493,6 +375,7 @@ function VolunteerApplication() {
                   confirmAction={confirmAction}
                   setShowChatModal={setShowChatModal}
                   setOpenDropdownId={setOpenDropdownId}
+                  updateVolunteerStatus={updateVolunteerStatus}
                 />
               </motion.div>
             </div>
