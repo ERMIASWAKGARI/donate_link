@@ -31,7 +31,7 @@ const NeedModal = ({
                   <span
                     className={`px-3 py-1 rounded-full text-sm font-medium ${
                       selectedNeed.status === "Fulfilled"
-                        ? "bg-green-100 text-green-800"
+                        ? "bg-green-100 text-[#008080]"
                         : selectedNeed.status === "Expired"
                         ? "bg-red-100 text-red-800"
                         : "bg-blue-100 text-blue-800"
@@ -45,7 +45,7 @@ const NeedModal = ({
                         ? "bg-red-100 text-red-800"
                         : selectedNeed.urgencyLevel === "Medium"
                         ? "bg-yellow-100 text-yellow-800"
-                        : "bg-green-100 text-green-800"
+                        : "bg-green-100 text-[#008080]"
                     }`}
                   >
                     {selectedNeed.urgencyLevel} Priority
@@ -89,7 +89,7 @@ const NeedModal = ({
                       Financial Target
                     </h3>
                     <div className="flex items-end justify-between">
-                      <p className="text-3xl font-bold text-blue-600">
+                      <p className="text-3xl font-bold text-[#008080]">
                         ${selectedNeed.targetMoney.toLocaleString()}
                       </p>
                       <div className="w-24 h-2 bg-blue-200 rounded-full overflow-hidden">
@@ -125,7 +125,7 @@ const NeedModal = ({
                     {selectedNeed.needTypes?.map((type) => (
                       <span
                         key={type}
-                        className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium flex items-center"
+                        className="bg-blue-100 text-[#008080] px-3 py-1 rounded-full text-sm font-medium flex items-center"
                       >
                         {type === "money" ? (
                           <FaMoneyBillWave className="mr-1" />
@@ -144,7 +144,7 @@ const NeedModal = ({
                 {/* Beneficiary Info */}
                 <section className="bg-gray-50 p-4 rounded-xl">
                   <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                    <FaUsers className="mr-2 text-purple-500" />
+                    <FaUsers className="mr-2 text-[#008080]" />
                     Beneficiary Information
                   </h3>
                   <div className="grid grid-cols-2 gap-4">

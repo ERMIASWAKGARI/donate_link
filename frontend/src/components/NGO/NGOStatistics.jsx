@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Bar } from "react-chartjs-2";
 import "chart.js/auto";
 import axios from "../../config/axiosConfig";
-
+import { Spin } from "antd";
 // Icon imports
 import {
   FaHandHoldingUsd,
@@ -124,8 +124,8 @@ const NGOStatistics = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="w-12 h-12 border-4 border-[#008080] border-dashed rounded-full animate-spin"></div>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+        <Spin size="large" />
       </div>
     );
   }

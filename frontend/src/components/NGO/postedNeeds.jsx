@@ -6,6 +6,7 @@ import { UserContext } from "../../context/UserContext";
 import NeedsList from "./NeedsList";
 import Pagination from "./Pagination"; // Import the custom Pagination component
 import NeedModal from "./NeedModal";
+import { Spin } from "antd";
 
 function PostedNeeds() {
   const { user } = useContext(UserContext);
@@ -95,8 +96,8 @@ function PostedNeeds() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="w-12 h-12 border-4 border-[#008080] border-dashed rounded-full animate-spin"></div>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+        <Spin size="large" />
       </div>
     );
   }

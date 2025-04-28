@@ -20,6 +20,7 @@ import {
 import MoneyDonationsTable from "./moneyDonationsList";
 import Modal from "react-modal";
 import { Link } from "react-router-dom";
+import { Spin } from "antd";
 
 Modal.setAppElement("#root");
 
@@ -163,8 +164,8 @@ const DonationsList = () => {
   };
   if (isPageLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="w-12 h-12 border-4 border-[#008080] border-dashed rounded-full animate-spin"></div>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+        <Spin size="large" />
       </div>
     );
   }

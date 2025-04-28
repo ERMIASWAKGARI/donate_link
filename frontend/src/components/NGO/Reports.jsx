@@ -6,6 +6,7 @@ import ReportForm from "./ReportForm";
 import { useUser } from "../../context/UserContext";
 import ReportList from "./ReportsList";
 import { FaUsers, FaMapMarkerAlt, FaCalendarAlt } from "react-icons/fa";
+import { Spin } from "antd";
 
 const Reports = () => {
   const [activeTab, setActiveTab] = useState("generate");
@@ -59,8 +60,8 @@ const Reports = () => {
   };
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="w-12 h-12 border-4 border-teal-500 border-dashed rounded-full animate-spin"></div>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+        <Spin size="large" />
       </div>
     );
   }
