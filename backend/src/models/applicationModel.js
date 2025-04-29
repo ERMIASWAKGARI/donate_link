@@ -48,12 +48,24 @@ const applicationSchema = new mongoose.Schema(
         "Rejected",
         "On Hold",
         "Withdrawn",
+        "accepted",
       ],
       default: "Submitted",
     },
   },
   { timestamps: true }
 );
+applicationSchema.post("save", async function (doc) {
+  if (doc.status === "accepted") {
+    const {
+      checkCertificates,
+    } = require("../controllers/certificateController");
+    console.log(
+      `🙋 Volunteer application ${doc._id} approved - checking certificates`
+    );
+    await checkCertificates(doc.applicant, "volunteer");
+  }
+});
 const Application = mongoose.model("Application", applicationSchema);
 
 module.exports = Application;

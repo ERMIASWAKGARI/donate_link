@@ -281,10 +281,10 @@ const ChatModal = ({ onClose, showChatModal }) => {
                     <div className="flex items-center">
                       <div className="relative">
                         <img
-                          src={
-                            otherParticipant?.profilePicture ||
-                            "/default-avatar.png"
-                          }
+                          src={`http://localhost:5000/uploads/${otherParticipant?.profilePicture.replace(
+                            /\\/g,
+                            "/"
+                          )}`}
                           alt={otherParticipant?.name}
                           className="w-10 h-10 rounded-full object-cover"
                         />
