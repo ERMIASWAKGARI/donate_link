@@ -15,6 +15,7 @@ const Report = require("../../models/Report");
 const {sendNotification} = require("../../utils/notificationService");
 const sendNotificationToGroup=require("../../utils/socketConfig").sendNotificationToGroup; // Adjust path as needed
 // Helper function to handle the upload
+const Payment=require("../../models/paymentModel");
 const handleUpload = (req, res) => {
   return new Promise((resolve, reject) => {
     uploadNeedPictures(req, res, (err) => {
@@ -174,8 +175,12 @@ const postNgosNeed = async (req, res, next) => {
   }
 };
 // Endpoint to make isReportGenerated false for all needs
+// controllers/statisticsController.js
 
-getAllServiceNeeds = async (req, res) => {
+
+
+
+const getAllServiceNeeds = async (req, res) => {
   try {
     // 1. BASE QUERY - Only service needs
     let query = { needTypes: "service" };
@@ -241,29 +246,49 @@ getAllServiceNeeds = async (req, res) => {
 //get all NGO service needs
 const getAllNGOServiceNeeds = async (req, res) => {
   try {
-    // Find the specific need for the given NGO
-    const need = await Need.find({
-      NGO: req.user?._id,
-      needTypes: ["service"],
-    }).populate("NGO", "name  email"); // Populate NGO basic info
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
 
-    if (!need || need.length === 0) {
+    // Find all service needs for the given NGO with pagination
+    const [needs, totalCount] = await Promise.all([
+      Need.find({
+        NGO: req.user?._id,
+        needTypes: ["service"],
+      })
+        .populate("NGO", "name email") // Populate NGO basic info
+        .sort({ createdAt: -1 }) // Sort by newest first
+        .skip(skip)
+        .limit(limit),
+      Need.countDocuments({
+        NGO: req.user?._id,
+        needTypes: ["service"],
+      }),
+    ]);
+
+    if (!needs || needs.length === 0) {
       return res.status(404).json({
         success: false,
-        error: "Service need not found for the specified NGO",
+        error: "No service needs found for the specified NGO",
       });
     }
 
     res.status(200).json({
       success: true,
-      data: need,
+      data: needs,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalCount / limit),
+        totalItems: totalCount,
+        itemsPerPage: limit,
+      },
     });
   } catch (error) {
-    console.error("Error fetching NGO service need:", error);
+    console.error("Error fetching NGO service needs:", error);
     if (error.kind === "ObjectId") {
       return res.status(400).json({
         success: false,
-        error: "Invalid NGO ID or Need ID",
+        error: "Invalid NGO ID",
       });
     }
     res.status(500).json({
@@ -381,17 +406,19 @@ const getReportPreview = async (req, res) => {
   try {
     const { needId, categories } = req.params;
     const { needTypes } = req.query;
-    console.log("needId", needId);
+
     if (!needTypes || needTypes.length === 0) {
       return res.status(400).json({
         success: false,
         error: " and at least one need type are required",
       });
     }
+
     const validNeedTypes = ["material", "service", "money"];
     const invalidTypes = needTypes.filter(
       (type) => !validNeedTypes.includes(type)
     );
+
     if (invalidTypes.length > 0) {
       return res.status(400).json({
         success: false,
@@ -407,22 +434,30 @@ const getReportPreview = async (req, res) => {
       });
     }
 
-    const [approvedApplications, materialDonations] = await Promise.all([
-      needTypes.includes("service")
-        ? await Application.find({
-            need: needId,
-            status: "Approved",
-          }).populate("applicant", "name email phone")
-        : Promise.resolve([]),
+    const [approvedApplications, materialDonations, monetaryDonations] =
+      await Promise.all([
+        needTypes.includes("service")
+          ? await Application.find({
+              need: needId,
+              status: "Approved",
+            }).populate("applicant", "name email phone")
+          : Promise.resolve([]),
 
-      needTypes.includes("material")
-        ? await MaterialDonation.find({
-            needId: needId,
-          }).populate("donorId", "name email phone")
-        : Promise.resolve([]),
-    ]);
+        needTypes.includes("material")
+          ? await MaterialDonation.find({
+              needId: needId,
+            }).populate("donorId", "name email phone")
+          : Promise.resolve([]),
+
+        needTypes.includes("money")
+          ? await Payment.find({
+              needId: needId,
+            }).populate("donorId", "name email phone")
+          : Promise.resolve([]),
+      ]);
+
+    // Calculate material donations summary
     const materialsSummary = {};
-
     materialDonations.forEach((donation) => {
       donation.materials.forEach((material) => {
         const key = `${material.categoryName}-${material.subCategoryName}`;
@@ -440,8 +475,17 @@ const getReportPreview = async (req, res) => {
       });
     });
 
-    // Convert object to array for report
-    const summarizedMaterials = Object.values(materialsSummary);
+    // Calculate money donations summary
+    const moneySummary = {
+      totalDonors: monetaryDonations.length,
+      totalETB: monetaryDonations
+        .filter((d) => d.currency === "ETB")
+        .reduce((sum, donation) => sum + donation.amount, 0),
+      totalUSD: monetaryDonations
+        .filter((d) => d.currency === "USD")
+        .reduce((sum, donation) => sum + donation.amount, 0),
+   
+    };
 
     // Transform data to match schema
     const transformedData = {
@@ -455,20 +499,26 @@ const getReportPreview = async (req, res) => {
         motivation: app.motivation,
       })),
 
-      materials: summarizedMaterials,
+      materials: Object.values(materialsSummary),
+      numberOfBeneficiaries: need.beneficiaryInfo.numberOfBeneficiaries,
+      money: moneySummary,
     };
 
     const totals = {
       services: transformedData.services.length,
       materials: transformedData.materials.reduce(
-        (sum, item) => sum + item.quantity,
+        (sum, item) => sum + item.totalQuantity,
         0
       ),
+      money: {
+        totalDonors: moneySummary.totalDonors,
+        totalETB: moneySummary.totalETB,
+        totalUSD: moneySummary.totalUSD,
+      },
     };
 
     const newReport = {
       need: needId,
-
       donations: transformedData,
       totals,
       status: "pending",
@@ -712,6 +762,7 @@ const getNeedById = async (req, res) => {
     });
   }
 };
+
 //get report by NGO means of user._id
 const getReportByNgo = async (req, res) => {
   try {
@@ -755,8 +806,101 @@ const getReportByNgo = async (req, res) => {
     });
   }
 };
+const getNGOStatistics = async (req, res) => {
+  try {
+    const ngoId = req.user._id;
+
+    const totalNeedsPosted = await Need.countDocuments({ NGO: ngoId });
+
+    const beneficiariesReached = await Need.aggregate([
+      { $match: { NGO: ngoId } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$beneficiaryInfo.numberOfBeneficiaries" },
+        },
+      },
+    ]);
+const monetaryDonations= await Payment.aggregate([
+      { $match: { NGOId: ngoId } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$amount" },
+        },
+      },
+    ]);
+    const totalMaterialItems = await MaterialDonation.aggregate([
+      { $match: { NGO: ngoId } },
+      { $unwind: "$materials" },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$materials.quantity" },
+        },
+      },
+    ]);
+
+    const volunteerHours = await Application.aggregate([
+      { $match: { status: "Approved", NGO: ngoId } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$hoursPerWeek" },
+        },
+      },
+    ]);
+
+    // 👇 NEW: Group material donations by month
+    const monthlyDonations = await MaterialDonation.aggregate([
+      { $match: { NGO: ngoId } },
+      { $unwind: "$materials" },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+          },
+          totalQuantity: { $sum: "$materials.quantity" },
+        },
+      },
+      {
+        $sort: { "_id.year": 1, "_id.month": 1 },
+      },
+    ]);
+
+    // Format monthly donations nicely for frontend
+    const formattedMonthlyDonations = monthlyDonations.map((entry) => {
+      const month = entry._id.month.toString().padStart(2, "0");
+      const year = entry._id.year;
+      return {
+        month: `${year}-${month}`, // e.g., "2025-04"
+        quantity: entry.totalQuantity,
+      };
+    });
+
+    const result = {
+      monetaryDonations: monetaryDonations[0].total || 0, // Still placeholder
+      materialDonations: totalMaterialItems[0]?.total || 0,
+      volunteerServiceHours: volunteerHours[0]?.total || 0,
+      beneficiariesReached: beneficiariesReached[0]?.total || 0,
+      totalNeedsPosted,
+      donationTrends: formattedMonthlyDonations, // 👈 Add this to the result
+    };
+
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("Error fetching NGO statistics:", err);
+    res.status(500).json({ error: "Failed to fetch statistics" });
+  }
+};
+
+
+
+
 module.exports = {
   getNeedById,
+  getNGOStatistics,
   getReportByNgo,
   getNeedsByNgo,
   getAllServiceNeeds,

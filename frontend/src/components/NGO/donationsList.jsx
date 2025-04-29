@@ -17,8 +17,10 @@ import {
   FiCheckCircle,
   FiXCircle,
 } from "react-icons/fi";
+import MoneyDonationsTable from "./moneyDonationsList";
 import Modal from "react-modal";
 import { Link } from "react-router-dom";
+import { Spin } from "antd";
 
 Modal.setAppElement("#root");
 
@@ -27,6 +29,7 @@ const DonationsList = () => {
   const [selectedNeed, setSelectedNeed] = useState(null);
   const { user } = useUser();
   const [needs, setNeeds] = useState([]);
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const [donations, setDonations] = useState({
     money: [],
     materials: [],
@@ -66,12 +69,14 @@ const DonationsList = () => {
     const fetchNeeds = async () => {
       setLoading((prev) => ({ ...prev, needs: true }));
       try {
+        setIsPageLoading(true);
         const response = await AxiosInstance.get(`/donation/ngo/${user._id}`, {
           params: {
             page: currentPage,
             limit: itemsPerPage,
           },
         });
+        setIsPageLoading(false);
         setNeeds(response.data.data || []);
         setTotalPages(Math.ceil((response.data.total || 0) / itemsPerPage));
         setHasFetchedInitialData(true);
@@ -121,6 +126,19 @@ const DonationsList = () => {
             ...prev,
             services: serviceResponse.data.donations || [],
           }));
+        } else if (selectedCategory === "money") {
+          const moneyResponse = await AxiosInstance.get(
+            `donation/money/${selectedNeed._id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+              },
+            }
+          );
+          setDonations((prev) => ({
+            ...prev,
+            money: moneyResponse.data.data || [],
+          }));
         }
       } catch (error) {
         console.error("Error fetching donations:", error);
@@ -144,6 +162,13 @@ const DonationsList = () => {
         return null;
     }
   };
+  if (isPageLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -195,18 +220,22 @@ const DonationsList = () => {
                 </div>
               ) : (
                 <select
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  className="w-full p-3 pl-3 pr-6 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   value={selectedNeed?._id || ""}
                   onChange={(e) => {
                     const need = needs.find((n) => n._id === e.target.value);
                     setSelectedNeed(need);
                   }}
                 >
-                  <option className="bg-[#008080]" value="">
+                  <option className="" value="">
                     Select a need
                   </option>
                   {needs.map((need) => (
-                    <option key={need._id} value={need._id}>
+                    <option
+                      className="hover:bg-[#008080]"
+                      key={need._id}
+                      value={need._id}
+                    >
                       {need.title || need.description}
                     </option>
                   ))}
@@ -239,7 +268,7 @@ const DonationsList = () => {
                 No Needs Created Yet
               </h3>
               <p className="text-gray-500 mb-4">
-                You haven't created any needs that could receive donations.
+                You haven&apos;t created any needs that could receive donations.
               </p>
               <Link
                 to="/create-need"
@@ -256,12 +285,12 @@ const DonationsList = () => {
       {!hasNoNeeds && (
         <>
           {/* Category Selection */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3  mb-6">
             {["money", "items", "service"].map((category) => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`flex items-center justify-center p-4 rounded-xl transition-all ${
+                className={`flex items-center justify-center p-4  transition-all ${
                   selectedCategory === category
                     ? "bg-primary text-white shadow-md"
                     : "bg-white text-gray-700 hover:bg-gray-50 shadow-sm border border-gray-200"
@@ -302,8 +331,8 @@ const DonationsList = () => {
                     No {selectedCategory} donations received yet
                   </h3>
                   <p className="text-gray-500 mb-4">
-                    This need hasn't received any {selectedCategory} donations
-                    yet.
+                    This need hasn&apos;t received any {selectedCategory}{" "}
+                    donations yet.
                   </p>
                   <div className="flex justify-center gap-4">
                     <button
@@ -312,12 +341,6 @@ const DonationsList = () => {
                     >
                       Refresh
                     </button>
-                    <Link
-                      to="/share-need"
-                      className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
-                    >
-                      Share This Need
-                    </Link>
                   </div>
                 </div>
               ) : selectedCategory === "items" &&
@@ -392,7 +415,17 @@ const DonationsList = () => {
                 </div>
               ) : getDonationsByType()?.length > 0 ? (
                 <div className="space-y-4">
-                  {/* Non-table donation cards */}
+                  {selectedCategory === "money" &&
+                  getDonationsByType()?.length > 0 ? (
+                    <MoneyDonationsTable
+                      donations={getDonationsByType()}
+                      loading={loading.donations}
+                    />
+                  ) : getDonationsByType()?.length > 0 ? (
+                    <div className="space-y-4">
+                      {/* Other donation types can go here */}
+                    </div>
+                  ) : null}
                 </div>
               ) : (
                 <div className="text-center py-12">

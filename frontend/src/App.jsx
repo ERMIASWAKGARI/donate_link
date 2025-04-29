@@ -23,18 +23,14 @@ import Users from './pages/admin/Users';
 import VolunteerDashboard from './pages/volunteer/VolunteerDashboard';
 // import UserProfile from "./components/header/UserProfile";
 import { Provider } from 'react-redux';
-import NGOReportViewer from './components/NGO/NGOReport';
 import { ChatProvider } from './context/ChatContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { SocketProvider } from './context/SocketContext';
-import PaymentSuccess from './pages/Donor/IndividualDonor/PaymentSuccess';
-import AdminAcccountPage from './pages/admin/AdminAccountPage';
-import AdminProfilePage from './pages/admin/AdminProfilePage';
 import AccountPage from './pages/profile/AccountPage';
 import UserProfilePage from './pages/profile/UserProfilePage';
 import { store } from './redux/store';
-
-/////
+import NGOReportViewer from './components/NGO/NGOReport';
+import PaymentSuccess from './pages/Donor/IndividualDonor/PaymentSuccess';
 
 function App() {
   return (
@@ -81,7 +77,10 @@ function App() {
                       element={<VolunteerDashboard />}
                     />
                   </Route>
-
+                  <Route
+                    path="/donor/payment-success"
+                    element={<PaymentSuccess />}
+                  />
                   <Route element={<PrivateRoute />}>
                     <Route
                       path="/admin/dashboard"

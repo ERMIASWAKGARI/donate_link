@@ -184,7 +184,7 @@ const LocationMap = ({ setFormData, mapCenter, setMapCenter }) => {
           center={markerPosition}
           zoom={13}
           className="h-full w-full"
-          style={{ borderRadius: "0.5rem" }}
+          style={{ borderRadius: "0.5rem", zIndex: 0 }}
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

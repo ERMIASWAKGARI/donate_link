@@ -175,9 +175,11 @@ const ApplicationForm = ({ need, onSubmit, loading }) => {
         <button
           type="submit"
           disabled={loading}
-          className={`w-full py-2 px-4 rounded-md text-white font-medium ${
-            loading ? "bg-blue-400" : "bg-blue-600 hover:bg-blue-700"
-          } transition-colors`}
+          className={`w-full py-2 px-4 rounded-md font-medium transition-colors duration-300 ${
+            loading
+              ? "bg-teal-300 text-white cursor-not-allowed"
+              : "border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white"
+          }`}
         >
           {loading ? "Submitting..." : "Submit Application"}
         </button>

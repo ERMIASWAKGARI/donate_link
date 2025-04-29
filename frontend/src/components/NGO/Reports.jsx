@@ -1,19 +1,22 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Axios from "../../config/axiosConfig";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle } from "lucide-react";
 import ReportForm from "./ReportForm";
 import { useUser } from "../../context/UserContext";
-import ReportList from "./reportPreview";
+import ReportList from "./ReportsList";
+import { FaUsers, FaMapMarkerAlt, FaCalendarAlt } from "react-icons/fa";
+import { Spin } from "antd";
 
 const Reports = () => {
   const [activeTab, setActiveTab] = useState("generate");
   const [selectedNeed, setSelectedNeed] = useState("");
   const [needs, setNeeds] = useState([]);
   const [reports, setReports] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { user } = useUser();
+  const formRef = useRef(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -34,8 +37,10 @@ const Reports = () => {
           limit: itemsPerPage,
         },
       });
+      setLoading(false);
       setNeeds(response.data.data || []);
       setTotalItems(response.data.total || 0);
+      // eslint-disable-next-line no-unused-vars
     } catch (err) {
       setError("Failed to fetch needs. Please try again.");
     } finally {
@@ -45,12 +50,21 @@ const Reports = () => {
 
   const handleNeedChange = (need) => {
     setSelectedNeed(need);
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
   };
 
   const handleGenerateReport = (newReport) => {
     setReports([...reports, newReport]);
   };
-
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+        <Spin size="large" />
+      </div>
+    );
+  }
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   return (
@@ -66,7 +80,7 @@ const Reports = () => {
             No needs available for report generation.
           </h2>
           <p className="text-gray-500 mb-4">
-            You haven't created any needs yet that could generate reports.
+            You haven&apos;t created any needs yet that could generate reports.
           </p>
           <button
             onClick={() => fetchNeeds()}
@@ -112,23 +126,96 @@ const Reports = () => {
                 ) : (
                   <>
                     <p className="mb-4 text-gray-500">Select one need:</p>
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      {needs.map((need) => (
-                        <label
-                          key={need._id}
-                          className="flex items-center gap-2 text-gray-700 cursor-pointer"
-                        >
-                          <input
-                            type="radio"
-                            name="need"
-                            value={need._id}
-                            checked={selectedNeed?._id === need._id}
-                            onChange={() => handleNeedChange(need)}
-                            className="accent-[#008080] w-5 h-5"
-                          />
-                          {need.title}
-                        </label>
-                      ))}
+                    <div className="grid grid-cols-1 gap-3 mb-4">
+                      {needs
+                        .filter((need) => need.isReportGenerated === false)
+                        .map((need) => (
+                          <label
+                            key={need._id}
+                            className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+                          >
+                            <input
+                              type="radio"
+                              name="need"
+                              value={need._id}
+                              checked={selectedNeed?._id === need._id}
+                              onChange={() => handleNeedChange(need)}
+                              className="accent-[#008080] w-5 h-5 mt-1 flex-shrink-0"
+                            />
+                            <div className="flex-1">
+                              <div className="flex justify-between items-start">
+                                <h4 className="font-medium text-gray-900">
+                                  {need.title}
+                                </h4>
+                                <span
+                                  className={`text-xs px-2 py-1 rounded-full ${
+                                    need.status === "Open"
+                                      ? "bg-green-100 text-green-800"
+                                      : need.status === "Fulfilled"
+                                      ? "bg-blue-100 text-blue-800"
+                                      : "bg-gray-100 text-gray-800"
+                                  }`}
+                                >
+                                  {need.status}
+                                </span>
+                              </div>
+
+                              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-gray-600">
+                                <div className="flex items-center">
+                                  <FaUsers className="mr-1 text-gray-400 text-xs" />
+                                  <span>
+                                    {need.beneficiaryInfo.numberOfBeneficiaries}{" "}
+                                    beneficiaries
+                                  </span>
+                                </div>
+
+                                <div className="flex items-center">
+                                  <FaMapMarkerAlt className="mr-1 text-gray-400 text-xs" />
+                                  <span>
+                                    {
+                                      need.beneficiaryInfo.location.address.split(
+                                        ","
+                                      )[0]
+                                    }
+                                  </span>
+                                </div>
+
+                                <div className="flex items-center">
+                                  <FaCalendarAlt className="mr-1 text-gray-400 text-xs" />
+                                  <span>
+                                    Ends{" "}
+                                    {new Date(
+                                      need.endDate
+                                    ).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {need.needTypes.map((type) => (
+                                  <span
+                                    key={type}
+                                    className="text-xs px-2 py-1 bg-teal-50 text-teal-700 rounded-full"
+                                  >
+                                    {type.charAt(0).toUpperCase() +
+                                      type.slice(1)}
+                                  </span>
+                                ))}
+                                <span
+                                  className={`text-xs px-2 py-1 rounded-full ${
+                                    need.urgencyLevel === "High"
+                                      ? "bg-red-100 text-red-800"
+                                      : need.urgencyLevel === "Medium"
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : "bg-gray-100 text-gray-800"
+                                  }`}
+                                >
+                                  {need.urgencyLevel} urgency
+                                </span>
+                              </div>
+                            </div>
+                          </label>
+                        ))}
                     </div>
                   </>
                 )}
@@ -160,11 +247,13 @@ const Reports = () => {
                 </div>
 
                 {selectedNeed && (
-                  <ReportForm
-                    selectedNeeds={selectedNeed}
-                    onGenerate={handleGenerateReport}
-                    clearSelection={() => setSelectedNeed("")}
-                  />
+                  <div ref={formRef}>
+                    <ReportForm
+                      selectedNeeds={selectedNeed}
+                      onGenerate={handleGenerateReport}
+                      clearSelection={() => setSelectedNeed("")}
+                    />
+                  </div>
                 )}
               </motion.div>
             )}

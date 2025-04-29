@@ -4,8 +4,10 @@ import Profile from "../../pages/Profile";
 import ChatModal from "../ChatModal";
 import { motion, AnimatePresence } from "framer-motion";
 import ConfirmationModal from "./ConfirmationModal";
-import { Eye, Users, Frown } from "lucide-react";
+import { Eye, Users, Frown, ChevronLeft, ChevronRight } from "lucide-react";
 import VolunteerCard from "./VolunteerCard";
+import { Spin } from "antd";
+import VolunteersList from "./VolunteersList";
 
 function VolunteerApplication() {
   const [loading, setLoading] = useState(true);
@@ -21,10 +23,31 @@ function VolunteerApplication() {
   const [actionType, setActionType] = useState("");
   const [currentVolunteerId, setCurrentVolunteerId] = useState("");
   const [openDropdownId, setOpenDropdownId] = useState(null);
-  const [needsLoading, setNeedsLoading] = useState(true);
-
+  const [isFetchingNeeds, setIsFetchingNeeds] = useState(false);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 5,
+  });
+  const [status, setStatus] = useState("");
   const toggleDropdown = (id) => {
     setOpenDropdownId(openDropdownId === id ? null : id);
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      getServiceNeeds(newPage);
+    }
+  };
+  const updateVolunteerStatus = (volunteerId, newStatus) => {
+    setVolunteers((prevVolunteers) =>
+      prevVolunteers.map((volunteer) =>
+        volunteer._id === volunteerId
+          ? { ...volunteer, status: newStatus }
+          : volunteer
+      )
+    );
   };
 
   const handleViewProfile = async (volunteer) => {
@@ -44,21 +67,35 @@ function VolunteerApplication() {
     }
   };
 
-  useEffect(() => {
-    const getServiceNeeds = async () => {
-      try {
-        setNeedsLoading(true);
-        const response = await axiosInstance.get("donation/services");
-        if (response.data.success) {
-          setServiceNeeds(response.data.data);
-        }
-      } catch (error) {
-        console.error("Error fetching service needs:", error);
-      } finally {
-        setNeedsLoading(false);
-        setLoading(false);
+  const getServiceNeeds = async (page = 1) => {
+    try {
+      setIsFetchingNeeds(true);
+      const response = await axiosInstance.get("donation/services", {
+        params: {
+          page,
+          limit: pagination.itemsPerPage,
+        },
+      });
+      if (response.data.success) {
+        setServiceNeeds(response.data.data);
+        setPagination(
+          response.data.pagination || {
+            currentPage: 1,
+            totalPages: 1,
+            totalItems: response.data.data.length,
+            itemsPerPage: 5,
+          }
+        );
       }
-    };
+    } catch (error) {
+      console.error("Error fetching service needs:", error);
+    } finally {
+      setIsFetchingNeeds(false);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     getServiceNeeds();
   }, []);
 
@@ -98,6 +135,7 @@ function VolunteerApplication() {
         `donation/service/${currentVolunteerId}`,
         { status: actionType }
       );
+      setStatus(response.data.application.status);
       if (response.data.success && selectedNeed) {
         getApplications(selectedNeed);
       }
@@ -115,7 +153,13 @@ function VolunteerApplication() {
   const handleCloseDetails = () => {
     setSelectedVolunteer(null);
   };
-
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+        <Spin size="large" />
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <motion.div
@@ -149,22 +193,61 @@ function VolunteerApplication() {
               </p>
             </div>
             <div className="w-full sm:w-96">
-              {needsLoading ? (
+              {isFetchingNeeds ? (
                 <div className="h-12 bg-gray-100 rounded-lg animate-pulse"></div>
               ) : serviceNeeds.length > 0 ? (
-                <select
-                  id="service-need"
-                  value={selectedNeed}
-                  onChange={handleNeedChange}
-                  className="block w-full pl-4 pr-10 py-3 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 rounded-lg"
-                >
-                  <option value="">-- Select a service need --</option>
-                  {serviceNeeds.map((need) => (
-                    <option key={need._id} value={need._id}>
-                      {need.title} ({need.urgencyLevel})
-                    </option>
-                  ))}
-                </select>
+                <>
+                  <select
+                    id="service-need"
+                    value={selectedNeed}
+                    onChange={handleNeedChange}
+                    className="block w-full pl-4 pr-10 py-3 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 rounded-lg mb-2"
+                  >
+                    <option value="">-- Select a service need --</option>
+                    {serviceNeeds.map((need) => (
+                      <option key={need._id} value={need._id}>
+                        {need.title} ({need.urgencyLevel})
+                      </option>
+                    ))}
+                  </select>
+                  {pagination.totalPages > 1 && (
+                    <div className="flex items-center justify-between text-sm text-gray-600">
+                      <button
+                        onClick={() =>
+                          handlePageChange(pagination.currentPage - 1)
+                        }
+                        disabled={pagination.currentPage === 1}
+                        className={`flex items-center px-3 py-1 rounded ${
+                          pagination.currentPage === 1
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        <ChevronLeft className="w-4 h-4 mr-1" />
+                        Previous
+                      </button>
+                      <span>
+                        Page {pagination.currentPage} of {pagination.totalPages}
+                      </span>
+                      <button
+                        onClick={() =>
+                          handlePageChange(pagination.currentPage + 1)
+                        }
+                        disabled={
+                          pagination.currentPage === pagination.totalPages
+                        }
+                        className={`flex items-center px-3 py-1 rounded ${
+                          pagination.currentPage === pagination.totalPages
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        Next
+                        <ChevronRight className="w-4 h-4 ml-1" />
+                      </button>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-100">
                   <div className="flex flex-col items-center">
@@ -213,46 +296,13 @@ function VolunteerApplication() {
               </div>
             ) : volunteers.length > 0 ? (
               <div className="space-y-4">
-                {volunteers.map((volunteer) => (
-                  <motion.div
-                    key={volunteer._id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-all duration-200 relative"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-800">
-                          {volunteer.applicant.name}
-                        </h3>
-                        <div className="flex items-center mt-1">
-                          <span
-                            className={`px-2 py-0.5 text-xs font-medium rounded-full capitalize ${
-                              volunteer.status === "pending"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : volunteer.status === "accepted"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {volunteer.status}
-                          </span>
-                          <span className="text-sm text-gray-500 ml-2">
-                            Applied on{" "}
-                            {new Date(volunteer.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleViewDetails(volunteer)}
-                        className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-800 transition"
-                        aria-label="View details"
-                      >
-                        <Eye className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </motion.div>
+                {volunteers.map((volunteer, index) => (
+                  <VolunteersList
+                    key={index}
+                    volunteer={volunteer}
+                    volunteers={volunteers}
+                    handleViewDetails={handleViewDetails}
+                  />
                 ))}
               </div>
             ) : (
@@ -262,8 +312,8 @@ function VolunteerApplication() {
                   No applications yet
                 </h3>
                 <p className="mt-2 text-gray-600 max-w-md mx-auto">
-                  Volunteers haven't applied to this need yet. Try sharing the
-                  need to attract more volunteers.
+                  Volunteers haven&apos;t applied to this need yet. Try sharing
+                  the need to attract more volunteers.
                 </p>
               </div>
             )}
@@ -282,8 +332,8 @@ function VolunteerApplication() {
               {serviceNeeds.length === 0 && (
                 <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-100">
                   <p className="text-sm text-yellow-700">
-                    You haven't created any service needs yet. Create one to
-                    start receiving volunteer applications.
+                    You haven&apos;t created any service needs yet. Create one
+                    to start receiving volunteer applications.
                   </p>
                 </div>
               )}
@@ -325,6 +375,7 @@ function VolunteerApplication() {
                   confirmAction={confirmAction}
                   setShowChatModal={setShowChatModal}
                   setOpenDropdownId={setOpenDropdownId}
+                  updateVolunteerStatus={updateVolunteerStatus}
                 />
               </motion.div>
             </div>

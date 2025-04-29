@@ -34,6 +34,10 @@ const applicationSchema = new mongoose.Schema(
     },
     endDate: Date,
     hoursPerWeek: Number,
+    NGO: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    }, // The NGO that posted the need
     status: {
       type: String,
       enum: [

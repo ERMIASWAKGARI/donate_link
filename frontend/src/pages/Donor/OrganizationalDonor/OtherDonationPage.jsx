@@ -182,12 +182,8 @@ const OtherDonationPage = () => {
   }, [previewUrls]);
 
   return (
-    <div className="max-w-7xl mx-auto  bg-white rounded-lg shadow-md relative">
+    <div className="max-w-7xl mx-auto  bg-white   relative">
       <ToastNotifications />
-
-      <h1 className="text-2xl font-bold text-gray-800 mb-1">
-        Other Donation Form
-      </h1>
 
       <OtherDonationForm
         formData={formData}

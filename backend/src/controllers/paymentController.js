@@ -119,8 +119,24 @@ const verifyPayment = asyncWrapper(async (req, res) => {
     receiptUrl: updatedPayment.receiptUrl,
   });
 });
+const getMoneyDonations = asyncWrapper(async (req, res) => {
+  const { needId } = req.params;
+  const donations = await Payment.find({ needId }).populate('donorId');
 
+  if (!donations) {
+    return res.status(404).json({
+      status: 'fail',
+      message: 'No donations found',
+    });
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: donations,
+  });
+});
 module.exports = {
   initializePayment,
+  getMoneyDonations,
   verifyPayment,
 };

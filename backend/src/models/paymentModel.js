@@ -43,9 +43,13 @@ const paymentSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ['Pending', 'Completed', 'Failed'],
-      default: 'pending',
+      enum: ["Pending", "Completed", "Failed"],
+      default: "pending",
     },
+
+    receiptUrl: { type: String },
+  },
+
 
     receiptUrl: { type: String },
   },

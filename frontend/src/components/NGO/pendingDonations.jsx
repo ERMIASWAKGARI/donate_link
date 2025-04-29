@@ -9,12 +9,13 @@ import {
   FaTimes,
   FaCamera,
   FaInfoCircle,
-  FaDirections,
+  FaHandshake,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { UserContext } from "../../context/UserContext";
-import Loading from "./Loading";
+import { Spin } from "antd";
+
 import Map from "./Map";
 const PendingDonations = () => {
   const { user } = useContext(UserContext);
@@ -59,15 +60,7 @@ const PendingDonations = () => {
         }
       );
 
-      setDonations((prevDonations) =>
-        prevDonations.map((donation) =>
-          donation._id === donationId
-            ? { ...donation, status: "requested" }
-            : donation
-        )
-      );
-
-      toast.success("Donation requested successfully!", {
+      toast.success("Donation request sent successfully!", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -75,8 +68,53 @@ const PendingDonations = () => {
         pauseOnHover: true,
         progressStyle: { backgroundColor: "#4CAF50" },
       });
+      fetchDonations(); // Refresh the list
+      if (selectedDonation?._id === donationId) {
+        setSelectedDonation((prev) => ({
+          ...prev,
+          requests: [...prev.requests, ngoId],
+        }));
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to request donation", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        progressStyle: { backgroundColor: "#F44336" },
+      });
+    }
+  };
+
+  const handleCancelRequest = async (donationId) => {
+    try {
+      const ngoId = user?._id;
+      if (!ngoId) throw new Error("NGO information not found");
+
+      await axiosInstance.delete(
+        `/organization/material/${donationId}/request`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          data: { ngoId },
+        }
+      );
+
+      toast.success("Request cancelled successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        progressStyle: { backgroundColor: "#4CAF50" },
+      });
+      fetchDonations(); // Refresh the list
+      if (selectedDonation?._id === donationId) {
+        setSelectedDonation((prev) => ({
+          ...prev,
+          requests: prev.requests.filter((id) => id !== ngoId),
+        }));
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to cancel request", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -96,7 +134,11 @@ const PendingDonations = () => {
   };
 
   if (loading) {
-    return <Loading />;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+        <Spin size="large" />
+      </div>
+    );
   }
 
   if (error) {
@@ -157,19 +199,19 @@ const PendingDonations = () => {
                     <h3 className="text-xl font-bold text-gray-800 line-clamp-1">
                       {donation.materialDetails.category}
                     </h3>
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        donation.status === "pending"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : donation.status === "accepted"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {donation?.requests?.includes(user._id)
-                        ? "requested"
-                        : donation.status}
-                    </span>
+                    {donation?.requests?.includes(user._id) && (
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          donation.status === "pending"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : donation.status === "accepted"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        requested
+                      </span>
+                    )}
                   </div>
 
                   <p className="text-gray-600 mb-4 line-clamp-2">
@@ -393,17 +435,26 @@ const PendingDonations = () => {
                 <div className="sticky z-1000 bottom-0 bg-white pt-4 pb-2 border-t border-gray-200 -mx-6 px-6">
                   <div className="flex flex-col sm:flex-row justify-end gap-3">
                     <button
-                      onClick={() => handleRequest(selectedDonation._id)}
-                      disabled={selectedDonation.requests.includes(user._id)}
-                      className={`px-6 py-3 rounded-lg font-medium transition flex-1 sm:flex-none ${
-                        !selectedDonation.requests.includes(user._id)
-                          ? "bg-teal-600 text-white hover:bg-teal-700 shadow-md"
-                          : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                      onClick={() =>
+                        selectedDonation.requests.includes(user._id)
+                          ? handleCancelRequest(selectedDonation._id)
+                          : handleRequest(selectedDonation._id)
+                      }
+                      className={`px-6 py-3 rounded-lg font-medium transition flex-1 sm:flex-none flex items-center justify-center gap-2 ${
+                        selectedDonation.requests.includes(user._id)
+                          ? "bg-red-100 text-red-600 hover:bg-red-200"
+                          : "bg-teal-600 text-white hover:bg-teal-700 shadow-md"
                       }`}
                     >
-                      {!selectedDonation.requests.includes(user._id)
-                        ? "Request This Donation"
-                        : "Request Submitted"}
+                      {selectedDonation.requests.includes(user._id) ? (
+                        <>
+                          <FaTimes /> Cancel Request
+                        </>
+                      ) : (
+                        <>
+                          <FaHandshake /> Request This Donation
+                        </>
+                      )}
                     </button>
                     <button
                       onClick={closeDetailsModal}
@@ -423,6 +474,7 @@ const PendingDonations = () => {
 };
 
 export default PendingDonations;
+// eslint-disable-next-line react/prop-types
 const DetailRow = ({ label, value }) => (
   <div>
     <p className="text-sm font-medium text-gray-500">{label}</p>

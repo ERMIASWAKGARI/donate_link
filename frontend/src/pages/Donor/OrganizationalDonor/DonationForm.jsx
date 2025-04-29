@@ -5,6 +5,7 @@ import MaterialDonation from "./MaterialDonation";
 import { showToast } from "./ToastNotification";
 import ToastNotifications from "./ToastNotification";
 import OtherDonationPage from "./OtherDonationPage";
+import Header from "../../../components/header/Header";
 import { useNavigate } from "react-router-dom";
 
 const materialCategories = {
@@ -371,62 +372,68 @@ const DonationForm = () => {
   }, [previewUrls]);
 
   return (
-    <div className="max-w-7xl mx-auto p-6 bg-white rounded-lg shadow-md relative">
-      <ToastNotifications />
+    <div className="relative">
+      {/* Full-width Header */}
+      <div className="fixed top-0 left-0 w-full z-1010 bg-white shadow-md">
+        <Header />
+      </div>
 
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Make a Donation</h1>
-      {/* Important Notice Banner */}
+      {/* Add padding-top so your content doesn't go under the header */}
+      <div className="max-w-7xl mx-auto p-6 pt-32 bg-white rounded-lg shadow-md relative">
+        <DonationTypeSelector
+          donationType={donationType}
+          handleDonationTypeChange={handleDonationTypeChange}
+        />
+        <ToastNotifications />
 
-      <DonationTypeSelector
-        donationType={donationType}
-        handleDonationTypeChange={handleDonationTypeChange}
-      />
-
-      <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6 rounded-r-md">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <FiAlertTriangle className="h-5 w-5 text-amber-600" />
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-amber-800">
-              Important Notice
-            </h3>
-            <div className="mt-2 text-sm text-amber-700">
-              <p>
-                Please review all information carefully before submitting.
-                <span className="font-semibold">
-                  {" "}
-                  Donations cannot be edited
-                </span>{" "}
-                after submission. Ensure all details are accurate, especially:
-              </p>
+        {/* Important Notice */}
+        <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-1 rounded-r-md">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <FiAlertTriangle className="h-5 w-5 text-amber-600" />
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-amber-800">
+                Important Notice
+              </h3>
+              <div className="mt-2 text-sm text-amber-700">
+                <p>
+                  Please review all information carefully before submitting.
+                  <span className="font-semibold">
+                    {" "}
+                    Donations cannot be edited
+                  </span>{" "}
+                  after submission. Ensure all details are accurate, especially:
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {donationType === "material" ? (
-        <MaterialDonation
-          formData={formData}
-          handleInputChange={handleInputChange}
-          handleSubmit={handleSubmit}
-          files={files}
-          previewUrls={previewUrls}
-          fileInputRef={fileInputRef}
-          handleFileChange={handleFileChange}
-          removeFile={removeFile}
-          mapCenter={mapCenter}
-          setFormData={setFormData}
-          setMapCenter={setMapCenter}
-          materialCategories={materialCategories}
-          isSubmitting={isSubmitting}
-          onCancel={handleCancel}
-        />
-      ) : (
-        <div className="text-center py-12">
-          <OtherDonationPage />
-        </div>
-      )}
+        {/* Content Switch */}
+        {donationType === "material" ? (
+          <MaterialDonation
+            formData={formData}
+            handleInputChange={handleInputChange}
+            handleSubmit={handleSubmit}
+            files={files}
+            previewUrls={previewUrls}
+            fileInputRef={fileInputRef}
+            handleFileChange={handleFileChange}
+            removeFile={removeFile}
+            mapCenter={mapCenter}
+            setFormData={setFormData}
+            setMapCenter={setMapCenter}
+            materialCategories={materialCategories}
+            isSubmitting={isSubmitting}
+            onCancel={handleCancel}
+          />
+        ) : (
+          <div className="text-center py-2">
+            <OtherDonationPage />
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -17,12 +17,14 @@ import VolunteerApplication from "./VolunteerApplication";
 import { UserContext } from "../../context/UserContext";
 import Header from "../header/Header";
 import Reports from "./Reports";
+import NGOStatistics from "./NGOStatistics";
 
 export default function NgoDashboard() {
   const [activeSection, setActiveSection] = useState("home");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [showNeedForm, setShowNeedForm] = useState(false);
+
   const { user } = useContext(UserContext);
 
   const toggleSidebar = () => {
@@ -51,21 +53,7 @@ export default function NgoDashboard() {
       case "reports":
         return <Reports />;
       default:
-        return (
-          <div className="mt-6 p-3">
-            <h1 className="text-2xl font-bold text-blue-700">
-              Welcome, {user?.name}
-            </h1>
-            <p className="text-gray-600">Email: {user?.email}</p>
-            <div className="mt-4 p-4 bg-white shadow rounded-lg">
-              <p className="text-lg">Welcome to your NGO Dashboard</p>
-              <p className="text-gray-600 mt-2">
-                Select a section from the sidebar to view details about your
-                needs, donations, or volunteers.
-              </p>
-            </div>
-          </div>
-        );
+        return <NGOStatistics />;
     }
   };
 
@@ -76,13 +64,7 @@ export default function NgoDashboard() {
     <div className="flex flex-col h-screen">
       {/* Fixed Header */}
       <Header />
-
-      {/* Main Content Area */}
-      <div
-        className="flex flex-1 overflow-hidden"
-        // style={{ marginTop: headerHeight }}
-      >
-        {/* Mobile sidebar toggle button */}
+      <div className="flex flex-1 overflow-hidden">
         <div
           className="md:hidden fixed top-20 left-4 z-50"
           style={{ top: `calc(${headerHeight} + 1rem)` }}

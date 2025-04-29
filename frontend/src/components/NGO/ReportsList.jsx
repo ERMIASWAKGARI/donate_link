@@ -1,12 +1,12 @@
 import Axios from "../../config/axiosConfig";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FaImages,
   FaChartLine,
   FaUsers,
   FaMapMarkerAlt,
   FaCalendarAlt,
-  FaFileAlt,
   FaBoxes,
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,8 +20,7 @@ const ReportList = () => {
   const itemsPerPage = 5;
   const [selectedReport, setSelectedReport] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
-
-  const user = JSON.parse(localStorage.getItem("user"));
+  const navigate = useNavigate();
 
   const fetchReports = async () => {
     try {
@@ -35,6 +34,7 @@ const ReportList = () => {
       });
       setReports(response.data.data || []);
       setTotalItems(response.data.total || 0);
+      // eslint-disable-next-line no-unused-vars
     } catch (err) {
       setError("Failed to fetch reports. Please try again.");
     } finally {
@@ -65,6 +65,7 @@ const ReportList = () => {
 
   const openReportDetails = (report) => {
     setSelectedReport(report);
+    console.log("selcted report", selectedReport);
     setShowPreview(true);
   };
 
@@ -79,8 +80,8 @@ const ReportList = () => {
           Impact Reports
         </h2>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Track and visualize the impact of your organization's work through
-          detailed reports
+          Track and visualize the impact of your organization&apos;s work
+          through detailed reports
         </p>
       </div>
 
@@ -149,7 +150,7 @@ const ReportList = () => {
             No reports available
           </h4>
           <p className="text-gray-500 mb-6">
-            You haven't submitted any impact reports yet.
+            You haven&apos;t submitted any impact reports yet.
           </p>
           <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition">
             Create New Report
@@ -233,7 +234,7 @@ const ReportList = () => {
               )}
 
               <button
-                onClick={() => openReportDetails(report)}
+                onClick={() => navigate(`/report/${report._id}`)}
                 className="w-full px-4 py-2.5 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition flex items-center justify-center"
               >
                 View Full Report
@@ -405,8 +406,7 @@ const ReportList = () => {
                             Beneficiaries Reached
                           </h6>
                           <p className="text-3xl font-bold text-blue-600">
-                            {selectedReport.impactMetrics
-                              .beneficiariesReached || 0}
+                            {selectedReport.numberOfBeneficiaries || 0}
                           </p>
                         </div>
                         {selectedReport.impactMetrics.communitiesServed && (
