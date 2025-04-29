@@ -12,7 +12,7 @@ const VerificationPanel = ({
       <div className="flex flex-col md:flex-row md:items-center md:space-x-4 space-y-3 md:space-y-0">
         <button
           onClick={onVerify}
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          className="px-4 py-2 bg-[#008080] text-white rounded"
         >
           Verify User
         </button>

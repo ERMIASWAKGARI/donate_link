@@ -570,7 +570,7 @@ export const ProfileHeader = ({
             up to 10MB each.
           </p>
           {verificationDocs.additionalDocs?.length > 0 && (
-            <p className="mt-1 text-sm text-green-600">
+            <p className="mt-1 text-sm text-[#008080]">
               {verificationDocs.additionalDocs.length} additional document(s)
               selected
             </p>
