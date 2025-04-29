@@ -31,6 +31,8 @@ import UserProfilePage from './pages/profile/UserProfilePage';
 import { store } from './redux/store';
 import NGOReportViewer from './components/NGO/NGOReport';
 import PaymentSuccess from './pages/Donor/IndividualDonor/PaymentSuccess';
+import AdminAcccountPage from './pages/admin/AdminAccountPage';
+import AdminProfilePage from './pages/admin/AdminProfilePage';
 
 function App() {
   return (
