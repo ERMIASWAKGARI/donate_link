@@ -197,6 +197,37 @@ const getVerificationDocuments = async (userId) => {
     throw error;
   }
 };
+
+const getAllPosts = async (page = 1, sort = '', query = '') => {
+  const token = localStorage.getItem('accessToken'); // Get fresh token
+
+  // Build query parameters object
+  const params = {
+    page: page,
+  };
+
+  // Only add parameters if they have values
+  if (sort) params.sortBy = sort;
+  if (query) params.search = query;
+
+  try {
+    const response = await axios.get(`${API_BASE_URL}/posts`, {
+      params,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return {
+      posts: response.data.data.posts,
+      pagination: response.data.data.pagination,
+    };
+  } catch (error) {
+    console.error('Error fetching posts:', error.message);
+    throw error;
+  }
+};
+
 export {
   banUser,
   bulkBanUsers,
@@ -208,4 +239,5 @@ export {
   rejectUser,
   unbanUser,
   verifyUser,
+  getAllPosts,
 };
