@@ -14,7 +14,10 @@ const needsSchema = new mongoose.Schema(
       trim: true,
       maxlength: 100,
     },
-
+hasDonations: {
+      type: Boolean,
+      default: false,
+    },
     needTypes: {
       type: [
         {

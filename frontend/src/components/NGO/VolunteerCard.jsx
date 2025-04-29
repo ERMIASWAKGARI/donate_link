@@ -2,10 +2,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 
 const VolunteerCard = ({
+  // eslint-disable-next-line react/prop-types
   volunteer,
+  // eslint-disable-next-line react/prop-types
   handleViewProfile,
+  // eslint-disable-next-line react/prop-types
   setShowChatModal,
+  // eslint-disable-next-line react/prop-types
   confirmAction,
+  // eslint-disable-next-line react/prop-types
   updateVolunteerStatus, // Add this new prop
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -30,6 +35,7 @@ const VolunteerCard = ({
       }
     } catch (error) {
       // Revert if there was an error
+      // eslint-disable-next-line react/prop-types
       setCurrentStatus(volunteer.status);
       console.error("Error updating volunteer status:", error);
     } finally {

@@ -1,5 +1,5 @@
 const Application = require("../../models/applicationModel");
-
+const Need =require( "../../models/needsModel");
 const createServiceApplication = async (req, res) => {
   try {
     console.log("createServiceApplication", req.body);
@@ -14,7 +14,8 @@ const createServiceApplication = async (req, res) => {
       hoursPerWeek,
       status = "Submitted", // Default status matches model enum
     } = req.body;
-
+    const needBeingApplied= await Need.findById(need);
+  
     // Validate required fields according to model schema
     if ( !need || !category || !subCategory || !startDate) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -41,7 +42,8 @@ const createServiceApplication = async (req, res) => {
     });
 
     await newApplication.save();
-
+needBeingApplied.hasDonations = true;
+  needBeingApplied.save();
     res.status(201).json({
       message: "Application submitted successfully",
       application: newApplication,

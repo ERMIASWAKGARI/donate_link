@@ -113,7 +113,7 @@ const MaterialDonationForm = ({
           {materials.map((item, index) => (
             <div key={index} className="border p-3 rounded">
               <p className="font-medium">
-                {item.categoryName} - {item.subCategoryName}
+                {item.categoryName} - {item.subCategoryName} in {item.unit}
               </p>
               <div className="mt-2">
                 <label className="block text-sm text-gray-600 mb-1">

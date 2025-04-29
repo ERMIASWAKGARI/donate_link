@@ -82,6 +82,11 @@ function PostedNeeds() {
     setSelectedNeed(need);
     setShowDetailsModal(true);
   };
+  const handleNeedDeleted = (deletedNeedId) => {
+    setNeeds((prevNeeds) =>
+      prevNeeds.filter((need) => need._id !== deletedNeedId)
+    );
+  };
 
   const closeDetailsModal = () => {
     setShowDetailsModal(false);
@@ -141,7 +146,11 @@ function PostedNeeds() {
           </div>
         ) : (
           <>
-            <NeedsList needs={needs} openDetailsModal={openDetailsModal} />
+            <NeedsList
+              needs={needs}
+              openDetailsModal={openDetailsModal}
+              onNeedDeleted={handleNeedDeleted}
+            />
 
             {/* Pagination */}
             {totalPages > 1 && (

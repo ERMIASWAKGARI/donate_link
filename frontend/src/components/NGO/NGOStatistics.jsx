@@ -140,7 +140,7 @@ const NGOStatistics = () => {
       <div className="statistics-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         <StatCard
           title="Monetary Donations"
-          value={statistics.monetaryDonations}
+          value={statistics.monetaryDonations?.toFixed(2)}
           Icon={FaHandHoldingUsd}
         />
         <StatCard

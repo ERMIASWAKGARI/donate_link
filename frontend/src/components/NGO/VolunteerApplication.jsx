@@ -4,7 +4,7 @@ import Profile from "../../pages/Profile";
 import ChatModal from "../ChatModal";
 import { motion, AnimatePresence } from "framer-motion";
 import ConfirmationModal from "./ConfirmationModal";
-import { Eye, Users, Frown, ChevronLeft, ChevronRight } from "lucide-react";
+import { Users, Frown, ChevronLeft, ChevronRight } from "lucide-react";
 import VolunteerCard from "./VolunteerCard";
 import { Spin } from "antd";
 import VolunteersList from "./VolunteersList";

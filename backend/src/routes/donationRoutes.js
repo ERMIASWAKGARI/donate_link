@@ -36,4 +36,5 @@ router.get("/service/:need", serviceApplication.getServiceDonations);
 router.put("/service/:id",authMiddleware("ngo"), serviceApplication.updateApplcationStatus);
 // router.put("/service/:id", serviceApplication.updateServiceDonation);
 router.get("/money/:needId", paymentController.getMoneyDonations);
+router.delete("/deleteNeed/:id", needsController.deleteNeed);
 module.exports = router;

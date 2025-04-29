@@ -393,7 +393,7 @@ const updateUserProfile = asyncWrapper(async (req, res) => {
       'address',
       'location',
     ],
-    ngo: ['name', 'ngoVerificationDocs', 'address', 'location'],
+    ngo: ['name', 'ngoVerificationDocs', 'address', 'location','preferences'],
     volunteer: [
       'name',
       'servicePreference',
