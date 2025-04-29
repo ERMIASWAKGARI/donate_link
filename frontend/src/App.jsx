@@ -9,7 +9,7 @@ import ResetPassword from "./components/ResetPassword";
 import ScrollToTop from "./components/common/ScrollToTop";
 import { UserProvider } from "./context/UserContext";
 import IndividualDashboard from "./pages/Donor/IndividualDonor/DashboardIndividual";
-import DonationForm from "./pages/Donor/IndividualDonor/DonationForm";
+import DonationForm from "./pages/Donor/OrganizationalDonor/DonationForm";
 import NeedDetail from "./pages/Donor/IndividualDonor/NeedDetail";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
