@@ -30,6 +30,7 @@ import AccountPage from "./pages/profile/AccountPage";
 import UserProfilePage from "./pages/profile/UserProfilePage";
 import { store } from "./redux/store";
 import NGOReportViewer from "./components/NGO/NGOReport";
+import CertificatesPage from "./pages/certificates/CertificatesPage";
 
 function App() {
   return (
@@ -49,7 +50,7 @@ function App() {
                   <Route path="/verify-otp" element={<VerifyOtp />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
-
+                  <Route path="/certificates" element={<CertificatesPage />} />
                   <Route element={<PrivateRoute />}>
                     <Route
                       path="/donor/dashboard"

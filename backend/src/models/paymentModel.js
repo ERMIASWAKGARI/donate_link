@@ -124,4 +124,14 @@ paymentSchema.pre("save", function (next) {
   next();
 });
 
+paymentSchema.post("save", async function (doc) {
+  if (doc.status === "Completed") {
+    const {
+      checkCertificates,
+    } = require("../controllers/certificateController");
+    console.log(`💰 Payment ${doc._id} completed - checking certificates`);
+    await checkCertificates(doc.donorId);
+  }
+});
+
 module.exports = mongoose.model("Payment", paymentSchema);

@@ -76,7 +76,6 @@ const matteriaDonationSchema = new mongoose.Schema(
         },
         unit: {
           type: String,
-        
         },
       },
     ],
@@ -85,5 +84,13 @@ const matteriaDonationSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+matteriaDonationSchema.post("save", async function (doc) {
+  const { checkCertificates } = require("../controllers/certificateController");
+  console.log(
+    `📦 Material donation ${doc._id} recorded - checking certificates`
+  );
+  await checkCertificates(doc.donorId);
+});
 
 module.exports = mongoose.model("MaterialDonation", matteriaDonationSchema);

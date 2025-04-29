@@ -12,6 +12,7 @@ const donationRoutes = require("./routes/donationRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const applicationRoutes = require("./routes/applicationRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const certificateRoutes = require("./routes/certificates");
 const path = require("path");
 
 dotenv.config();
@@ -66,6 +67,7 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/application", applicationRoutes);
 app.use("/api/notification", notificationRoutes);
+app.use("/api/certificate", certificateRoutes);
 app.all("*", (req, res, next) => {
   next(new AppError(`Cannot find ${req.originalUrl} on this server!`, 404));
 });
