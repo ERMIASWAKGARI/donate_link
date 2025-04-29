@@ -1,8 +1,7 @@
 /* eslint-disable react/prop-types */
+import { Spin } from 'antd';
 import DataTable from '../common/DataTable';
 import ErrorDisplay from '../common/ErrorDisplay';
-import Spinner from '../common/Spinner ';
-import StatusBadge from '../common/StatusBadge';
 
 export const userColumns = [
   {
@@ -13,15 +12,7 @@ export const userColumns = [
     ),
     width: 50, // Fixed width for the number column
   },
-  {
-    Header: 'ID',
-    accessor: '_id',
-    Cell: ({ value }) => (
-      <span className="text-sm text-gray-600">
-        {value ? value.slice(0, 6) + '...' : 'N/A'}
-      </span>
-    ),
-  },
+
   {
     Header: 'Name',
     accessor: 'name',
@@ -33,15 +24,21 @@ export const userColumns = [
     Cell: ({ value }) => value || 'N/A',
   },
   {
-    Header: 'Status',
-    accessor: 'status',
-    Cell: ({ row }) => {
-      const user = row.original || {};
+    Header: 'Joined Date',
+    accessor: 'createdAt',
+    Cell: ({ value }) => {
+      if (!value) return 'N/A';
+
+      // Format the date to be more readable
+      const date = new Date(value);
       return (
-        <StatusBadge
-          isBanned={user.isBanned || false}
-          isVerified={user.isVerified || false}
-        />
+        <span className="text-sm text-gray-600">
+          {date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          })}
+        </span>
       );
     },
   },
@@ -61,7 +58,7 @@ export const userColumns = [
         <div className="flex space-x-2">
           <button
             onClick={() => onView(userId)}
-            className="px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm flex items-center"
+            className="flex items-center text-[#008080] hover:text-white hover:bg-[#008080] border border-[#008080] px-2 py-1 rounded-md text-sm font-medium transition duration-200"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -89,15 +86,43 @@ export const userColumns = [
           {user.isBanned ? (
             <button
               onClick={() => onUnban(userId)}
-              className="px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm"
+              className="flex items-center text-[#008080] hover:text-white hover:bg-[#008080] border border-[#008080] px-2 py-1 rounded-md text-sm font-medium transition duration-200"
             >
+              {' '}
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
               Unban
             </button>
           ) : (
             <button
               onClick={() => onBan(userId)}
-              className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
+              className="flex items-center text-red-500 hover:text-white hover:bg-red-500 border border-red-500 px-2 py-1 rounded-md text-sm font-medium transition duration-200"
             >
+              {' '}
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                />
+              </svg>
               Ban
             </button>
           )}
@@ -122,7 +147,7 @@ export const UserTable = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Spinner size="lg" color="indigo" />
+        <Spin size="large" />
       </div>
     );
   }

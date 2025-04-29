@@ -1,7 +1,7 @@
-import { CheckCircleIcon } from "@heroicons/react/24/outline";
-import { useNavigate } from "react-router-dom";
+import { CheckCircleIcon } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
 
-import { useUser } from "../../../context/UserContext";
+import { useUser } from '../../../context/UserContext';
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
@@ -10,22 +10,22 @@ const PaymentSuccess = () => {
   const handleReturnToHome = () => {
     if (user) {
       if (
-        user?.role === "individual_donor" ||
-        user?.role === "organization_donor"
+        user?.role === 'individual_donor' ||
+        user?.role === 'organization_donor'
       ) {
-        navigate("/donor/dashboard");
+        navigate('/donor/dashboard');
       }
-      if (user?.role === "ngo") {
-        navigate("/ngo/dashboard");
+      if (user?.role === 'ngo') {
+        navigate('/ngo/dashboard');
       }
-      if (user?.role === "admin") {
-        navigate("/admin/dashboard");
+      if (user?.role === 'admin') {
+        navigate('/admin/dashboard');
       }
-      if (user?.role === "volunteer") {
-        navigate("/volunteer/dashboard");
+      if (user?.role === 'volunteer') {
+        navigate('/volunteer/dashboard');
       }
     } else {
-      navigate("/");
+      navigate('/');
     }
   };
 
@@ -70,7 +70,7 @@ const PaymentSuccess = () => {
 
             <div className="mt-6 border-t border-gray-200 pt-6">
               <p className="text-sm text-gray-500">
-                Transaction ID:{" "}
+                Transaction ID:{' '}
                 <span className="font-mono">
                   chapa-{Math.random().toString(36).substring(2, 10)}
                 </span>
@@ -90,7 +90,7 @@ const PaymentSuccess = () => {
 
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-600">
-            Need help?{" "}
+            Need help?{' '}
             <a
               href="mailto:support@yourorganization.org"
               className="font-medium text-[#008080] hover:underline"

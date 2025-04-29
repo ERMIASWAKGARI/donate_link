@@ -1,11 +1,11 @@
-import { useEffect, useState, useCallback, useRef } from "react";
-import PropTypes from "prop-types";
-import { motion, AnimatePresence } from "framer-motion";
-import { Bell, X, AlertCircle } from "lucide-react";
-import { useNotifications } from "../context/NotificationContext";
-import { useClickOutside } from "../hooks/useClickOutside";
-import { formatDistanceToNow } from "date-fns";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useCallback, useRef } from 'react';
+import PropTypes from 'prop-types';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Bell, X, AlertCircle } from 'lucide-react';
+import { useNotifications } from '../context/NotificationContext';
+import { useClickOutside } from '../hooks/useClickOutside';
+import { formatDistanceToNow } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 const NotificationDropdown = ({ onNotificationClick }) => {
   const {
@@ -33,15 +33,15 @@ const NotificationDropdown = ({ onNotificationClick }) => {
   // Modify the markAllAsRead handler
   const handleMarkAllAsRead = useCallback(async () => {
     try {
-      console.log("[Dropdown] Marking all as read");
+      console.log('[Dropdown] Marking all as read');
       await markAllAsRead();
       // No need to manually update unreadCount here - it's handled by the context
     } catch (error) {
-      console.error("[Dropdown] Error marking all as read:", error);
+      console.error('[Dropdown] Error marking all as read:', error);
       setError(
         error.response?.status === 500
           ? "Couldn't confirm read status with server"
-          : "Failed to mark notifications as read"
+          : 'Failed to mark notifications as read'
       );
       setTimeout(() => setError(null), 5000);
     }
@@ -52,12 +52,12 @@ const NotificationDropdown = ({ onNotificationClick }) => {
     try {
       await fetchNotifications();
     } catch (err) {
-      console.error("Notification fetch error:", err);
+      console.error('Notification fetch error:', err);
       if (err.response?.status === 401) {
-        localStorage.removeItem("accessToken");
-        navigate("/login");
+        localStorage.removeItem('accessToken');
+        navigate('/login');
       } else {
-        setError("Failed to load notifications. Please try again.");
+        setError('Failed to load notifications. Please try again.');
       }
     }
   }, [fetchNotifications, navigate]);
@@ -69,10 +69,10 @@ const NotificationDropdown = ({ onNotificationClick }) => {
   }, [isOpen, loadNotifications]);
 
   useEffect(() => {
-    if ("Notification" in window && Notification.permission !== "granted") {
+    if ('Notification' in window && Notification.permission !== 'granted') {
       Notification.requestPermission()
         .then((permission) => {
-          console.log("Notification permission:", permission);
+          console.log('Notification permission:', permission);
         })
         .catch(console.error);
     }
@@ -115,10 +115,10 @@ const NotificationDropdown = ({ onNotificationClick }) => {
         try {
           await markAsRead(notification._id);
         } catch (err) {
-          console.error("Mark as read error:", err);
+          console.error('Mark as read error:', err);
           if (err.response?.status === 401) {
-            localStorage.removeItem("accessToken");
-            navigate("/login");
+            localStorage.removeItem('accessToken');
+            navigate('/login');
           }
         }
       }
@@ -144,7 +144,7 @@ const NotificationDropdown = ({ onNotificationClick }) => {
             animate={{ scale: 1 }}
             className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-medium text-white bg-red-500 rounded-full"
           >
-            {unreadCount > 9 ? "9+" : unreadCount}
+            {unreadCount > 9 ? '9+' : unreadCount}
           </motion.span>
         )}
       </motion.button>
@@ -156,7 +156,7 @@ const NotificationDropdown = ({ onNotificationClick }) => {
             initial={{ opacity: 0, y: -10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
             className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-xl z-50 border border-gray-200 dark:border-gray-700"
           >
             <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
@@ -185,21 +185,21 @@ const NotificationDropdown = ({ onNotificationClick }) => {
             <div className="flex border-b border-gray-200 dark:border-gray-700">
               <button
                 className={`flex-1 py-2 text-sm font-medium ${
-                  activeTab === "all"
-                    ? "text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400"
-                    : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  activeTab === 'all'
+                    ? 'text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400'
+                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                 }`}
-                onClick={() => changeTab("all")}
+                onClick={() => changeTab('all')}
               >
                 All
               </button>
               <button
                 className={`flex-1 py-2 text-sm font-medium ${
-                  activeTab === "unread"
-                    ? "text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400"
-                    : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  activeTab === 'unread'
+                    ? 'text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400'
+                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                 }`}
-                onClick={() => changeTab("unread")}
+                onClick={() => changeTab('unread')}
               >
                 Unread
               </button>
@@ -224,7 +224,7 @@ const NotificationDropdown = ({ onNotificationClick }) => {
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="p-4 text-center text-gray-500 dark:text-gray-400">
-                  No {activeTab === "unread" ? "unread" : ""} notifications yet
+                  No {activeTab === 'unread' ? 'unread' : ''} notifications yet
                 </div>
               ) : (
                 <>
@@ -237,8 +237,8 @@ const NotificationDropdown = ({ onNotificationClick }) => {
                       transition={{ duration: 0.2 }}
                       className={`p-3 border-b border-gray-100 dark:border-gray-700 cursor-pointer transition-colors ${
                         !notification.seen
-                          ? "bg-blue-50 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-gray-600"
-                          : "hover:bg-gray-50 dark:hover:bg-gray-700"
+                          ? 'bg-blue-50 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-gray-600'
+                          : 'hover:bg-gray-50 dark:hover:bg-gray-700'
                       }`}
                       onClick={() =>
                         handleSingleNotificationClick(notification)
@@ -265,7 +265,7 @@ const NotificationDropdown = ({ onNotificationClick }) => {
                       className="w-full py-2 text-sm text-center text-blue-500 hover:bg-gray-50 dark:hover:bg-gray-700"
                       disabled={isLoading}
                     >
-                      {isLoading ? "Loading..." : "Load More"}
+                      {isLoading ? 'Loading...' : 'Load More'}
                     </button>
                   )}
                 </>

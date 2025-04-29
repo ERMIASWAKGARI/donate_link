@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import Spinner from '../common/Spinner ';
+import { Spin } from 'antd';
 
 const roleOptions = [
   { value: '', label: 'All Roles' },
@@ -26,7 +26,7 @@ export const UserStats = ({ pagination, users, loading, selectedRole }) => (
         <p className="text-xl font-bold text-white flex items-center gap-2">
           {loading ? (
             <>
-              <Spinner size="sm" color="white" />
+              <Spin size="small" />
               <span>
                 {roleOptions.find((r) => r.value === selectedRole)?.label}
               </span>
