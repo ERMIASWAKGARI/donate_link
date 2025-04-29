@@ -147,13 +147,13 @@ function LoginPage() {
 
   return (
     <>
-      {loading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
-          <Spin size="large" />
-        </div>
-      )}
       <Header />
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+      <div className="relative min-h-screen flex items-center justify-center bg-gray-100 p-4">
+        {loading && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
+            <Spin size="large" />
+          </div>
+        )}
         {reactivationRequired && (
           <ReactivateModal
             onClose={() => setReactivationRequired(false)}

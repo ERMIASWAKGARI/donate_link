@@ -1,8 +1,8 @@
-const axios = require("axios");
-const { v4: uuidv4 } = require("uuid");
-const asyncWrapper = require("../middleware/asyncWrapper");
-const AppError = require("../utils/appError");
-const Payment = require("../models/paymentModel");
+const axios = require('axios');
+const { v4: uuidv4 } = require('uuid');
+const asyncWrapper = require('../middleware/asyncWrapper');
+const AppError = require('../utils/appError');
+const Payment = require('../models/paymentModel');
 
 const initializePayment = asyncWrapper(async (req, res) => {
   const {
@@ -16,10 +16,10 @@ const initializePayment = asyncWrapper(async (req, res) => {
     message,
     currency,
   } = req.body;
-  console.log("Initializing payment with data:", req.body);
+  console.log('Initializing payment with data:', req.body);
 
   if (!amount || !NGO || !donorId || !needId) {
-    throw new AppError("Missing required fields", 400);
+    throw new AppError('Missing required fields', 400);
   }
 
   const tx_ref = `donation-${uuidv4()}`;
@@ -31,15 +31,15 @@ const initializePayment = asyncWrapper(async (req, res) => {
     currency,
     description: message,
     tx_ref,
-    status: "Pending",
-    paymentMethod: "Chapa",
+    status: 'Pending',
+    paymentMethod: 'Chapa',
   });
 
   const response = await axios.post(
-    "https://api.chapa.co/v1/transaction/initialize",
+    'https://api.chapa.co/v1/transaction/initialize',
     {
       amount: amount,
-      currency: currency || "ETB",
+      currency: currency || 'ETB',
       email: email,
       first_name: name,
       phone_number: phone,
@@ -47,21 +47,21 @@ const initializePayment = asyncWrapper(async (req, res) => {
       callback_url: `${process.env.BACKEND_URL}/api/payment/verify`,
       return_url: `${process.env.FRONTEND_URL}/donor/payment-success`,
       customization: {
-        title: "Donation",
-        description: message || "Support our cause",
+        title: 'Donation',
+        description: message || 'Support our cause',
       },
     },
     {
       headers: {
         Authorization: `Bearer ${process.env.CHAPA_SECRET_KEY}`,
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       timeout: 10000,
     }
   );
 
   res.json({
-    status: "success",
+    status: 'success',
     data: {
       checkout_url: response.data.data.checkout_url,
       paymentId: paymentRecord._id,
@@ -74,7 +74,7 @@ const verifyPayment = asyncWrapper(async (req, res) => {
     req.body;
 
   if (!tx_ref || !status) {
-    throw new AppError("Invalid webhook payload", 400);
+    throw new AppError('Invalid webhook payload', 400);
   }
 
   // Verify transaction with Chapa API
@@ -88,7 +88,7 @@ const verifyPayment = asyncWrapper(async (req, res) => {
   );
 
   if (!verification.data?.data) {
-    throw new AppError("Invalid verification response from Chapa", 400);
+    throw new AppError('Invalid verification response from Chapa', 400);
   }
 
   const paymentData = verification.data.data;
@@ -97,7 +97,7 @@ const verifyPayment = asyncWrapper(async (req, res) => {
   const updatedPayment = await Payment.findOneAndUpdate(
     { tx_ref },
     {
-      status: status === "success" ? "Completed" : "Failed",
+      status: status === 'success' ? 'Completed' : 'Failed',
       reference,
       amount: parseFloat(amount),
       currency,
@@ -115,23 +115,23 @@ const verifyPayment = asyncWrapper(async (req, res) => {
   );
 
   res.status(200).json({
-    status: "success",
+    status: 'success',
     receiptUrl: updatedPayment.receiptUrl,
   });
 });
-const getMoneyDonations= asyncWrapper(async (req, res) => {
+const getMoneyDonations = asyncWrapper(async (req, res) => {
   const { needId } = req.params;
-  const donations = await Payment.find({ needId }).populate("donorId");
+  const donations = await Payment.find({ needId }).populate('donorId');
 
   if (!donations) {
     return res.status(404).json({
-      status: "fail",
-      message: "No donations found",
+      status: 'fail',
+      message: 'No donations found',
     });
   }
 
   res.status(200).json({
-    status: "success",
+    status: 'success',
     data: donations,
   });
 });

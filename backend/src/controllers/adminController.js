@@ -7,9 +7,7 @@ const { sendNotification } = require('../utils/notificationService');
 
 // Get all users
 const getAllUsers = asyncWrapper(async (req, res) => {
-  // console.log(req.query); // Log the query parameters for debugging
-
-  const { verified, banned, active, ...otherQueryParams } = req.query;
+  const { verified, banned, active, all, ...otherQueryParams } = req.query;
 
   const filter = {};
 
@@ -25,14 +23,18 @@ const getAllUsers = asyncWrapper(async (req, res) => {
   if (active === 'active') filter.isActive = true;
   if (active === 'inactive') filter.isActive = false;
 
-  const totalCount = await User.countDocuments();
+  // Count total users matching the filter (not all documents)
+  const totalCount = await User.countDocuments(filter);
 
   const features = new APIFeatures(User.find(filter), otherQueryParams)
     .filter()
     .search()
-    .sort()
-    .limit()
-    .paginate();
+    .sort();
+
+  // If 'all' parameter is true, skip pagination
+  if (req.query.all !== 'true') {
+    features.limit().paginate();
+  }
 
   const users = await features.executeQuery();
 

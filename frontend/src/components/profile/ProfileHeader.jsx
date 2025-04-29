@@ -461,7 +461,7 @@ export const ProfileHeader = ({
               </h1>
               <div className="mt-2 flex flex-wrap justify-center md:justify-start gap-2">
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-semibold bg-yellow-400 text-teal-700`}
+                  className={`px-3 py-1 rounded-md text-xs font-semibold bg-yellow-400 text-[#008080]  min-w-[100px] text-center`}
                 >
                   {user.role
                     .replace('_', ' ')
@@ -485,15 +485,27 @@ export const ProfileHeader = ({
 
           {/* Right: Settings Link */}
           <div className="relative group mt-4 md:mt-0">
-            <Link
-              to="/account/settings"
-              className="flex items-center gap-2 text-white hover:text-yellow-400 transition-colors duration-300"
-            >
-              <SettingOutlined className=" text-lg" />
-              <span className="text-sm font-medium hidden sm:inline">
-                Settings
-              </span>
-            </Link>
+            {user.role === 'admin' ? (
+              <Link
+                to="/admin/account/settings"
+                className="flex items-center gap-2 text-white hover:text-yellow-400 transition-colors duration-300"
+              >
+                <SettingOutlined className=" text-lg" />
+                <span className="text-sm font-medium hidden sm:inline">
+                  Settings
+                </span>
+              </Link>
+            ) : (
+              <Link
+                to="/account/settings"
+                className="flex items-center gap-2 text-white hover:text-yellow-400 transition-colors duration-300"
+              >
+                <SettingOutlined className=" text-lg" />
+                <span className="text-sm font-medium hidden sm:inline">
+                  Settings
+                </span>
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -558,7 +570,7 @@ export const ProfileHeader = ({
             up to 10MB each.
           </p>
           {verificationDocs.additionalDocs?.length > 0 && (
-            <p className="mt-1 text-sm text-green-600">
+            <p className="mt-1 text-sm text-[#008080]">
               {verificationDocs.additionalDocs.length} additional document(s)
               selected
             </p>

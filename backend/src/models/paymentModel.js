@@ -1,20 +1,20 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const paymentSchema = new mongoose.Schema(
   {
     needId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Needs",
+      ref: 'Needs',
       required: true,
     },
     donorId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     NGOId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     amount: {
@@ -24,8 +24,8 @@ const paymentSchema = new mongoose.Schema(
     },
     currency: {
       type: String,
-      default: "ETB",
-      enum: ["ETB", "USD", "EUR", "GBP"], // Common currencies
+      default: 'ETB',
+      enum: ['ETB', 'USD', 'EUR', 'GBP'], // Common currencies
     },
 
     description: {
@@ -43,8 +43,8 @@ const paymentSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["Pending", "Completed", "Failed"],
-      default: "pending",
+      enum: ['Pending', 'Completed', 'Failed'],
+      default: 'pending',
     },
 
     receiptUrl: { type: String },
@@ -58,8 +58,8 @@ const paymentSchema = new mongoose.Schema(
 );
 
 // Add status to history when status changes
-paymentSchema.pre("save", function (next) {
-  if (this.isModified("status")) {
+paymentSchema.pre('save', function (next) {
+  if (this.isModified('status')) {
     this.statusHistory = this.statusHistory || [];
     this.statusHistory.push({
       status: this.status,
@@ -69,4 +69,4 @@ paymentSchema.pre("save", function (next) {
   next();
 });
 
-module.exports = mongoose.model("Payment", paymentSchema);
+module.exports = mongoose.model('Payment', paymentSchema);

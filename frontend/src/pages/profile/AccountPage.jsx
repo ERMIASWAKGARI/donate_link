@@ -177,16 +177,14 @@ const AccountPage = () => {
 
   return (
     <div>
-      {loading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
-          <Spin size="large" />
-        </div>
-      )}
-
       <Header />
 
-      <div className="max-w-2xl mx-auto my-8 p-6 bg-white rounded-xl shadow-md border border-gray-100">
-        {/* Tabs */}
+      <div className="max-w-2xl mx-auto my-8 p-6 bg-white rounded-xl shadow-md border border-gray-100 relative">
+        {loading && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/10 backdrop-blur-sm">
+            <Spin size="large" />
+          </div>
+        )}
         <div className="flex border-b border-gray-200 mb-6 text-sm font-medium">
           {['password', 'danger'].map((tab) => (
             <button
@@ -248,7 +246,7 @@ const AccountPage = () => {
               ))}
               <button
                 type="submit"
-                className="px-5 py-2 bg-[rgb(0,128,115)] text-white rounded-md text-sm font-medium hover:bg-[rgb(0,128,128)] transition"
+                className="flex items-center text-[#008080] hover:text-white hover:bg-[#008080] border border-[#008080] px-3 py-1.5 rounded-md text-sm font-medium transition duration-200"
               >
                 Change Password
               </button>
@@ -267,10 +265,10 @@ const AccountPage = () => {
                 <button
                   onClick={() => setShowDeactivateModal(true)}
                   disabled={!user.isActive || isDeactivating}
-                  className={`px-4 py-1.5 text-sm rounded-md font-medium transition ${
+                  className={`flex items-center gap-1  px-3 py-1.5 rounded-md text-sm font-medium transition duration-200 ${
                     isDeactivating || !user.isActive
                       ? 'bg-gray-300 text-gray-700 cursor-not-allowed'
-                      : 'bg-yellow-400 text-green-900 hover:bg-yellow-500 shadow-sm'
+                      : 'text-yellow-600 hover:text-white hover:bg-yellow-500 border border-yellow-500'
                   }`}
                 >
                   {isDeactivating ? 'Processing...' : 'Deactivate'}
@@ -288,10 +286,10 @@ const AccountPage = () => {
                 <button
                   onClick={() => setShowDeleteModal(true)}
                   disabled={!user.isActive || isDeleting}
-                  className={`px-4 py-1.5 text-sm rounded-md font-medium transition ${
+                  className={`flex items-center gap-1  px-3 py-1.5 rounded-md text-sm font-medium transition duration-200 ${
                     isDeleting || !user.isActive
                       ? 'bg-gray-300 text-gray-700 cursor-not-allowed'
-                      : 'bg-red-500 text-white hover:bg-red-600'
+                      : 'text-red-500 hover:text-white hover:bg-red-500 border border-red-500'
                   }`}
                 >
                   {isDeleting ? 'Processing...' : 'Delete Permanently'}
