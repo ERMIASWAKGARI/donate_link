@@ -12,6 +12,7 @@ const donationRoutes = require("./routes/donationRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const applicationRoutes = require("./routes/applicationRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const paymentRoutes = require("./routes/paymentRoutes"); // <-- Import payment routes
 const certificateRoutes = require("./routes/certificates");
 const path = require("path");
 
@@ -68,6 +69,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/application", applicationRoutes);
 app.use("/api/notification", notificationRoutes);
 app.use("/api/certificate", certificateRoutes);
+app.use("/api/payment", paymentRoutes); // <-- Add this line for payment routes
 app.all("*", (req, res, next) => {
   next(new AppError(`Cannot find ${req.originalUrl} on this server!`, 404));
 });

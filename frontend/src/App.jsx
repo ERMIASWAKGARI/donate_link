@@ -9,8 +9,8 @@ import ResetPassword from "./components/ResetPassword";
 import ScrollToTop from "./components/common/ScrollToTop";
 import { UserProvider } from "./context/UserContext";
 import IndividualDashboard from "./pages/Donor/IndividualDonor/DashboardIndividual";
+import DonationForm from "./pages/Donor/IndividualDonor/DonationForm";
 import NeedDetail from "./pages/Donor/IndividualDonor/NeedDetail";
-import DonationForm from "./pages/Donor/OrganizationalDonor/DonationForm";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import NotFoundPage from "./pages/NotFound";
@@ -30,6 +30,9 @@ import AccountPage from "./pages/profile/AccountPage";
 import UserProfilePage from "./pages/profile/UserProfilePage";
 import { store } from "./redux/store";
 import NGOReportViewer from "./components/NGO/NGOReport";
+import PaymentSuccess from "./pages/Donor/IndividualDonor/PaymentSuccess";
+import AdminAcccountPage from "./pages/admin/AdminAccountPage";
+import AdminProfilePage from "./pages/admin/AdminProfilePage";
 import CertificatesPage from "./pages/certificates/CertificatesPage";
 
 function App() {
@@ -77,7 +80,10 @@ function App() {
                       element={<VolunteerDashboard />}
                     />
                   </Route>
-
+                  <Route
+                    path="/donor/payment-success"
+                    element={<PaymentSuccess />}
+                  />
                   <Route element={<PrivateRoute />}>
                     <Route
                       path="/admin/dashboard"
@@ -85,11 +91,29 @@ function App() {
                     />
                     <Route path="/admin/users" element={<Users />} />
                     <Route path="/admin/users/:id" element={<UserDetail />} />
+                    <Route
+                      path="/admin/profile"
+                      element={<AdminProfilePage />}
+                    />
+                    <Route
+                      path="/admin/account/settings"
+                      element={<AdminAcccountPage />}
+                    />
                     <Route path="/post-donation" element={<DonationForm />} />
                     <Route path="/profile" element={<UserProfilePage />} />
                     <Route path="/account/settings" element={<AccountPage />} />
                   </Route>
                   <Route path="*" element={<NotFoundPage />} />
+
+                  {/* Add more routes as needed */}
+                  <Route
+                    path="/donor/donation-form"
+                    element={<DonationForm />}
+                  />
+                  <Route
+                    path="/donor/payment-success"
+                    element={<PaymentSuccess />}
+                  />
                 </Routes>
               </NotificationProvider>
             </ChatProvider>

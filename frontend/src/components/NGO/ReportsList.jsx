@@ -1,5 +1,6 @@
 import Axios from "../../config/axiosConfig";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FaImages,
   FaChartLine,
@@ -19,6 +20,7 @@ const ReportList = () => {
   const itemsPerPage = 5;
   const [selectedReport, setSelectedReport] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
+  const navigate = useNavigate();
 
   const fetchReports = async () => {
     try {
@@ -232,7 +234,7 @@ const ReportList = () => {
               )}
 
               <button
-                onClick={() => openReportDetails(report)}
+                onClick={() => navigate(`/report/${report._id}`)}
                 className="w-full px-4 py-2.5 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition flex items-center justify-center"
               >
                 View Full Report

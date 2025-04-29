@@ -17,6 +17,20 @@ const userSchema = new mongoose.Schema(
       trim: true,
       required: true,
     },
+    preferences: {
+      type:[String],
+      default: [],
+      enum: [
+        'Food', 
+        'Medical',
+        'Clothing',
+        'Learning',
+        'Drinking',
+        'Shelter',
+        "other"
+      ],
+    },
+
     email: { type: String, lowercase: true },
     phone: { type: String },
 

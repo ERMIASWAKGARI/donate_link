@@ -1,7 +1,7 @@
+import { Spin } from 'antd';
 import { FiArrowLeft } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import Spinner from '../common/Spinner ';
-import StatusBadge from '../common/StatusBadge';
 import { useUserDetailHandlers } from './UserDetail/useUserDetailHandlers';
 import VerificationDocsPanel from './UserDetail/VerificationDocsPanel';
 
@@ -28,7 +28,7 @@ const UserDetail = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Spinner size="lg" color="indigo" />
+        <Spin size="large" />
       </div>
     );
   }
@@ -44,10 +44,10 @@ const UserDetail = () => {
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-indigo-600 to-blue-500 px-6 py-4">
+      <div className="bg-[#008080] px-6 py-4">
         <button
           onClick={() => navigate('/admin/users')}
-          className="mb-4 flex items-center text-white hover:text-indigo-200 transition-colors"
+          className="mb-4 flex items-center text-white"
         >
           <FiArrowLeft className="mr-2" />
           Back to Users
@@ -58,12 +58,7 @@ const UserDetail = () => {
             <p className="text-indigo-100">{user.email}</p>
           </div>
           <div className="mt-3 md:mt-0 flex space-x-2">
-            <StatusBadge
-              isBanned={user.isBanned}
-              isVerified={user.isVerified}
-              className="bg-white/20 backdrop-blur-sm"
-            />
-            <span className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium text-white">
+            <span className="px-3 py-1 rounded-md text-sm font-medium bg-yellow-400 text-green-900 min-w-[100px] text-center">
               {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
             </span>
           </div>
@@ -76,7 +71,7 @@ const UserDetail = () => {
         <div className="bg-gray-50 rounded-lg p-5 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200 flex items-center">
             <svg
-              className="w-5 h-5 mr-2 text-indigo-500"
+              className="w-5 h-5 mr-2 text-[#008080]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -120,7 +115,7 @@ const UserDetail = () => {
         <div className="bg-gray-50 rounded-lg p-5 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200 flex items-center">
             <svg
-              className="w-5 h-5 mr-2 text-indigo-500"
+              className="w-5 h-5 mr-2 text-[#008080]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -166,7 +161,7 @@ const UserDetail = () => {
         <div className="bg-gray-50 rounded-lg p-5 shadow-sm md:col-span-2">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200 flex items-center">
             <svg
-              className="w-5 h-5 mr-2 text-indigo-500"
+              className="w-5 h-5 mr-2 text-[#008080]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -220,7 +215,7 @@ const UserDetail = () => {
       <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
         <h2 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200 flex items-center">
           <svg
-            className="w-5 h-5 mr-2 text-indigo-500"
+            className="w-5 h-5 mr-2 text-[#008080]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -238,7 +233,7 @@ const UserDetail = () => {
           {user.isBanned ? (
             <button
               onClick={handleUnban}
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-transform"
+              className="flex items-center text-[#008080] hover:text-white hover:bg-[#008080] border border-[#008080] px-3 py-1.5 rounded-md text-sm font-medium transition duration-200"
             >
               <svg
                 className="w-5 h-5 mr-2"
@@ -258,7 +253,7 @@ const UserDetail = () => {
           ) : (
             <button
               onClick={handleBan}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-transform"
+              className="flex items-center text-red-500 hover:text-white hover:bg-red-500 border border-red-500 px-3 py-1.5 rounded-md text-sm font-medium transition duration-200"
             >
               <svg
                 className="w-5 h-5 mr-2"

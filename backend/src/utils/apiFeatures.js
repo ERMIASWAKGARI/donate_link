@@ -65,7 +65,7 @@ class APIFeatures {
       const fields = this.queryString.fields.split(',').join(' ');
       this.query = this.query.select(fields);
     } else {
-      this.query = this.query.select('-__v -password'); // Exclude __v and password
+      this.query = this.query.select('-__v -password');
     }
 
     return this;

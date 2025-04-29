@@ -14,6 +14,7 @@ import {
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { UserContext } from "../../context/UserContext";
+import { Spin } from "antd";
 
 import Map from "./Map";
 const PendingDonations = () => {
@@ -134,8 +135,8 @@ const PendingDonations = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="w-12 h-12 border-4 border-[#008080] border-dashed rounded-full animate-spin"></div>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+        <Spin size="large" />
       </div>
     );
   }

@@ -64,7 +64,7 @@ exports.createApplication = asyncWrapper(async (req, res, next) => {
     status: "Submitted",
   });
   console.log(`[Application] Created application ID: ${newApplication._id}`);
-
+z
   // Notification handling
   try {
     console.log("[Notification] Creating notification...");

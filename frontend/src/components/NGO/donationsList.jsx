@@ -17,8 +17,10 @@ import {
   FiCheckCircle,
   FiXCircle,
 } from "react-icons/fi";
+import MoneyDonationsTable from "./moneyDonationsList";
 import Modal from "react-modal";
 import { Link } from "react-router-dom";
+import { Spin } from "antd";
 
 Modal.setAppElement("#root");
 
@@ -124,6 +126,19 @@ const DonationsList = () => {
             ...prev,
             services: serviceResponse.data.donations || [],
           }));
+        } else if (selectedCategory === "money") {
+          const moneyResponse = await AxiosInstance.get(
+            `donation/money/${selectedNeed._id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+              },
+            }
+          );
+          setDonations((prev) => ({
+            ...prev,
+            money: moneyResponse.data.data || [],
+          }));
         }
       } catch (error) {
         console.error("Error fetching donations:", error);
@@ -149,8 +164,8 @@ const DonationsList = () => {
   };
   if (isPageLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="w-12 h-12 border-4 border-[#008080] border-dashed rounded-full animate-spin"></div>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+        <Spin size="large" />
       </div>
     );
   }
@@ -400,7 +415,17 @@ const DonationsList = () => {
                 </div>
               ) : getDonationsByType()?.length > 0 ? (
                 <div className="space-y-4">
-                  {/* Non-table donation cards */}
+                  {selectedCategory === "money" &&
+                  getDonationsByType()?.length > 0 ? (
+                    <MoneyDonationsTable
+                      donations={getDonationsByType()}
+                      loading={loading.donations}
+                    />
+                  ) : getDonationsByType()?.length > 0 ? (
+                    <div className="space-y-4">
+                      {/* Other donation types can go here */}
+                    </div>
+                  ) : null}
                 </div>
               ) : (
                 <div className="text-center py-12">

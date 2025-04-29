@@ -4,8 +4,10 @@ import Profile from "../../pages/Profile";
 import ChatModal from "../ChatModal";
 import { motion, AnimatePresence } from "framer-motion";
 import ConfirmationModal from "./ConfirmationModal";
-import { Eye, Users, Frown, ChevronLeft, ChevronRight } from "lucide-react";
+import { Users, Frown, ChevronLeft, ChevronRight } from "lucide-react";
 import VolunteerCard from "./VolunteerCard";
+import { Spin } from "antd";
+import VolunteersList from "./VolunteersList";
 
 function VolunteerApplication() {
   const [loading, setLoading] = useState(true);
@@ -28,7 +30,7 @@ function VolunteerApplication() {
     totalItems: 0,
     itemsPerPage: 5,
   });
-
+  const [status, setStatus] = useState("");
   const toggleDropdown = (id) => {
     setOpenDropdownId(openDropdownId === id ? null : id);
   };
@@ -37,6 +39,15 @@ function VolunteerApplication() {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
       getServiceNeeds(newPage);
     }
+  };
+  const updateVolunteerStatus = (volunteerId, newStatus) => {
+    setVolunteers((prevVolunteers) =>
+      prevVolunteers.map((volunteer) =>
+        volunteer._id === volunteerId
+          ? { ...volunteer, status: newStatus }
+          : volunteer
+      )
+    );
   };
 
   const handleViewProfile = async (volunteer) => {
@@ -124,6 +135,7 @@ function VolunteerApplication() {
         `donation/service/${currentVolunteerId}`,
         { status: actionType }
       );
+      setStatus(response.data.application.status);
       if (response.data.success && selectedNeed) {
         getApplications(selectedNeed);
       }
@@ -143,8 +155,8 @@ function VolunteerApplication() {
   };
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="w-12 h-12 border-4 border-teal-500 border-dashed rounded-full animate-spin"></div>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+        <Spin size="large" />
       </div>
     );
   }
@@ -284,46 +296,13 @@ function VolunteerApplication() {
               </div>
             ) : volunteers.length > 0 ? (
               <div className="space-y-4">
-                {volunteers.map((volunteer) => (
-                  <motion.div
-                    key={volunteer._id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-all duration-200 relative"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-800">
-                          {volunteer.applicant.name}
-                        </h3>
-                        <div className="flex items-center mt-1">
-                          <span
-                            className={`px-2 py-0.5 text-xs font-medium rounded-full capitalize ${
-                              volunteer.status === "pending"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : volunteer.status === "accepted"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {volunteer.status}
-                          </span>
-                          <span className="text-sm text-gray-500 ml-2">
-                            Applied on{" "}
-                            {new Date(volunteer.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleViewDetails(volunteer)}
-                        className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-800 transition"
-                        aria-label="View details"
-                      >
-                        <Eye className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </motion.div>
+                {volunteers.map((volunteer, index) => (
+                  <VolunteersList
+                    key={index}
+                    volunteer={volunteer}
+                    volunteers={volunteers}
+                    handleViewDetails={handleViewDetails}
+                  />
                 ))}
               </div>
             ) : (
@@ -396,6 +375,7 @@ function VolunteerApplication() {
                   confirmAction={confirmAction}
                   setShowChatModal={setShowChatModal}
                   setOpenDropdownId={setOpenDropdownId}
+                  updateVolunteerStatus={updateVolunteerStatus}
                 />
               </motion.div>
             </div>

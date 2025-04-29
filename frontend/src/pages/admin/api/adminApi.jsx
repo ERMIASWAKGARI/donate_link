@@ -10,9 +10,10 @@ const getAllUsers = async (
   query = '',
   verified = '',
   banned = '',
-  active = ''
+  active = '',
+  all = false
 ) => {
-  const token = localStorage.getItem('accessToken'); // Get fresh token
+  const token = localStorage.getItem('accessToken');
 
   // Build query parameters object
   const params = {
@@ -26,10 +27,10 @@ const getAllUsers = async (
   if (verified) params.verified = verified;
   if (banned) params.banned = banned;
   if (active) params.active = active;
-  console.log('Query parameters:', params); // Debugging line
+  if (all) params.all = true; // Add the all parameter when needed
 
   const response = await axios.get(`${API_BASE_URL}/users`, {
-    params, // axios will properly encode the parameters
+    params,
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -40,7 +41,6 @@ const getAllUsers = async (
     pagination: response.data.data.pagination,
   };
 };
-
 const getUserById = async (id) => {
   const token = localStorage.getItem('accessToken'); // Get fresh token
 

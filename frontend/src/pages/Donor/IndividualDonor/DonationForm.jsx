@@ -1,43 +1,46 @@
-import { useState, useContext } from "react";
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
+import { useContext, useState } from 'react';
 import {
+  FaBoxOpen,
+  FaCalendarAlt,
+  FaClock,
   FaHandHoldingHeart,
   FaMoneyBillWave,
-  FaBoxOpen,
-  FaClock,
-  FaCalendarAlt,
-} from "react-icons/fa";
-import Axios from "../../../config/axiosConfig";
-import MaterialDonationForm from "./MatterialDonationForm";
-import { UserContext } from "../../../context/UserContext";
+} from 'react-icons/fa';
+import Axios from '../../../config/axiosConfig';
+import { UserContext } from '../../../context/UserContext';
+import MaterialDonationForm from './MatterialDonationForm';
 const DonationForm = ({ need, onClose, onSubmit }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const { user } = useContext(UserContext);
   // Initialize form data based on need types
-  console.log("need", need);
+  console.log('need', need);
   const [formData, setFormData] = useState({
-    type: need.needTypes.includes("money") ? "money" : need.needTypes[0],
-    amount: "",
+    type: need.needTypes.includes('money') ? 'money' : need.needTypes[0],
+    currency: 'ETB',
+    amount: '',
     materials:
       need.categories.material?.map((item) => ({
         categoryName: item.categoryName,
         subCategoryName: item.subCategoryName,
-        quantity: "",
+        quantity: '',
         unit: item.unit,
       })) || [],
     services:
       need?.categories?.service?.map((item) => ({
         category: item.categoryName, // Changed from categoryName to category
         subCategory: item.subCategoryName, // Changed from subCategoryName to subCategory
-        motivation: "",
-        startDate: "",
+        motivation: '',
+        startDate: '',
         endDate: null, // Made optional to match model
-        hoursPerWeek: "",
+        hoursPerWeek: '',
       })) || [],
-    message: "",
+    message: '',
     location: {
-      address: "",
+      address: '',
       latitude: null,
       longitude: null,
     },
@@ -82,7 +85,7 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length + formData.pictures.length > 10) {
-      setError("You can upload a maximum of 10 pictures");
+      setError('You can upload a maximum of 10 pictures');
       return;
     }
 
@@ -96,7 +99,7 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
         pictures: [...prev.pictures, ...uploadedUrls],
       }));
     } catch (err) {
-      setError("Failed to upload pictures");
+      setError('Failed to upload pictures');
     }
   };
 
@@ -126,37 +129,37 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
     try {
       // Validate form data
       if (!user) {
-        throw new Error("You must be logged in to make a donation");
+        throw new Error('You must be logged in to make a donation');
       }
 
-      if (formData.type === "money" && !formData.amount) {
-        throw new Error("Please enter an amount");
+      if (formData.type === 'money' && !formData.amount) {
+        throw new Error('Please enter an amount');
       }
 
-      if (formData.type === "material") {
+      if (formData.type === 'material') {
         for (const material of formData.materials) {
           if (!material.quantity) {
-            throw new Error("Please fill all material quantities");
+            throw new Error('Please fill all material quantities');
           }
         }
         if (!formData.location.address) {
-          throw new Error("Please provide a location for material donation");
+          throw new Error('Please provide a location for material donation');
         }
       }
 
-      if (formData.type === "service") {
+      if (formData.type === 'service') {
         for (const service of formData.services) {
           if (!service.motivation) {
-            throw new Error("Please provide your motivation for each service");
+            throw new Error('Please provide your motivation for each service');
           }
           if (!service.startDate || !service.endDate) {
             throw new Error(
-              "Please provide start and end dates for each service"
+              'Please provide start and end dates for each service'
             );
           }
           if (!validateDates(service.startDate, service.endDate)) {
             throw new Error(
-              "End date must be after start date for each service"
+              'End date must be after start date for each service'
             );
           }
           if (
@@ -165,7 +168,7 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
             service.hoursPerWeek <= 0
           ) {
             throw new Error(
-              "Please provide valid hours per week for each service"
+              'Please provide valid hours per week for each service'
             );
           }
         }
@@ -173,22 +176,31 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
 
       // Submit based on donation type
       let response;
-      if (formData.type === "money") {
-        response = await Axios.post("/donation/money", {
+      if (formData.type === 'money') {
+        response = await Axios.post('/payment/initialize', {
+          amount: parseFloat(formData.amount),
+          currency: formData.currency,
+          email: user.email || '',
+          name: user.name || '',
+          phone: user.phone || '',
           NGO: need.NGO._id,
           donorId: user._id,
           needId: need._id,
-          amount: parseFloat(formData.amount),
-          message: formData.message || "",
+          message: formData.message || '',
         });
-      } else if (formData.type === "material") {
+
+        console.log('response pay', response);
+
+        window.location.href = response.data.data.checkout_url;
+        return;
+      } else if (formData.type === 'material') {
         const formDataToSend = new FormData();
-        formDataToSend.append("NGO", need.NGO._id);
-        formDataToSend.append("donorId", user._id);
-        formDataToSend.append("needId", need._id);
-        formDataToSend.append("message", formData.message || "");
+        formDataToSend.append('NGO', need.NGO._id);
+        formDataToSend.append('donorId', user._id);
+        formDataToSend.append('needId', need._id);
+        formDataToSend.append('message', formData.message || '');
         formDataToSend.append(
-          "materials",
+          'materials',
           JSON.stringify(
             formData.materials.map((m) => ({
               categoryName: m.categoryName,
@@ -199,7 +211,7 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
           )
         );
         formDataToSend.append(
-          "location",
+          'location',
           JSON.stringify({
             latitude: formData.location.latitude,
             longitude: formData.location.longitude,
@@ -211,11 +223,11 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
         if (formData.pictures.length > 0) {
           const pictureFiles = await Promise.all(
             formData.pictures.map(async (pic) => {
-              if (pic.startsWith("data:")) {
+              if (pic.startsWith('data:')) {
                 const response = await fetch(pic);
                 const blob = await response.blob();
                 return new File([blob], `donation-${Date.now()}.jpg`, {
-                  type: "image/jpeg",
+                  type: 'image/jpeg',
                 });
               }
               return pic;
@@ -223,38 +235,38 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
           );
 
           pictureFiles.forEach((file) => {
-            formDataToSend.append("pictures", file);
+            formDataToSend.append('pictures', file);
           });
         }
 
-        response = await Axios.post("donation/material", formDataToSend, {
+        response = await Axios.post('donation/material', formDataToSend, {
           headers: {
-            "Content-Type": "multipart/form-data",
+            'Content-Type': 'multipart/form-data',
           },
         });
-      } else if (formData.type === "service") {
+      } else if (formData.type === 'service') {
         // Validate each service field according to model requirements
         for (const service of formData.services) {
           if (!service.motivation || service.motivation.length > 1000) {
             throw new Error(
-              "Motivation is required and must be less than 1000 characters"
+              'Motivation is required and must be less than 1000 characters'
             );
           }
           if (!service.startDate) {
-            throw new Error("Start date is required for each service");
+            throw new Error('Start date is required for each service');
           }
           if (
             service.endDate &&
             new Date(service.endDate) <= new Date(service.startDate)
           ) {
-            throw new Error("End date must be after start date if provided");
+            throw new Error('End date must be after start date if provided');
           }
           if (!service.hoursPerWeek || isNaN(service.hoursPerWeek)) {
-            throw new Error("Hours per week must be a valid number");
+            throw new Error('Hours per week must be a valid number');
           }
         }
 
-        response = await Axios.post("/donation/service", {
+        response = await Axios.post('/donation/service', {
           applicant: user?._id, // Changed from donorId to applicant
           need: need?._id, // Changed from needId to need
           category: formData.services[0].category, // Using first service's category
@@ -263,12 +275,12 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
           startDate: formData.services[0].startDate,
           endDate: formData.services[0].endDate || null,
           hoursPerWeek: parseInt(formData.services[0].hoursPerWeek),
-          status: "Submitted", // Added default status
-          message: formData.message || "",
+          status: 'Submitted', // Added default status
+          message: formData.message || '',
         });
       }
 
-      setSuccess(response?.data?.message || "Donation submitted successfully!");
+      setSuccess(response?.data?.message || 'Donation submitted successfully!');
       if (onSubmit) onSubmit(response?.data?.donation || formData);
 
       // Reset form
@@ -282,8 +294,9 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
         onClose();
       }, 3000);
     } catch (err) {
+      console.error('Error submitting donation:', err);
       setError(
-        err.response?.data?.message || err.message || "An error occurred"
+        err.response?.data?.message || err.message || 'An error occurred'
       );
     } finally {
       setIsSubmitting(false);
@@ -340,13 +353,13 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
               Donation Type
             </label>
             <div className="space-y-3">
-              {need.needTypes.includes("money") && (
+              {need.needTypes.includes('money') && (
                 <label className="flex items-center p-3 border rounded-lg hover:bg-primary/10 cursor-pointer transition-colors">
                   <input
                     type="radio"
                     name="type"
                     value="money"
-                    checked={formData.type === "money"}
+                    checked={formData.type === 'money'}
                     onChange={handleChange}
                     className="mr-3 h-5 w-5 text-primary"
                   />
@@ -361,13 +374,13 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
                   </div>
                 </label>
               )}
-              {need?.needTypes.includes("material") && (
+              {need?.needTypes.includes('material') && (
                 <label className="flex items-center p-3 border rounded-lg hover:bg-primary/10 cursor-pointer transition-colors">
                   <input
                     type="radio"
                     name="type"
                     value="material"
-                    checked={formData.type === "material"}
+                    checked={formData.type === 'material'}
                     onChange={handleChange}
                     className="mr-3 h-5 w-5 text-primary"
                   />
@@ -382,13 +395,13 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
                   </div>
                 </label>
               )}
-              {need.needTypes.includes("service") && (
+              {need.needTypes.includes('service') && (
                 <label className="flex items-center p-3 border rounded-lg hover:bg-primary/10 cursor-pointer transition-colors">
                   <input
                     type="radio"
                     name="type"
                     value="service"
-                    checked={formData.type === "service"}
+                    checked={formData.type === 'service'}
                     onChange={handleChange}
                     className="mr-3 h-5 w-5 text-primary"
                   />
@@ -407,10 +420,27 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
           </div>
 
           {/* Money Donation Form */}
-          {formData.type === "money" && (
+          {formData.type === 'money' && (
             <div className="mb-6 bg-primary/10 p-4 rounded-lg">
+              {/* Currency Selection */}
+              <div className="mb-4">
+                <label className="block text-gray-700 font-medium mb-2">
+                  Currency
+                </label>
+                <select
+                  name="currency"
+                  value={formData.currency}
+                  onChange={handleChange}
+                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                >
+                  <option value="ETB">Ethiopian Birr (ETB)</option>
+                  <option value="USD">US Dollar (USD)</option>
+                </select>
+              </div>
+
+              {/* Amount Input */}
               <label className="block text-gray-700 font-medium mb-2">
-                Amount ($)
+                Amount
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
@@ -425,12 +455,12 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
                   step="0.01"
                   className="w-full pl-8 p-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                   required
-                  placeholder="Enter amount"
+                  placeholder={`Enter amount in ${formData.currency}`}
                 />
               </div>
               {need.targetMoney && (
                 <p className="text-sm text-gray-600 mt-2">
-                  Target:{" "}
+                  Target:{' '}
                   <span className="font-semibold">
                     ${need.targetMoney.toLocaleString()}
                   </span>
@@ -440,7 +470,7 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
           )}
 
           {/* Material Donation Form */}
-          {formData.type === "material" && formData?.materials?.length > 0 && (
+          {formData.type === 'material' && formData?.materials?.length > 0 && (
             <MaterialDonationForm
               materials={formData.materials}
               location={formData.location}
@@ -453,7 +483,7 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
           )}
 
           {/* Service Donation Form */}
-          {formData.type === "service" && formData.services?.length > 0 && (
+          {formData.type === 'service' && formData.services?.length > 0 && (
             <div className="mb-6 space-y-4">
               <h4 className="font-medium text-gray-700 mb-2">
                 Service Application
@@ -495,7 +525,7 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
                           onChange={(e) => handleServiceChange(index, e)}
                           className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                           required
-                          min={new Date().toISOString().split("T")[0]}
+                          min={new Date().toISOString().split('T')[0]}
                         />
                       </div>
                       <div>
@@ -506,12 +536,12 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
                         <input
                           type="date"
                           name="endDate"
-                          value={item.endDate || ""}
+                          value={item.endDate || ''}
                           onChange={(e) => handleServiceChange(index, e)}
                           className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                           min={
                             item.startDate ||
-                            new Date().toISOString().split("T")[0]
+                            new Date().toISOString().split('T')[0]
                           }
                         />
                       </div>
@@ -558,8 +588,8 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
             type="submit"
             className={`w-full py-3 px-4 rounded-lg font-bold border transition-all ${
               isSubmitting
-                ? "border-[#008080] text-[#008080] cursor-not-allowed"
-                : "border-[#008080] text-[#008080] hover:bg-[#008080] hover:text-white"
+                ? 'border-[#008080] text-[#008080] cursor-not-allowed'
+                : 'border-[#008080] text-[#008080] hover:bg-[#008080] hover:text-white'
             }`}
             disabled={isSubmitting}
           >
@@ -588,7 +618,7 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
                 Processing...
               </span>
             ) : (
-              "Submit Donation"
+              'Submit Donation'
             )}
           </button>
         </form>
