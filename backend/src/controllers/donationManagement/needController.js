@@ -731,6 +731,50 @@ description: req.body.description,
     });
   }
 };
+const deleteNeed = async (req, res) => {
+  try {
+    const needId = req.params.id;
+    const need = await Need.findById(needId);
+
+    if (!need) {
+      return res.status(404).json({
+        success: false,
+        error: "Need not found",
+      });
+    }
+
+    // Check if the need has any associated applications, material donations, or payments
+    const hasApplications = await Application.exists({ need: needId });
+    const hasMaterialDonations = await MaterialDonation.exists({
+      needId: needId,
+    });
+    const hasPayments = await Payment.exists({ need: needId });
+
+    if (hasApplications || hasMaterialDonations || hasPayments) {
+      return res.status(400).json({
+        success: false,
+        error:
+          "Cannot delete need as it has associated donations or applications",
+      });
+    }
+
+    // If no associations exist, proceed with deletion
+    await Need.findByIdAndDelete(needId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Need deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting need:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Server error while deleting need",
+    });
+  }
+}; 
+
+
 const getNeedById = async (req, res) => {
   try {
     const need = await Need.findById(req.params.id)
@@ -900,6 +944,7 @@ const monetaryDonations= await Payment.aggregate([
 
 module.exports = {
   getNeedById,
+  deleteNeed,
   getNGOStatistics,
   getReportByNgo,
   getNeedsByNgo,

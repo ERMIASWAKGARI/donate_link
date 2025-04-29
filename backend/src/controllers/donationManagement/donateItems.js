@@ -2,6 +2,7 @@ const MaterialDonation = require('../../models/matterialDonation');
 const AppError = require('../../utils/appError');
 const asyncWrapper = require('../../middleware/asyncWrapper');
 const {sendNotification} = require("../../utils/notificationService");
+const Need = require('../../models/needsModel');
 
 // Create material donation
 const createMaterialDonation = async (req, res) => {
@@ -41,6 +42,14 @@ const createMaterialDonation = async (req, res) => {
     });
 
     await newDonation.save();
+    // Update the need to indicate it has donations
+    const needBeingApplied = await Need.findById(needId);
+    if (needBeingApplied) {
+      needBeingApplied.hasDonations = true;
+      await needBeingApplied.save();
+    } else {
+      return res.status(404).json({ message: 'Need not found' });
+    }
      sendNotification(
        newDonation.NGO,
        `New donation made for your need  by ${req.user.name} with tracking ID ${trackingId}`,
