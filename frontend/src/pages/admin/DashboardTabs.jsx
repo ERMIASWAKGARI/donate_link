@@ -3,7 +3,7 @@ import { useState } from 'react';
 import UserAnalytics from './UserAnalytics';
 import PostAnalytics from './PostAnalytics';
 
-const DashboardTabs = ({ users, pagination, loading, error }) => {
+const DashboardTabs = () => {
   const tabs = ['Users Analytics', 'Posts Analytics', 'Donations'];
   const [activeTab, setActiveTab] = useState('Users Analytics');
 
@@ -28,14 +28,7 @@ const DashboardTabs = ({ users, pagination, loading, error }) => {
 
       {/* Tab Content */}
       <div className="p-4">
-        {activeTab === 'Users Analytics' && (
-          <UserAnalytics
-            users={users}
-            pagination={pagination}
-            loading={loading}
-            error={error}
-          />
-        )}
+        {activeTab === 'Users Analytics' && <UserAnalytics />}
         {activeTab === 'Posts Analytics' && <PostAnalytics />}
         {activeTab === 'Donations' && <div>Donations content coming soon</div>}
       </div>

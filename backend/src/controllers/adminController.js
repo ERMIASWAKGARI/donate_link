@@ -5,6 +5,130 @@ const sendSuccessResponse = require('../utils/responseHelper');
 const APIFeatures = require('../utils/apiFeatures');
 const { sendNotification } = require('../utils/notificationService');
 
+const Donation = require('../models/donationsModel');
+const Need = require('../models/needsModel');
+
+const getAllPosts = asyncWrapper(async (req, res) => {
+  console.log('Query:', req.query);
+
+  const {
+    page = 1,
+    limit, // Make limit optional
+    sortBy = '-createdAt',
+    search = '',
+  } = req.query;
+
+  // Create aggregation pipelines for both collections
+  const donationPipeline = [
+    {
+      $match: {
+        $or: [
+          { title: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        postType: 'donation',
+        needTypes: null,
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        title: 1,
+        description: 1,
+        images: 1,
+        status: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        organization: 1,
+        postType: 1,
+        needTypes: 1,
+        amount: 1,
+        category: 1,
+      },
+    },
+  ];
+
+  const needPipeline = [
+    {
+      $match: {
+        $or: [
+          { title: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        postType: 'need',
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        title: 1,
+        description: 1,
+        images: 1,
+        status: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        ngo: 1,
+        postType: 1,
+        needTypes: 1,
+        targetAmount: 1,
+        category: 1,
+      },
+    },
+  ];
+
+  // Execute parallel queries
+  const [donations, needs] = await Promise.all([
+    Donation.aggregate(donationPipeline),
+    Need.aggregate(needPipeline),
+  ]);
+
+  // Combine and sort results
+  let allPosts = [...donations, ...needs];
+
+  // Apply sorting
+  const sortOrder = sortBy.startsWith('-') ? -1 : 1;
+  const sortField = sortBy.replace(/^-/, '');
+
+  allPosts.sort((a, b) => {
+    if (a[sortField] < b[sortField]) return -1 * sortOrder;
+    if (a[sortField] > b[sortField]) return 1 * sortOrder;
+    return 0;
+  });
+
+  // Handle pagination only if limit is specified
+  let responseData;
+  if (limit) {
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    responseData = allPosts.slice(startIndex, endIndex);
+  } else {
+    responseData = allPosts;
+  }
+
+  res.json({
+    success: true,
+    count: allPosts.length,
+    pagination: limit
+      ? {
+          currentPage: Number(page),
+          totalPages: Math.ceil(allPosts.length / limit),
+          totalItems: allPosts.length,
+        }
+      : null,
+    data: {
+      posts: responseData,
+    },
+  });
+});
+
 // Get all users
 const getAllUsers = asyncWrapper(async (req, res) => {
   const { verified, banned, active, all, ...otherQueryParams } = req.query;
@@ -368,4 +492,5 @@ module.exports = {
   bulkUnbanUsers,
   unbanUser,
   deleteUser,
+  getAllPosts,
 };

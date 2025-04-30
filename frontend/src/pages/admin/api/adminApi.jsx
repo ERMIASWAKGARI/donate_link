@@ -198,17 +198,19 @@ const getVerificationDocuments = async (userId) => {
   }
 };
 
-const getAllPosts = async (page = 1, sort = '', query = '') => {
-  const token = localStorage.getItem('accessToken'); // Get fresh token
+const getAllPosts = async (page = 1, sort = '', query = '', limit = null) => {
+  const token = localStorage.getItem('accessToken');
 
   // Build query parameters object
   const params = {
     page: page,
+    include: 'donations,needs',
   };
 
   // Only add parameters if they have values
   if (sort) params.sortBy = sort;
   if (query) params.search = query;
+  if (limit) params.limit = limit; // Only include limit if specified
 
   try {
     const response = await axios.get(`${API_BASE_URL}/posts`, {
@@ -218,9 +220,12 @@ const getAllPosts = async (page = 1, sort = '', query = '') => {
       },
     });
 
+    console.log('Posts response:', response); // Debugging line
+
     return {
       posts: response.data.data.posts,
-      pagination: response.data.data.pagination,
+      pagination: response.data.pagination,
+      totalCount: response.data.count,
     };
   } catch (error) {
     console.error('Error fetching posts:', error.message);
