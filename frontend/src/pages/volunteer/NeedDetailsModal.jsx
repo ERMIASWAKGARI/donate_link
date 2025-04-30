@@ -34,12 +34,14 @@ const NeedDetailsModal = ({ need, onClose }) => {
       setSuccess(null);
 
       const token = localStorage.getItem("accessToken");
+
       if (!token) {
         throw new Error("No authentication token found");
       }
 
       await axios.post(
         `http://localhost:5000/api/application/${need._id}/apply`,
+
         {
           motivation: applicationData.motivation,
           startDate: applicationData.startDate,
@@ -48,6 +50,7 @@ const NeedDetailsModal = ({ need, onClose }) => {
           category: applicationData.category,
           subCategory: applicationData.subCategory,
         },
+
         {
           headers: {
             Authorization: `Bearer ${token}`,

@@ -115,15 +115,15 @@ const VolunteerCard = ({
                   Contact
                 </button>
                 <button
-                  onClick={() => handleAction("accepted", volunteer._id)}
+                  onClick={() => handleAction("Accepted", volunteer._id)}
                   className={`block w-full text-left px-4 py-2 text-sm ${
-                    actionType === "accepted" && isProcessing
+                    actionType === "Accepted" && isProcessing
                       ? "text-green-400"
                       : "text-green-600 hover:bg-green-50"
                   } transition-colors`}
                   disabled={isProcessing}
                 >
-                  {actionType === "accepted" && isProcessing ? (
+                  {actionType === "Accepted" && isProcessing ? (
                     <span className="flex items-center">
                       <svg
                         className="animate-spin -ml-1 mr-2 h-4 w-4"
