@@ -3,6 +3,8 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "../../../src/assets/logosa.png";
+import GoogleTranslate from "../../context/GoogleTranslate";
+
 // public/;
 
 const Header = () => {
@@ -274,7 +276,7 @@ const Header = () => {
                 />
               </a>
             </div>
-
+            <GoogleTranslate />
             {/* Add this right before the Register button */}
             <div className="hidden md:flex items-center space-x-4">
               <motion.button
