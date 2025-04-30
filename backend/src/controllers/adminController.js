@@ -8,6 +8,9 @@ const { sendNotification } = require('../utils/notificationService');
 const Donation = require('../models/donationsModel');
 const Need = require('../models/needsModel');
 
+const MaterialDonation = require('../models/matterialDonation');
+const Payment = require('../models/paymentModel');
+
 const getAllPosts = asyncWrapper(async (req, res) => {
   console.log('Query:', req.query);
 
@@ -125,6 +128,116 @@ const getAllPosts = asyncWrapper(async (req, res) => {
       : null,
     data: {
       posts: responseData,
+    },
+  });
+});
+
+// @desc    Get all donations
+// @route   GET /api/admin/donations
+// @access  Private/Admin
+const getAllDonations = asyncWrapper(async (req, res) => {
+  const { page = 1, limit, sortBy = '-createdAt', search = '' } = req.query;
+
+  // Build match conditions for search
+  const searchCondition = search
+    ? {
+        $or: [
+          { 'donor.name': { $regex: search, $options: 'i' } },
+          { 'ngo.name': { $regex: search, $options: 'i' } },
+          { trackingId: { $regex: search, $options: 'i' } },
+          { reference: { $regex: search, $options: 'i' } },
+        ],
+      }
+    : {};
+
+  // Fetch material donations with proper population
+  const materialDonations = await MaterialDonation.find(searchCondition)
+    .sort(sortBy)
+    .populate('donorId', 'name email')
+    .populate('NGO', 'name email')
+    .populate('needId', 'title')
+    .lean();
+
+  // Fetch monetary donations with proper population
+  const payments = await Payment.find(searchCondition)
+    .sort(sortBy)
+    .populate('donorId', 'name email')
+    .populate('NGOId', 'name email')
+    .populate('needId', 'title')
+    .lean();
+
+  // Transform donations into consistent format
+  let allDonations = [
+    ...materialDonations.map((d) => ({
+      _id: d._id,
+      donor: d.donorId,
+      recipient: d.NGO,
+      need: d.needId,
+      donationType: 'material',
+      type: d.donationType,
+      materials: d.materials,
+      trackingId: d.trackingId,
+      location: d.location,
+      pictures: d.pictures,
+      status: d.status || 'completed', // Default status for material donations
+      createdAt: d.createdAt,
+      updatedAt: d.updatedAt,
+    })),
+    ...payments.map((p) => ({
+      _id: p._id,
+      donor: p.donorId,
+      recipient: p.NGOId,
+      need: p.needId,
+      donationType: 'monetary',
+      amount: p.amount,
+      currency: p.currency,
+      description: p.description,
+      reference: p.reference,
+      tx_ref: p.tx_ref,
+      receiptUrl: p.receiptUrl,
+      status: p.status.toLowerCase(), // Standardize status casing
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt,
+    })),
+  ];
+
+  // Apply sorting
+  const sortOrder = sortBy.startsWith('-') ? -1 : 1;
+  const sortField = sortBy.replace(/^-/, '');
+
+  allDonations.sort((a, b) => {
+    const aValue =
+      a[sortField] instanceof Date ? a[sortField].getTime() : a[sortField];
+    const bValue =
+      b[sortField] instanceof Date ? b[sortField].getTime() : b[sortField];
+
+    if (aValue < bValue) return -1 * sortOrder;
+    if (aValue > bValue) return 1 * sortOrder;
+    return 0;
+  });
+
+  // Pagination
+  let responseData;
+  if (limit) {
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    responseData = allDonations.slice(startIndex, endIndex);
+  } else {
+    responseData = allDonations; // Return all if no limit specified
+  }
+
+  res.json({
+    success: true,
+    count: allDonations.length,
+    pagination: limit
+      ? {
+          currentPage: Number(page),
+          totalPages: Math.ceil(allDonations.length / limit),
+          totalItems: allDonations.length,
+        }
+      : null,
+    data: {
+      donations: responseData,
     },
   });
 });
@@ -493,4 +606,5 @@ module.exports = {
   unbanUser,
   deleteUser,
   getAllPosts,
+  getAllDonations,
 };

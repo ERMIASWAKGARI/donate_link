@@ -12,7 +12,6 @@ const useDashboardPosts = (fetchAll = false) => {
     try {
       // Use null limit when fetchAll is true
       const response = await getAllPosts(1, '', '', fetchAll ? null : 10);
-      console.log('Posts response 2:', response);
       setPosts(response.posts || []);
       setTotalCount(response.totalCount || 0);
     } catch (err) {

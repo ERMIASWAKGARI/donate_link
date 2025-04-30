@@ -220,7 +220,7 @@ const getAllPosts = async (page = 1, sort = '', query = '', limit = null) => {
       },
     });
 
-    console.log('Posts response:', response); // Debugging line
+    // console.log('Posts response:', response); // Debugging line
 
     return {
       posts: response.data.data.posts,
@@ -233,6 +233,37 @@ const getAllPosts = async (page = 1, sort = '', query = '', limit = null) => {
   }
 };
 
+const getAllDonations = async (page = 1, sort = '', limit = null) => {
+  const token = localStorage.getItem('accessToken');
+
+  const params = {
+    page,
+    sortBy: sort,
+  };
+
+  // Only include limit if specified
+  if (limit) params.limit = limit;
+
+  try {
+    const response = await axios.get(`${API_BASE_URL}/donations`, {
+      params,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return {
+      donations: response.data.data.donations,
+      pagination: response.data.pagination,
+      totalCount: response.data.count,
+    };
+  } catch (error) {
+    console.error('Error fetching donations:', error.message);
+    throw error;
+  }
+};
+
+// Add to exports
 export {
   banUser,
   bulkBanUsers,
@@ -245,4 +276,5 @@ export {
   unbanUser,
   verifyUser,
   getAllPosts,
+  getAllDonations,
 };

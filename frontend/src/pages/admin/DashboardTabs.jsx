@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import UserAnalytics from './UserAnalytics';
 import PostAnalytics from './PostAnalytics';
+import DonationAnalytics from './DonationAnalytics';
 
 const DashboardTabs = () => {
   const tabs = ['Users Analytics', 'Posts Analytics', 'Donations'];
@@ -30,7 +31,7 @@ const DashboardTabs = () => {
       <div className="p-4">
         {activeTab === 'Users Analytics' && <UserAnalytics />}
         {activeTab === 'Posts Analytics' && <PostAnalytics />}
-        {activeTab === 'Donations' && <div>Donations content coming soon</div>}
+        {activeTab === 'Donations' && <DonationAnalytics />}
       </div>
     </div>
   );

@@ -73,6 +73,8 @@ const verifyPayment = asyncWrapper(async (req, res) => {
   const { tx_ref, status, reference, amount, currency, payment_method } =
     req.body;
 
+  console.log('Verifying payment with data:', req.body);
+
   if (!tx_ref || !status) {
     throw new AppError('Invalid webhook payload', 400);
   }
