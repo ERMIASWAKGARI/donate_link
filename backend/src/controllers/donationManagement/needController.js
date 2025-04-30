@@ -924,7 +924,7 @@ const monetaryDonations= await Payment.aggregate([
     });
 
     const result = {
-      monetaryDonations: monetaryDonations[0].total || 0, // Still placeholder
+      monetaryDonations: monetaryDonations[0]?.total || 0, // Still placeholder
       materialDonations: totalMaterialItems[0]?.total || 0,
       volunteerServiceHours: volunteerHours[0]?.total || 0,
       beneficiariesReached: beneficiariesReached[0]?.total || 0,

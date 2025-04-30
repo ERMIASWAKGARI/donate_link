@@ -177,7 +177,7 @@ const createMaterialDonation = asyncWrapper(async (req, res, next) => {
       images: fileUrls,
       trackingId: generateTrackingId(),
       donationType: "material",
-      status: "pending",
+      status: "posted",
     });
 
     console.log("8. Donation created successfully");
@@ -244,7 +244,7 @@ const createOtherDonation = asyncWrapper(async (req, res, next) => {
         coordinates: [longitude, latitude],
       },
       trackingId: generateTrackingId(),
-      status: donationData.status || "pending",
+      status: donationData.status || "posted",
       notifications: donationData.notifications || [],
     };
 
@@ -289,7 +289,7 @@ const requestMaterialDonation = asyncWrapper(async (req, res, next) => {
     return next(new AppError("No donation found with that ID", 404));
   }
 
-  if (donation.status !== "pending") {
+  if (donation.status !== "posted") {
     return next(
       new AppError("This donation is not available for request", 400)
     );

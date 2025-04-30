@@ -27,11 +27,16 @@ router.get("/getAllNeeds", needsController.getAllNeeds);
 router.get("/ngo/:ngoId", needsController.getNeedsByNgo);
 router.get("/:id", needsController.getNeedById);
 // Material Donation Routes
-router.post("/material",authMiddleware("individual_donor" || "organization_donor"),uploadNeedPictures, donateItems.createMaterialDonation);
+router.post(
+  "/material",
+ authMiddleware(["organization_donor", "individual_donor"]),
+  uploadNeedPictures,
+  donateItems.createMaterialDonation
+);
 router.get("/material/:ngoId/:needId", donateItems.getMaterialDonation);
 router.put("/material/:id", donateItems.updateMaterialDonation);
 // Service Donation Routes
-router.post("/service", authMiddleware("individual_donor" || "organization_donor" || "volunteer"), serviceApplication.createServiceApplication);
+router.post("/service", authMiddleware(["individual_donor", "organization_donor" , "volunteer"]), serviceApplication.createServiceApplication);
 router.get("/service/:need", serviceApplication.getServiceDonations);
 router.put("/service/:id",authMiddleware("ngo"), serviceApplication.updateApplcationStatus);
 // router.put("/service/:id", serviceApplication.updateServiceDonation);

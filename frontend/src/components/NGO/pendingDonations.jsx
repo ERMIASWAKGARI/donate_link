@@ -226,7 +226,7 @@ const PendingDonations = () => {
                     </div>
                     <div className="flex items-center text-sm text-gray-500">
                       <FaMapMarkerAlt className="mr-2 text-gray-400" />
-                      {donation.address?.split(",")[0] || "Location"}
+                      {donation?.address?.city?.split(",")[0] || "Location"}
                     </div>
                   </div>
 
@@ -392,7 +392,7 @@ const PendingDonations = () => {
                       <div className="space-y-3">
                         <DetailRow
                           label="Address"
-                          value={selectedDonation.address}
+                          value={selectedDonation?.address?.city}
                         />
                         <div className=" rounded-lg overflow-hidden z-0 border border-gray-200">
                           <Map
