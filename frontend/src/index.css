@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 a.active hr {
   display: block;
   background-color: rgb(226, 206, 23);
@@ -21,3 +21,18 @@ a.active hr {
         color: white;
     }
  } */
+
+/* Active tab text color */
+.ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #008080 !important;
+}
+
+/* Active tab underline */
+.ant-tabs-ink-bar {
+  background-color: #008080 !important;
+}
+
+/* Hovered tab text color */
+.ant-tabs-tab:hover .ant-tabs-tab-btn {
+  color: #008080 !important;
+}

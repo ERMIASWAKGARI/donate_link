@@ -1,24 +1,24 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const donationsSchema = new mongoose.Schema(
   {
     donor: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     need: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Needs",
+      ref: 'Needs',
     },
     NGO: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "NGO",
+      ref: 'NGO',
       default: null,
     },
     donationType: {
       type: String,
-      enum: ["money", "material", "service", "other"],
+      enum: ['money', 'material', 'service', 'other'],
       required: true,
     },
 
@@ -26,14 +26,14 @@ const donationsSchema = new mongoose.Schema(
     amount: {
       type: Number,
       required: function () {
-        return this.donationType === "money";
+        return this.donationType === 'money';
       },
     },
     currency: {
       type: String,
-      default: "ETB",
+      default: 'ETB',
       required: function () {
-        return this.donationType === "money";
+        return this.donationType === 'money';
       },
     },
 
@@ -52,15 +52,15 @@ const donationsSchema = new mongoose.Schema(
         type: String,
         // enum: ["food", "medical", "learning", "drinking", "clothing", "other"],
         required: function () {
-          return this.donationType === "material";
+          return this.donationType === 'material';
         },
       },
       customCategory: {
         type: String,
         required: function () {
           return (
-            this.donationType === "material" &&
-            this.materialDetails.category === "other"
+            this.donationType === 'material' &&
+            this.materialDetails.category === 'other'
           );
         },
         maxlength: 100,
@@ -69,15 +69,15 @@ const donationsSchema = new mongoose.Schema(
       subCategory: {
         type: String,
         required: function () {
-          return this.donationType === "material";
+          return this.donationType === 'material';
         },
       },
       customSubCategory: {
         type: String,
         required: function () {
           return (
-            this.donationType === "material" &&
-            this.materialDetails.subCategory === "other"
+            this.donationType === 'material' &&
+            this.materialDetails.subCategory === 'other'
           );
         },
         maxlength: 100,
@@ -86,29 +86,29 @@ const donationsSchema = new mongoose.Schema(
       quantity: {
         type: Number,
         required: function () {
-          return this.donationType === "material";
+          return this.donationType === 'material';
         },
       },
       unit: {
         type: String,
         required: function () {
-          return this.donationType === "material";
+          return this.donationType === 'material';
         },
       },
       condition: {
         type: String,
-        enum: ["new", "used", "refurbished"],
+        enum: ['new', 'used', 'refurbished'],
         required: function () {
-          return this.donationType === "material";
+          return this.donationType === 'material';
         },
       },
       expirationDate: {
         type: Date,
         required: function () {
           return (
-            this.donationType === "material" &&
-            (this.materialDetails.category === "food" ||
-              this.materialDetails.category === "medical")
+            this.donationType === 'material' &&
+            (this.materialDetails.category === 'food' ||
+              this.materialDetails.category === 'medical')
           );
         },
       },
@@ -118,7 +118,7 @@ const donationsSchema = new mongoose.Schema(
     serviceDetails: {
       type: String,
       required: function () {
-        return this.donationType === "service";
+        return this.donationType === 'service';
       },
     },
 
@@ -126,14 +126,14 @@ const donationsSchema = new mongoose.Schema(
     address: {
       type: String,
       required: function () {
-        return this.donationType === "material";
+        return this.donationType === 'material';
       },
     },
     location: {
       type: {
         type: String,
-        enum: ["Point"],
-        default: "Point",
+        enum: ['Point'],
+        default: 'Point',
         required: true,
       },
       coordinates: {
@@ -147,32 +147,32 @@ const donationsSchema = new mongoose.Schema(
       type: [String], // Array of image URLs
       default: [],
     },
-//add filds for requests comes by array of NGO's ID
+    //add filds for requests comes by array of NGO's ID
     requests: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: 'User',
       },
     ],
-  
+
     trackingId: {
       type: String,
       unique: true,
       required: function () {
-        return this.donationType === "material";
+        return this.donationType === 'material';
       },
     },
     status: {
       type: String,
-      enum: ["pending", "requested", "accepted", "rejected", "completed"],
-      default: "posted",
+      enum: ['pending', 'requested', 'accepted', 'rejected', 'completed'],
+      default: 'posted',
     },
 
     // --- Notifications ---
     notifications: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Notification",
+        ref: 'Notification',
       },
     ],
   },
@@ -184,6 +184,6 @@ const donationsSchema = new mongoose.Schema(
 );
 
 // Geospatial Indexing for Location
-donationsSchema.index({ location: "2dsphere" });
+donationsSchema.index({ location: '2dsphere' });
 
-module.exports = mongoose.model("Donations", donationsSchema);
+module.exports = mongoose.model('Donations', donationsSchema);

@@ -11,6 +11,8 @@ const {
   bulkUnbanUsers,
   unbanUser,
   deleteUser,
+  getAllPosts,
+  getAllDonations,
 } = require('../controllers/adminController');
 
 const router = express.Router();
@@ -39,5 +41,8 @@ router.patch('/users/:id/ban', protect, adminProtect, banUser);
 router.patch('/users/:id/unban', protect, adminProtect, unbanUser);
 
 router.delete('/users/:id', protect, adminProtect, deleteUser);
+
+router.get('/posts', protect, adminProtect, getAllPosts);
+router.get('/donations', protect, adminProtect, getAllDonations);
 
 module.exports = router;

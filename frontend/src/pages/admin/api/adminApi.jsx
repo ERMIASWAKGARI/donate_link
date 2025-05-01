@@ -197,6 +197,73 @@ const getVerificationDocuments = async (userId) => {
     throw error;
   }
 };
+
+const getAllPosts = async (page = 1, sort = '', query = '', limit = null) => {
+  const token = localStorage.getItem('accessToken');
+
+  // Build query parameters object
+  const params = {
+    page: page,
+    include: 'donations,needs',
+  };
+
+  // Only add parameters if they have values
+  if (sort) params.sortBy = sort;
+  if (query) params.search = query;
+  if (limit) params.limit = limit; // Only include limit if specified
+
+  try {
+    const response = await axios.get(`${API_BASE_URL}/posts`, {
+      params,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    // console.log('Posts response:', response); // Debugging line
+
+    return {
+      posts: response.data.data.posts,
+      pagination: response.data.pagination,
+      totalCount: response.data.count,
+    };
+  } catch (error) {
+    console.error('Error fetching posts:', error.message);
+    throw error;
+  }
+};
+
+const getAllDonations = async (page = 1, sort = '', limit = null) => {
+  const token = localStorage.getItem('accessToken');
+
+  const params = {
+    page,
+    sortBy: sort,
+  };
+
+  // Only include limit if specified
+  if (limit) params.limit = limit;
+
+  try {
+    const response = await axios.get(`${API_BASE_URL}/donations`, {
+      params,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return {
+      donations: response.data.data.donations,
+      pagination: response.data.pagination,
+      totalCount: response.data.count,
+    };
+  } catch (error) {
+    console.error('Error fetching donations:', error.message);
+    throw error;
+  }
+};
+
+// Add to exports
 export {
   banUser,
   bulkBanUsers,
@@ -208,4 +275,6 @@ export {
   rejectUser,
   unbanUser,
   verifyUser,
+  getAllPosts,
+  getAllDonations,
 };
