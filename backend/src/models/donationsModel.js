@@ -15,12 +15,12 @@ const donationsSchema = new mongoose.Schema(
   {
     donor: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     need: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Needs",
+      ref: 'Needs',
     },
     NGO: {
       type: mongoose.Schema.Types.ObjectId,
@@ -29,13 +29,13 @@ const donationsSchema = new mongoose.Schema(
     },
     donationType: {
       type: String,
-      enum: ["money", "material", "service", "other"],
+      enum: ['money', 'material', 'service', 'other'],
       required: true,
     },
     amount: {
       type: Number,
       required: function () {
-        return this.donationType === "money";
+        return this.donationType === 'money';
       },
     },
     trackingId: {
@@ -44,9 +44,9 @@ const donationsSchema = new mongoose.Schema(
     },
     currency: {
       type: String,
-      default: "ETB",
+      default: 'ETB',
       required: function () {
-        return this.donationType === "money";
+        return this.donationType === 'money';
       },
     },
     description: {
@@ -60,15 +60,15 @@ const donationsSchema = new mongoose.Schema(
       category: {
         type: String,
         required: function () {
-          return this.donationType === "material";
+          return this.donationType === 'material';
         },
       },
       customCategory: {
         type: String,
         required: function () {
           return (
-            this.donationType === "material" &&
-            this.materialDetails.category === "other"
+            this.donationType === 'material' &&
+            this.materialDetails.category === 'other'
           );
         },
         maxlength: 100,
@@ -76,15 +76,15 @@ const donationsSchema = new mongoose.Schema(
       subCategory: {
         type: String,
         required: function () {
-          return this.donationType === "material";
+          return this.donationType === 'material';
         },
       },
       customSubCategory: {
         type: String,
         required: function () {
           return (
-            this.donationType === "material" &&
-            this.materialDetails.subCategory === "other"
+            this.donationType === 'material' &&
+            this.materialDetails.subCategory === 'other'
           );
         },
         maxlength: 100,
@@ -92,29 +92,29 @@ const donationsSchema = new mongoose.Schema(
       quantity: {
         type: Number,
         required: function () {
-          return this.donationType === "material";
+          return this.donationType === 'material';
         },
       },
       unit: {
         type: String,
         required: function () {
-          return this.donationType === "material";
+          return this.donationType === 'material';
         },
       },
       condition: {
         type: String,
-        enum: ["new", "used", "refurbished"],
+        enum: ['new', 'used', 'refurbished'],
         required: function () {
-          return this.donationType === "material";
+          return this.donationType === 'material';
         },
       },
       expirationDate: {
         type: Date,
         required: function () {
           return (
-            this.donationType === "material" &&
-            (this.materialDetails.category === "food" ||
-              this.materialDetails.category === "medical")
+            this.donationType === 'material' &&
+            (this.materialDetails.category === 'food' ||
+              this.materialDetails.category === 'medical')
           );
         },
       },
@@ -122,7 +122,7 @@ const donationsSchema = new mongoose.Schema(
     serviceDetails: {
       type: String,
       required: function () {
-        return this.donationType === "service";
+        return this.donationType === 'service';
       },
     },
     address: {
@@ -134,8 +134,8 @@ const donationsSchema = new mongoose.Schema(
     location: {
       type: {
         type: String,
-        enum: ["Point"],
-        default: "Point",
+        enum: ['Point'],
+        default: 'Point',
         required: true,
       },
       coordinates: {
@@ -146,7 +146,7 @@ const donationsSchema = new mongoose.Schema(
     requests: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: 'User',
       },
     ],
     status: {
@@ -429,4 +429,4 @@ donationsSchema.methods.sendMatchNotifications = async function () {
   );
 };
 
-module.exports = mongoose.model("Donations", donationsSchema);
+module.exports = mongoose.model('Donations', donationsSchema);

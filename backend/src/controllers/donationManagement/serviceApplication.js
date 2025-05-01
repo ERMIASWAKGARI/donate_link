@@ -1,5 +1,5 @@
 const Application = require("../../models/applicationModel");
-const Need =require( "../../models/needsModel");
+const Need = require("../../models/needsModel");
 const createServiceApplication = async (req, res) => {
   try {
     console.log("createServiceApplication", req.body);
@@ -14,10 +14,10 @@ const createServiceApplication = async (req, res) => {
       hoursPerWeek,
       status = "Submitted", // Default status matches model enum
     } = req.body;
-    const needBeingApplied= await Need.findById(need);
-  
+    const needBeingApplied = await Need.findById(need);
+
     // Validate required fields according to model schema
-    if ( !need || !category || !subCategory || !startDate) {
+    if (!need || !category || !subCategory || !startDate) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -30,7 +30,7 @@ const createServiceApplication = async (req, res) => {
 
     // Create new application according to model structure
     const newApplication = new Application({
-      applicant:req?.user?._id, // Assuming req.user contains the authenticated user's info
+      applicant: req?.user?._id, // Assuming req.user contains the authenticated user's info
       need,
       category,
       subCategory,
@@ -42,8 +42,8 @@ const createServiceApplication = async (req, res) => {
     });
 
     await newApplication.save();
-needBeingApplied.hasDonations = true;
-  needBeingApplied.save();
+    needBeingApplied.hasDonations = true;
+    needBeingApplied.save();
     res.status(201).json({
       message: "Application submitted successfully",
       application: newApplication,
@@ -57,21 +57,38 @@ needBeingApplied.hasDonations = true;
   }
 };
 
-
 const updateApplcationStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body; // Assuming you're sending the new status in the request body
+    const { status } = req.body;
 
-    // Find the application by ID and update its status
+    console.log(`Updating application ${id} to status: ${status}`);
+
     const updatedApplication = await Application.findByIdAndUpdate(
       id,
       { status },
-      { new: true } // Return the updated document
+      { new: true }
     );
 
     if (!updatedApplication) {
+      console.log(`Application ${id} not found`);
       return res.status(404).json({ message: "Application not found" });
+    }
+
+    if (status === "Accepted") {
+      console.log(`Application ${id} accepted, checking certificates...`);
+      try {
+        const {
+          checkCertificates,
+        } = require("../../controllers/certificateController");
+        await checkCertificates(updatedApplication.applicant, "volunteer");
+        console.log(
+          `✓ Certificate generated for ${updatedApplication.applicant}`
+        );
+      } catch (certError) {
+        console.error("Certificate generation failed:", certError.message);
+        // Consider adding notification to admins here
+      }
     }
 
     res.status(200).json({
@@ -79,16 +96,13 @@ const updateApplcationStatus = async (req, res) => {
       application: updatedApplication,
     });
   } catch (error) {
-    console.error("Error updating application status:", error);
-    res
-      .status(500)
-      .json({
-        message: "Failed to update application status",
-        error: error.message,
-      });
+    console.error(`Status update failed for application ${id}:`, error.message);
+    res.status(500).json({
+      message: "Failed to update application status",
+      error: error.message,
+    });
   }
 };
-
 const getServiceDonations = async (req, res) => {
   try {
     const { need } = req.params;
@@ -98,12 +112,10 @@ const getServiceDonations = async (req, res) => {
     });
     res.status(200).json({ donations });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Failed to get service donations",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Failed to get service donations",
+      error: error.message,
+    });
   }
 };
 

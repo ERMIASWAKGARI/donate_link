@@ -128,7 +128,7 @@ const VolunteerCard = ({
                       : "text-green-600 hover:bg-green-50"
                   } transition-colors`}
                 >
-                  {actionType === "accepted" && isProcessing ? (
+                  {actionType === "Accepted" && isProcessing ? (
                     <span className="flex items-center">
                       <svg
                         className="animate-spin -ml-1 mr-2 h-4 w-4"

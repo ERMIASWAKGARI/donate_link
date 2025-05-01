@@ -37,7 +37,7 @@ exports.checkCertificates = async (userId, userRole) => {
     // Count approved volunteer applications
     const volunteeringCount = await Application.countDocuments({
       applicant: userId,
-      status: "accepted",
+      status: "Accepted",
     });
 
     // Debug logs
@@ -117,20 +117,40 @@ const issueCertificate = async (userId, type, count) => {
 
 // Updated get certificates with better population
 exports.getUserCertificates = asyncWrapper(async (req, res, next) => {
-  const certificates = await Certificate.find({ user: req.user._id })
-    .sort("-issuedAt")
-    .lean();
+  const [
+    certificates,
+    monetaryDonations,
+    materialDonations,
+    volunteeringCount,
+  ] = await Promise.all([
+    Certificate.find({ user: req.user._id }).sort("-issuedAt").lean(),
+    Payment.countDocuments({ donorId: req.user._id, status: "Completed" }),
+    MaterialDonation.countDocuments({ donorId: req.user._id }),
+    Application.countDocuments({ applicant: req.user._id, status: "Accepted" }),
+  ]);
+
+  const totalDonations = monetaryDonations + materialDonations;
 
   sendSuccessResponse(res, 200, {
     certificates,
-    thresholds, // Send thresholds to frontend
+    thresholds,
+    progress: {
+      donations: {
+        current: totalDonations,
+        remaining: Math.max(0, thresholds.donation - totalDonations),
+      },
+      volunteering: {
+        current: volunteeringCount,
+        remaining: Math.max(0, thresholds.volunteering - volunteeringCount),
+      },
+    },
   });
 });
 // API: Download certificate as PDF
 exports.downloadCertificate = asyncWrapper(async (req, res, next) => {
   const cert = await Certificate.findOne({
     _id: req.params.id,
-    userId: req.user._id,
+    user: req.user._id,
   });
 
   if (!cert) {
