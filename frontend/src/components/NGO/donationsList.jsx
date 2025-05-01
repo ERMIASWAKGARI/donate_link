@@ -21,6 +21,7 @@ import MoneyDonationsTable from "./moneyDonationsList";
 import Modal from "react-modal";
 import { Link } from "react-router-dom";
 import { Spin } from "antd";
+import StatusUpdateButton from "./StatusUpdateButton";
 
 Modal.setAppElement("#root");
 
@@ -89,6 +90,16 @@ const DonationsList = () => {
     };
     fetchNeeds();
   }, [user?._id, currentPage, itemsPerPage]);
+  const handleStatusUpdate = (donationId, newStatus) => {
+    setDonations((prev) => ({
+      ...prev,
+      materials: prev.materials.map((donation) =>
+        donation._id === donationId
+          ? { ...donation, status: newStatus }
+          : donation
+      ),
+    }));
+  };
 
   // Fetch donations for selected need
   useEffect(() => {
@@ -401,12 +412,21 @@ const DonationsList = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <button
-                              onClick={() => openDonationDetails(donation)}
-                              className="text-primary hover:text-primary-dark flex items-center"
-                            >
-                              Details <FiChevronRight className="ml-1" />
-                            </button>
+                            <div className="flex items-center justify-end space-x-2">
+                              <button
+                                onClick={() => openDonationDetails(donation)}
+                                className="text-primary hover:text-primary-dark flex items-center"
+                              >
+                                Details <FiChevronRight className="ml-1" />
+                              </button>
+                              {selectedCategory === "items" && (
+                                <StatusUpdateButton
+                                  donationId={donation._id}
+                                  currentStatus={donation.status}
+                                  onUpdate={handleStatusUpdate}
+                                />
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}

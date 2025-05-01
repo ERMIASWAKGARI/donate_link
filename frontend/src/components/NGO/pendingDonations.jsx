@@ -179,82 +179,84 @@ const PendingDonations = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {donations.map((donation) => (
-              <div
-                key={donation._id}
-                className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
-              >
-                {donation.images?.length > 0 && (
-                  <div className="h-48 overflow-hidden">
-                    <img
-                      src={`http://localhost:5000${donation.images[0]}`}
-                      alt="Donation"
-                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                    />
-                  </div>
-                )}
+            {donations
+              .filter((donation) => donation.status === "posted")
+              .map((donation) => (
+                <div
+                  key={donation._id}
+                  className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                >
+                  {donation.images?.length > 0 && (
+                    <div className="h-48 overflow-hidden">
+                      <img
+                        src={`http://localhost:5000${donation.images[0]}`}
+                        alt="Donation"
+                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                      />
+                    </div>
+                  )}
 
-                <div className="p-5">
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-xl font-bold text-gray-800 line-clamp-1">
-                      {donation.materialDetails.category}
-                    </h3>
-                    {donation?.requests?.includes(user._id) && (
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          donation.status === "pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : donation.status === "accepted"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
+                  <div className="p-5">
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="text-xl font-bold text-gray-800 line-clamp-1">
+                        {donation.materialDetails.category}
+                      </h3>
+                      {donation?.requests?.includes(user._id) && (
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            donation.status === "pending"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : donation.status === "accepted"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          requested
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-gray-600 mb-4 line-clamp-2">
+                      {donation.description || "No description provided"}
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-2 mb-4">
+                      <div className="flex items-center text-sm text-gray-500">
+                        <FaBoxOpen className="mr-2 text-gray-400" />
+                        {donation.materialDetails.quantity}{" "}
+                        {donation.materialDetails.unit}
+                      </div>
+                      <div className="flex items-center text-sm text-gray-500">
+                        <FaMapMarkerAlt className="mr-2 text-gray-400" />
+                        {donation?.address?.city?.split(",")[0] || "Location"}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center pt-3 border-t">
+                      <button
+                        onClick={() => handleRequest(donation._id)}
+                        disabled={donation.requests.includes(user._id)}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                          !donation.requests.includes(user._id)
+                            ? "border border[#008080] text-[#008080] hover:text-white hover:bg-[#008080]"
+                            : "bg-gray-200 text-gray-500 cursor-not-allowed"
                         }`}
                       >
-                        requested
-                      </span>
-                    )}
-                  </div>
-
-                  <p className="text-gray-600 mb-4 line-clamp-2">
-                    {donation.description || "No description provided"}
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-2 mb-4">
-                    <div className="flex items-center text-sm text-gray-500">
-                      <FaBoxOpen className="mr-2 text-gray-400" />
-                      {donation.materialDetails.quantity}{" "}
-                      {donation.materialDetails.unit}
+                        {donation.requests.includes(user._id)
+                          ? "Requested"
+                          : "Request"}
+                      </button>
+                      <button
+                        onClick={() => openDetailsModal(donation)}
+                        className="p-2 text-gray-500 hover:text-blue-600 rounded-full hover:bg-blue-50 transition-colors"
+                        title="View details"
+                      >
+                        <FaEye size={18} />
+                      </button>
                     </div>
-                    <div className="flex items-center text-sm text-gray-500">
-                      <FaMapMarkerAlt className="mr-2 text-gray-400" />
-                      {donation?.address?.city?.split(",")[0] || "Location"}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center pt-3 border-t">
-                    <button
-                      onClick={() => handleRequest(donation._id)}
-                      disabled={donation.requests.includes(user._id)}
-                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                        !donation.requests.includes(user._id)
-                          ? "border border[#008080] text-[#008080] hover:text-white hover:bg-[#008080]"
-                          : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                      }`}
-                    >
-                      {donation.requests.includes(user._id)
-                        ? "Requested"
-                        : "Request"}
-                    </button>
-                    <button
-                      onClick={() => openDetailsModal(donation)}
-                      className="p-2 text-gray-500 hover:text-blue-600 rounded-full hover:bg-blue-50 transition-colors"
-                      title="View details"
-                    >
-                      <FaEye size={18} />
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         )}
         {showDetailsModal && selectedDonation && (

@@ -38,6 +38,10 @@ const donationsSchema = new mongoose.Schema(
         return this.donationType === "money";
       },
     },
+    trackingId: {
+      type: String,
+      required: true,
+    },
     currency: {
       type: String,
       default: "ETB",
@@ -336,7 +340,7 @@ donationsSchema.methods.completeMatching = async function () {
     // Verify the NGO still exists and is valid
     const ngo = await User.findById(bestMatch.ngo);
     if (!ngo || ngo.role !== "ngo") {
-      this.status = "pending";
+      this.status = "posted";
       await this.save();
       return;
     }
@@ -355,7 +359,7 @@ donationsSchema.methods.completeMatching = async function () {
 
     await this.sendMatchNotifications();
   } else {
-    this.status = "pending";
+    this.status = "posted";
     await this.save();
   }
 };
@@ -374,7 +378,7 @@ donationsSchema.statics.processExpiredMatches = async function () {
       await donation.completeMatching();
     } catch (err) {
       console.error(`Error processing donation ${donation._id}:`, err);
-      donation.status = "pending";
+      donation.status = "posted";
       await donation.save();
     }
   }
@@ -420,7 +424,7 @@ donationsSchema.methods.sendMatchNotifications = async function () {
   console.log(`Notification sent for donation ${this._id} to NGO ${this.NGO}`);
   await sendNotification.sendNotification(
     this.NGO,
-    "New Donation Matched",
+    "New Donation given for your requests",
     `You have been matched with a new donation: ${this.title}`
   );
 };

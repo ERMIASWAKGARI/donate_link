@@ -149,4 +149,37 @@ const updateMaterialDonation = asyncWrapper(async (req, res, next) => {
     }
   });
 });
-module.exports={updateMaterialDonation,createMaterialDonation,getMaterialDonation}
+// Endpoint to update the status of the donation made to NGO
+const updateDonationStatus = asyncWrapper(async (req, res, next) => {
+  const { status } = req.body;
+  const {id}=req.params;
+
+  // Validate status
+  const validStatuses = ['pending',  'completed'];
+  if (!validStatuses.includes(status)) {
+    return next(new AppError('Invalid status value', 400));
+  }
+
+  const donation = await MaterialDonation.findById(id);
+
+  if (!donation) {
+    return next(new AppError('No donation found with that ID', 404));
+  }
+
+  donation.status = status;
+  await donation.save();
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      donation
+    }
+  });
+});
+
+module.exports = {
+  updateMaterialDonation,
+  createMaterialDonation,
+  getMaterialDonation,
+  updateDonationStatus
+};
