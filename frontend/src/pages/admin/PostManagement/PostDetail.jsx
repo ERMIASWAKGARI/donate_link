@@ -3,6 +3,7 @@ import { Spin } from 'antd';
 import { FiArrowLeft } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { usePostDetailHandlers } from '../hooks/usePostDetailHandlers';
+import ErrorDisplay from '../common/ErrorDisplay';
 
 const PostDetail = () => {
   const navigate = useNavigate();
@@ -24,7 +25,14 @@ const PostDetail = () => {
     );
   }
 
-  if (error) return <div>Error: {error}</div>;
+  if (error) {
+    return (
+      <div className="p-6">
+        <ErrorDisplay message={error.message || 'Failed to load users'} />
+      </div>
+    );
+  }
+
   if (!post) return <div>Post not found</div>;
 
   const postStatus = getPostStatus();

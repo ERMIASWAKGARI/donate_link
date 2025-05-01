@@ -15,7 +15,7 @@ export const usePostDetailHandlers = () => {
         const data = await getPostById(id);
         setPost(data);
       } catch (err) {
-        setError(err.message);
+        setError(err);
       } finally {
         setLoading(false);
       }

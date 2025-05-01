@@ -41,7 +41,7 @@ export const useUserDetailHandlers = () => {
           await fetchVerificationDocs(id);
         }
       } catch (err) {
-        setError(err.message);
+        setError(err);
       } finally {
         setLoading(false);
       }
@@ -55,7 +55,7 @@ export const useUserDetailHandlers = () => {
       await verifyUser(id);
       setUser((prev) => ({ ...prev, isVerified: true }));
     } catch (err) {
-      setError(err.message);
+      setError(err);
     }
   };
 
@@ -65,7 +65,7 @@ export const useUserDetailHandlers = () => {
       fetchVerificationDocs(id); // Refresh verification docs
       setUser((prev) => ({ ...prev, isVerified: false }));
     } catch (err) {
-      setError(err.message);
+      setError(err);
     }
   };
 
@@ -74,7 +74,7 @@ export const useUserDetailHandlers = () => {
       await banUser(id);
       setUser((prev) => ({ ...prev, isBanned: true }));
     } catch (err) {
-      setError(err.message);
+      setError(err);
     }
   };
 
@@ -83,7 +83,7 @@ export const useUserDetailHandlers = () => {
       await unbanUser(id);
       setUser((prev) => ({ ...prev, isBanned: false }));
     } catch (err) {
-      setError(err.message);
+      setError(err);
     }
   };
 

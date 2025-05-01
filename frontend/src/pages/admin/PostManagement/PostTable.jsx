@@ -2,18 +2,21 @@
 // src/pages/admin/PostManagement/PostTable.js
 import { Spin } from 'antd';
 import { formatDate } from '../../../utils/formatDate';
+import ErrorDisplay from '../common/ErrorDisplay';
 
 const PostTable = ({ posts, loading, error, onView }) => {
-  if (error) {
-    return (
-      <div className="px-6 py-4 text-red-500">Error loading posts: {error}</div>
-    );
-  }
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <ErrorDisplay message={error.message || 'Failed to load users'} />
       </div>
     );
   }

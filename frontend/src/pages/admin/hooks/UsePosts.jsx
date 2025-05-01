@@ -59,7 +59,7 @@ const usePosts = () => {
         });
       }
     } catch (err) {
-      setError(err.message || 'Failed to fetch posts');
+      setError(err || 'Failed to fetch posts');
       setPosts([]);
     } finally {
       setLoading(false);
