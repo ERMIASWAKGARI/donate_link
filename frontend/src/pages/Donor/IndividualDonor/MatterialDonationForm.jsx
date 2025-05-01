@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useContext, useRef, useEffect } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -6,8 +6,10 @@ import {
   Popup,
   useMapEvents,
 } from "react-leaflet";
+
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { UserContext } from "../../../context/UserContext";
 
 // Fix for default marker icons in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -48,6 +50,7 @@ const MaterialDonationForm = ({
   const [showConfirmation, setShowConfirmation] = useState(false);
   const mapRef = useRef(null);
   const [address, setAddress] = useState(location?.address || "");
+  const { user } = useContext(UserContext);
 
   useEffect(() => {
     if (location?.latitude && location?.longitude) {
@@ -169,112 +172,121 @@ const MaterialDonationForm = ({
       </div>
 
       {/* Location Selection */}
-      <div className="mb-4">
-        <label className="block text-gray-700 mb-2">
-          Pickup/Drop-off Location
-        </label>
+      {user.role !== "individual_donor" && (
+        <div>
+          <div className="mb-4">
+            <label className="block text-gray-700 mb-2">
+              Pickup/Drop-off Location
+            </label>
 
-        <div className="flex gap-2 mb-2">
-          <button
-            type="button"
-            onClick={() => setShowMap(true)}
-            className="bg-[#008080] text-white px-3 py-1 rounded text-sm"
-          >
-            {mapPosition ? "Change Location" : "Select on Map"}
-          </button>
-
-          {navigator.geolocation && (
-            <button
-              type="button"
-              onClick={() => {
-                navigator.geolocation.getCurrentPosition(
-                  (position) => {
-                    const latlng = {
-                      lat: position.coords.latitude,
-                      lng: position.coords.longitude,
-                    };
-                    handleMapSelection(latlng);
-                  },
-                  (error) => {
-                    console.error("Error getting location:", error);
-                  }
-                );
-              }}
-              className="border border-[#008080] hover:bg-[#008080] hover:text-white px-3 py-1 rounded text-sm"
-            >
-              Use Current Location
-            </button>
-          )}
-        </div>
-
-        <input
-          type="text"
-          value={address}
-          onChange={(e) => {
-            setAddress(e.target.value);
-            onLocationChange({
-              ...location,
-              address: e.target.value,
-            });
-          }}
-          className="w-full p-2 border rounded"
-          placeholder="Enter the address or select on map"
-          required
-        />
-
-        {mapPosition && (
-          <div className="mt-2 text-sm text-gray-600">
-            <p>Latitude: {mapPosition.lat?.toFixed(5) || location?.latitude}</p>
-            <p>
-              Longitude: {mapPosition.lng?.toFixed(5) || location?.longitude}
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Map Modal */}
-      {showMap && (
-        <div className="fixed inset-0  z-2000 bg-black bg-opacity-50 flex items-center justify-center  p-4">
-          <div className="bg-white  rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-            <div className="p-4 border-b">
-              <h3 className="text-lg font-medium">Select Location on Map</h3>
-              <p className="text-sm text-gray-600">
-                Click on the map to choose your location
-              </p>
-            </div>
-
-            <div className="h-96 w-full z-2000 relative">
-              <MapContainer
-                center={[9.145, 40.4897]} // Center on Ethiopia
-                zoom={6}
-                style={{ height: "100%", width: "100%" }}
-                ref={mapRef}
-              >
-                <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                />
-                <LocationMarker
-                  position={mapPosition}
-                  setPosition={handleMapSelection}
-                  setShowConfirmation={setShowConfirmation}
-                />
-              </MapContainer>
-            </div>
-
-            <div className="p-4 border-t flex justify-end gap-2">
+            <div className="flex gap-2 mb-2">
               <button
                 type="button"
-                onClick={() => {
-                  setShowMap(false);
-                  setShowConfirmation(false);
-                }}
-                className="px-4 py-2 text-gray-700 border rounded"
+                onClick={() => setShowMap(true)}
+                className="bg-[#008080] text-white px-3 py-1 rounded text-sm"
               >
-                Cancel
+                {mapPosition ? "Change Location" : "Select on Map"}
               </button>
+
+              {navigator.geolocation && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.geolocation.getCurrentPosition(
+                      (position) => {
+                        const latlng = {
+                          lat: position.coords.latitude,
+                          lng: position.coords.longitude,
+                        };
+                        handleMapSelection(latlng);
+                      },
+                      (error) => {
+                        console.error("Error getting location:", error);
+                      }
+                    );
+                  }}
+                  className="border border-[#008080] hover:bg-[#008080] hover:text-white px-3 py-1 rounded text-sm"
+                >
+                  Use Current Location
+                </button>
+              )}
             </div>
+
+            <input
+              type="text"
+              value={address}
+              onChange={(e) => {
+                setAddress(e.target.value);
+                onLocationChange({
+                  ...location,
+                  address: e.target.value,
+                });
+              }}
+              className="w-full p-2 border rounded"
+              placeholder="Enter the address or select on map"
+              required
+            />
+
+            {mapPosition && (
+              <div className="mt-2 text-sm text-gray-600">
+                <p>
+                  Latitude: {mapPosition.lat?.toFixed(5) || location?.latitude}
+                </p>
+                <p>
+                  Longitude:{" "}
+                  {mapPosition.lng?.toFixed(5) || location?.longitude}
+                </p>
+              </div>
+            )}
           </div>
+
+          {/* Map Modal */}
+          {showMap && (
+            <div className="fixed inset-0 z-[9999] bg-white/70 bg-opacity-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden z-[10000]">
+                <div className="p-4 border-b">
+                  <h3 className="text-lg font-medium">
+                    Select Location on Map
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Click on the map to choose your location
+                  </p>
+                </div>
+
+                <div className="h-96 w-full relative">
+                  <MapContainer
+                    center={[9.145, 40.4897]}
+                    zoom={6}
+                    style={{ height: "100%", width: "100%", zIndex: 0 }}
+                    ref={mapRef}
+                  >
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    />
+                    <LocationMarker
+                      position={mapPosition}
+                      setPosition={handleMapSelection}
+                      setShowConfirmation={setShowConfirmation}
+                    />
+                  </MapContainer>
+                </div>
+
+                <div className="p-4 border-t flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowMap(false);
+                      setShowConfirmation(false);
+                    }}
+                    className="px-4 py-2 text-gray-700 border rounded"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

@@ -2,46 +2,50 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 
 const VolunteerCard = ({
-  // eslint-disable-next-line react/prop-types
   volunteer,
-  // eslint-disable-next-line react/prop-types
   handleViewProfile,
-  // eslint-disable-next-line react/prop-types
   setShowChatModal,
-  // eslint-disable-next-line react/prop-types
   confirmAction,
-  // eslint-disable-next-line react/prop-types
-  updateVolunteerStatus, // Add this new prop
+  updateVolunteerStatus,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [actionType, setActionType] = useState(null);
-  const [currentStatus, setCurrentStatus] = useState(volunteer.status); // Local status state
 
-  const handleAction = async (action, volunteerId) => {
+  // VolunteerCard.js (updated parts only)
+  const handleAction = async (newStatus, volunteerId) => {
+    if (isProcessing) return;
+
     setIsProcessing(true);
-    setActionType(action);
+    setActionType(newStatus);
+
     try {
-      // Optimistically update the UI
-      setCurrentStatus(action);
-
-      // Call the confirmAction which should make the API call
-      await confirmAction(action, volunteerId);
-
-      // If you want to be extra safe, you can call updateVolunteerStatus
-      // to sync with the server response
+      // Only optimistic update - parent handles API call
       if (updateVolunteerStatus) {
-        updateVolunteerStatus(volunteerId, action);
+        updateVolunteerStatus(volunteerId, newStatus);
       }
+
+      // Trigger confirmation in parent
+      await confirmAction(newStatus, volunteerId);
     } catch (error) {
-      // Revert if there was an error
-      // eslint-disable-next-line react/prop-types
-      setCurrentStatus(volunteer.status);
-      console.error("Error updating volunteer status:", error);
+      console.error("Status update failed:", error);
     } finally {
       setIsProcessing(false);
       setActionType(null);
       setIsDropdownOpen(false);
+    }
+  };
+  // Status display logic
+  const getStatusStyles = (status) => {
+    switch (status) {
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "accepted":
+        return "bg-green-100 text-green-800";
+      case "rejected":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -56,15 +60,13 @@ const VolunteerCard = ({
           isProcessing ? "opacity-70" : ""
         }`}
       >
-        {/* Blur overlay during processing */}
         {isProcessing && (
           <div className="absolute inset-0 bg-white bg-opacity-70 z-10 rounded-xl flex items-center justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
           </div>
         )}
 
-        {/* Action Dropdown Button - Only show for pending applications */}
-
+        {/* Always show action dropdown */}
         <div className="absolute top-4 right-4 z-20">
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -86,7 +88,6 @@ const VolunteerCard = ({
             </svg>
           </button>
 
-          {/* Dropdown Menu */}
           <AnimatePresence>
             {isDropdownOpen && (
               <motion.div
@@ -110,18 +111,22 @@ const VolunteerCard = ({
                     setShowChatModal(true);
                     setIsDropdownOpen(false);
                   }}
-                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors z-1000"
                 >
                   Contact
                 </button>
+
+                {/* Always show status change options */}
                 <button
                   onClick={() => handleAction("Accepted", volunteer._id)}
+                  disabled={volunteer.status === "Accepted" || isProcessing}
                   className={`block w-full text-left px-4 py-2 text-sm ${
-                    actionType === "Accepted" && isProcessing
+                    volunteer.status === "Accepted"
+                      ? "text-green-400 cursor-not-allowed"
+                      : actionType === "Accepted" && isProcessing
                       ? "text-green-400"
                       : "text-green-600 hover:bg-green-50"
                   } transition-colors`}
-                  disabled={isProcessing}
                 >
                   {actionType === "Accepted" && isProcessing ? (
                     <span className="flex items-center">
@@ -145,22 +150,28 @@ const VolunteerCard = ({
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         ></path>
                       </svg>
-                      Accepting...
+                      {volunteer.status === "Accepted"
+                        ? "Accepted"
+                        : "Accepting..."}
                     </span>
+                  ) : volunteer.status === "Accepted" ? (
+                    "Accepted"
                   ) : (
                     "Accept"
                   )}
                 </button>
                 <button
-                  onClick={() => handleAction("rejected", volunteer._id)}
+                  onClick={() => handleAction("Rejected", volunteer._id)}
+                  disabled={volunteer.status === "Rejected" || isProcessing}
                   className={`block w-full text-left px-4 py-2 text-sm ${
-                    actionType === "rejected" && isProcessing
+                    volunteer.status === "Rejected"
+                      ? "text-red-400 cursor-not-allowed"
+                      : actionType === "Rejected" && isProcessing
                       ? "text-red-400"
                       : "text-red-600 hover:bg-red-50"
                   } transition-colors`}
-                  disabled={isProcessing}
                 >
-                  {actionType === "rejected" && isProcessing ? (
+                  {actionType === "Rejected" && isProcessing ? (
                     <span className="flex items-center">
                       <svg
                         className="animate-spin -ml-1 mr-2 h-4 w-4"
@@ -182,8 +193,12 @@ const VolunteerCard = ({
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         ></path>
                       </svg>
-                      Rejecting...
+                      {volunteer.status === "Rejected"
+                        ? "Rejected"
+                        : "Rejecting..."}
                     </span>
+                  ) : volunteer.status === "Rejected" ? (
+                    "Rejected"
                   ) : (
                     "Reject"
                   )}
@@ -204,7 +219,7 @@ const VolunteerCard = ({
                     alt={volunteer.applicant.name}
                   />
                 ) : (
-                  <div className="h-12 w-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
+                  <div className="h-12 w-12 rounded-full bg-[#008080] flex items-center justify-center text-white font-bold text-lg">
                     {volunteer?.applicant?.name.charAt(0)}
                   </div>
                 )}
@@ -214,15 +229,11 @@ const VolunteerCard = ({
                   {volunteer.applicant.name}
                 </h3>
                 <p
-                  className={`text-sm px-2 py-0.5 rounded-full inline-block ${
-                    currentStatus === "pending"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : currentStatus === "accepted"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                  } capitalize`}
+                  className={`text-sm px-2 py-0.5 rounded-full inline-block ${getStatusStyles(
+                    volunteer.status
+                  )} capitalize`}
                 >
-                  {currentStatus || "pending"}
+                  {volunteer.status}
                 </p>
               </div>
             </div>

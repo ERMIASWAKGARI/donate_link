@@ -66,7 +66,12 @@ const DonationForm = () => {
       condition: "new",
       expirationDate: "",
     },
-    address: "",
+    address: {
+      country: "",
+      region: "",
+      city: "",
+      street: "", // Optional if you need more specific address
+    },
     location: {
       type: "Point",
       coordinates: [38.7636, 8.9806],
@@ -183,7 +188,6 @@ const DonationForm = () => {
   };
 
   const handleCancel = () => {
-    // Reset form state
     setFormData({
       title: "",
       description: "",
@@ -197,7 +201,12 @@ const DonationForm = () => {
         condition: "new",
         expirationDate: "",
       },
-      address: "",
+      address: {
+        country: "",
+        region: "",
+        city: "",
+        street: "",
+      },
       location: {
         type: "Point",
         coordinates: [38.7636, 8.9806],
@@ -205,7 +214,6 @@ const DonationForm = () => {
     });
     setFiles([]);
     setPreviewUrls([]);
-    // If using React Router, you could navigate away:
     navigate("/donor/dashboard");
   };
 
@@ -240,17 +248,25 @@ const DonationForm = () => {
       showToast.error("Please specify your custom subcategory");
       return false;
     }
-    if (!formData.address.trim()) {
-      showToast.error("Please enter an address");
+    if (!formData.address.country) {
+      showToast.error("Please select a country");
       return false;
     }
+    if (!formData.address.region) {
+      showToast.error("Please enter a region/state");
+      return false;
+    }
+    if (!formData.address.city) {
+      showToast.error("Please enter a city");
+      return false;
+    }
+
     if (files.length === 0) {
       showToast.error("Please upload at least one image");
       return false;
     }
     return true;
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -272,7 +288,7 @@ const DonationForm = () => {
       const payload = {
         title: formData.title,
         description: formData.description,
-        address: formData.address,
+        address: formData.address, // Now sending the full address object
         donorId,
         donationType: "material",
         materialDetails: {
@@ -338,7 +354,12 @@ const DonationForm = () => {
           condition: "new",
           expirationDate: "",
         },
-        address: "",
+        address: {
+          country: "",
+          region: "",
+          city: "",
+          street: "",
+        },
         location: {
           type: "Point",
           coordinates: [38.7636, 8.9806],
