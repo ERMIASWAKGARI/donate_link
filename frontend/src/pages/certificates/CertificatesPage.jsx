@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import Header from "../../components/header/Header";
 import axios from "axios";
+import logo from "../../assets/logosa.png"; // Import your logo
 
 const CertificatesPage = () => {
   const [certificates, setCertificates] = useState([]);
@@ -126,12 +127,19 @@ const CertificatesPage = () => {
     }
   };
 
+  const capitalizeWords = (str) => {
+    return str
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
   const renderProgressBar = (current, threshold) => {
     const percentage = Math.min(100, (current / threshold) * 100);
     return (
       <div className="w-full bg-gray-200 rounded-full h-2.5">
         <div
-          className="bg-blue-600 h-2.5 rounded-full"
+          className="bg-teal-600 h-2.5 rounded-full"
           style={{ width: `${percentage}%` }}
         ></div>
       </div>
@@ -172,7 +180,7 @@ const CertificatesPage = () => {
           <p className="text-gray-600 mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+            className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg"
           >
             Retry
           </button>
@@ -192,64 +200,87 @@ const CertificatesPage = () => {
           <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
             <button
               onClick={() => setSelectedCert(null)}
-              className="flex items-center gap-2 p-4 text-blue-600 hover:text-blue-800"
+              className="flex items-center gap-2 pb-2 p-4 text-teal-600 hover:text-teal-800"
             >
-              <ArrowLeft size={18} /> Back to all certificates
+              <ArrowLeft size={18} /> Back
             </button>
 
-            <div className="p-8">
-              <div className="relative border-2 border-blue-100 p-8 rounded-lg bg-gradient-to-br from-blue-50 to-white text-center overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-blue-300"></div>
+            <div className="pt-2 p-8">
+              <div className="relative border-2 border-teal-100 p-8 rounded-lg bg-gradient-to-br from-teal-50 to-white text-center overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-teal-500 to-teal-300"></div>
+
+                {/* Logo added here */}
+                <div className="absolute top-4 left-4">
+                  <img
+                    src={logo}
+                    alt="System Logo"
+                    className="h-16 object-contain"
+                  />
+                </div>
+
                 <div className="absolute bottom-0 right-0 opacity-10">
                   {selectedCert.type === "volunteering" ? (
-                    <HeartHandshake size={120} className="text-blue-400" />
+                    <HeartHandshake size={120} className="text-teal-400" />
                   ) : (
-                    <Award size={120} className="text-blue-400" />
+                    <Award size={120} className="text-teal-400" />
                   )}
                 </div>
 
                 <div className="relative z-10">
-                  <div className="mb-6">
-                    <h1 className="text-3xl font-bold text-blue-800 mb-2">
+                  <div className="mb-6 pt-8">
+                    {" "}
+                    {/* Added pt-8 to account for logo space */}
+                    <h1 className="text-3xl font-bold text-teal-800 mb-2">
                       {selectedCert.title ||
                         (selectedCert.type === "volunteering"
                           ? "Certificate of Volunteer Excellence"
                           : "Certificate of Generosity")}
                     </h1>
-                    <div className="w-24 h-1 bg-blue-200 mx-auto mb-4"></div>
+                    <div className="w-24 h-1 bg-teal-200 mx-auto mb-4"></div>
                     <p className="text-lg text-gray-600 mb-6">
                       This certificate is proudly presented to
-                    </p>
+                    </p>{" "}
+                    {/* Updated text */}
                   </div>
 
                   <h2 className="text-4xl font-semibold text-gray-900 mb-8">
-                    {selectedCert.user?.name || "Recipient"}
+                    {selectedCert.user?.name
+                      ? capitalizeWords(selectedCert.user.name)
+                      : "Recipient"}
                   </h2>
 
-                  <div className="my-8 px-12">
-                    <p className="text-gray-700 text-lg mb-4">
-                      {selectedCert.description ||
-                        `In recognition of ${selectedCert.participationCount} ${
-                          selectedCert.type === "donation"
-                            ? "generous donations"
-                            : "volunteer activities"
-                        } completed`}
+                  <div className="my-8 px-4 sm:px-12">
+                    <p className="text-gray-700 text-lg">
+                      For outstanding contributions to our community
+                    </p>
+                    <p className="text-gray-700 text-lg">
+                      In recognition of{" "}
+                      <span className="font-bold text-teal-600">
+                        {selectedCert.participationCount}
+                      </span>{" "}
+                      {selectedCert.type === "donation"
+                        ? "generous donations"
+                        : "volunteer activities"}{" "}
+                      completed
                     </p>
                     {selectedCert.type === "volunteering" && (
                       <p className="text-gray-600">
-                        With gratitude for your service
+                        With gratitude for your service.
                       </p>
                     )}
                   </div>
 
-                  <div className="mt-12 flex justify-between items-center">
-                    <div className="text-left">
-                      <p className="text-sm text-gray-500">Certificate ID</p>
-                      <p className="font-mono text-gray-700">
-                        {selectedCert._id}
+                  <div className="mt-12 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    {" "}
+                    <div className="mt-8 pt-4 border-t border-teal-100">
+                      <p className="text-sm text-gray-500">
+                        DonateLink Excellence Foundation
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Certificate ID: {selectedCert._id}
                       </p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-center sm:text-right">
                       <p className="text-sm text-gray-500">Issued on</p>
                       <p className="text-gray-700">
                         {new Date(selectedCert.issuedAt).toLocaleDateString()}
@@ -262,7 +293,7 @@ const CertificatesPage = () => {
               <div className="mt-8 flex gap-4 justify-center">
                 <button
                   onClick={() => handleDownload(selectedCert._id)}
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-all"
+                  className="border border-gray-300 text-gray-500 gap-2 px-4 py-2.5 rounded-lg hover:bg-teal-600 hover:text-white transition-colors flex items-center"
                 >
                   <Download size={18} /> Download Certificate
                 </button>
@@ -294,7 +325,7 @@ const CertificatesPage = () => {
                     progress.volunteering.threshold || 3
                   )}
                   {progress.volunteering.remaining > 0 ? (
-                    <p className="text-sm text-blue-600 mt-1">
+                    <p className="text-sm text-teal-600 mt-1">
                       {progress.volunteering.remaining} more volunteer{" "}
                       {progress.volunteering.remaining === 1
                         ? "activity"
@@ -303,7 +334,7 @@ const CertificatesPage = () => {
                     </p>
                   ) : (
                     <p className="text-sm text-green-600 mt-1">
-                      You've reached the volunteering threshold!
+                      You have reached the volunteering threshold!
                     </p>
                   )}
                 </div>
@@ -321,7 +352,7 @@ const CertificatesPage = () => {
                     progress.donations.threshold || 5
                   )}
                   {progress.donations.remaining > 0 ? (
-                    <p className="text-sm text-blue-600 mt-1">
+                    <p className="text-sm text-teal-600 mt-1">
                       {progress.donations.remaining} more{" "}
                       {progress.donations.remaining === 1
                         ? "donation"
@@ -330,7 +361,7 @@ const CertificatesPage = () => {
                     </p>
                   ) : (
                     <p className="text-sm text-green-600 mt-1">
-                      You've reached the donation threshold!
+                      You have reached the donation threshold!
                     </p>
                   )}
                 </div>
@@ -351,13 +382,13 @@ const CertificatesPage = () => {
                   <div
                     key={cert._id}
                     onClick={() => setSelectedCert(cert)}
-                    className="bg-white p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer border-l-4 border-blue-500 flex items-center gap-4"
+                    className="bg-white p-6 rounded-lg shadow hover:shadow-md transition cursor-pointer border-l-4 border-teal-500 flex items-center gap-4"
                   >
-                    <div className="bg-blue-100 p-3 rounded-full">
+                    <div className="bg-teal-100 p-3 rounded-full">
                       {cert.type === "volunteering" ? (
-                        <HeartHandshake size={24} className="text-blue-600" />
+                        <HeartHandshake size={24} className="text-teal-600" />
                       ) : (
-                        <Award size={24} className="text-blue-600" />
+                        <Award size={24} className="text-teal-600" />
                       )}
                     </div>
                     <div className="flex-1">

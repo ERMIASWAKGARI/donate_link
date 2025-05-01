@@ -30,7 +30,7 @@ function VolunteerApplication() {
     totalItems: 0,
     itemsPerPage: 5,
   });
-  const [status, setStatus] = useState("");
+  const [, setStatus] = useState("");
   const toggleDropdown = (id) => {
     setOpenDropdownId(openDropdownId === id ? null : id);
   };
@@ -131,16 +131,22 @@ function VolunteerApplication() {
     }
 
     try {
-      const response = await axiosInstance.put(
-        `donation/service/${currentVolunteerId}`,
-        { status: actionType }
-      );
-      setStatus(response.data.application.status);
-      if (response.data.success && selectedNeed) {
-        getApplications(selectedNeed);
+      // Optimistic update already done via updateVolunteerStatus
+      await axiosInstance.put(`donation/service/${currentVolunteerId}`, {
+        status: actionType,
+      });
+
+      // Only refresh if absolutely necessary
+      if (selectedNeed) {
+        setTimeout(() => getApplications(selectedNeed), 1000); // Small delay
       }
     } catch (error) {
-      console.error(`Error updating volunteer status to ${actionType}:`, error);
+      console.error(`Error updating status:`, error);
+      // Revert optimistic update
+      updateVolunteerStatus(
+        currentVolunteerId,
+        volunteers.find((v) => v._id === currentVolunteerId).status
+      );
     } finally {
       setShowConfirmation(false);
     }
@@ -349,7 +355,7 @@ function VolunteerApplication() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-gray-500 bg-opacity-75 z-40"
+                className="fixed inset-0 bg-white/30 backdrop-blur-sm z-40"
                 onClick={handleCloseDetails}
               />
             </AnimatePresence>
@@ -358,7 +364,7 @@ function VolunteerApplication() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className="bg-white max-w-2xl w-full rounded-xl overflow-y-auto max-h-[90vh] p-6 relative shadow-lg"
+                className="bg-white max-w-3xl w-full rounded-xl overflow-y-auto max-h-[90vh] p-6 relative shadow-lg"
               >
                 <button
                   onClick={handleCloseDetails}
@@ -455,10 +461,12 @@ function VolunteerApplication() {
 
         {/* Chat Modal */}
         {showChatModal && (
-          <ChatModal
-            onClose={() => setShowChatModal(false)}
-            showChatModal={showChatModal}
-          />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <ChatModal
+              onClose={() => setShowChatModal(false)}
+              showChatModal={showChatModal}
+            />
+          </div>
         )}
 
         {/* Confirmation Modal */}

@@ -160,7 +160,7 @@ const NGOStatistics = () => {
         />
         <StatCard
           title="Needs Posted"
-          value={statistics.totalNeedsPosted}
+          value={statistics?.totalNeedsPosted}
           Icon={FaClipboardList}
         />
       </div>
