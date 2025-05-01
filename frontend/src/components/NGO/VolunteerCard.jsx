@@ -118,12 +118,12 @@ const VolunteerCard = ({
 
                 {/* Always show status change options */}
                 <button
-                  onClick={() => handleAction("accepted", volunteer._id)}
+                  onClick={() => handleAction("Accepted", volunteer._id)}
                   disabled={volunteer.status === "Accepted" || isProcessing}
                   className={`block w-full text-left px-4 py-2 text-sm ${
-                    volunteer.status === "accepted"
+                    volunteer.status === "Accepted"
                       ? "text-green-400 cursor-not-allowed"
-                      : actionType === "accepted" && isProcessing
+                      : actionType === "Accepted" && isProcessing
                       ? "text-green-400"
                       : "text-green-600 hover:bg-green-50"
                   } transition-colors`}
@@ -150,28 +150,28 @@ const VolunteerCard = ({
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         ></path>
                       </svg>
-                      {volunteer.status === "accepted"
+                      {volunteer.status === "Accepted"
                         ? "Accepted"
                         : "Accepting..."}
                     </span>
-                  ) : volunteer.status === "accepted" ? (
+                  ) : volunteer.status === "Accepted" ? (
                     "Accepted"
                   ) : (
                     "Accept"
                   )}
                 </button>
                 <button
-                  onClick={() => handleAction("rejected", volunteer._id)}
-                  disabled={volunteer.status === "rejected" || isProcessing}
+                  onClick={() => handleAction("Rejected", volunteer._id)}
+                  disabled={volunteer.status === "Rejected" || isProcessing}
                   className={`block w-full text-left px-4 py-2 text-sm ${
-                    volunteer.status === "rejected"
+                    volunteer.status === "Rejected"
                       ? "text-red-400 cursor-not-allowed"
-                      : actionType === "rejected" && isProcessing
+                      : actionType === "Rejected" && isProcessing
                       ? "text-red-400"
                       : "text-red-600 hover:bg-red-50"
                   } transition-colors`}
                 >
-                  {actionType === "rejected" && isProcessing ? (
+                  {actionType === "Rejected" && isProcessing ? (
                     <span className="flex items-center">
                       <svg
                         className="animate-spin -ml-1 mr-2 h-4 w-4"
@@ -193,11 +193,11 @@ const VolunteerCard = ({
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         ></path>
                       </svg>
-                      {volunteer.status === "rejected"
+                      {volunteer.status === "Rejected"
                         ? "Rejected"
                         : "Rejecting..."}
                     </span>
-                  ) : volunteer.status === "rejected" ? (
+                  ) : volunteer.status === "Rejected" ? (
                     "Rejected"
                   ) : (
                     "Reject"
