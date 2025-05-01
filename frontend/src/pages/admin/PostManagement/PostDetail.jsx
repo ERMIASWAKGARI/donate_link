@@ -299,7 +299,7 @@ const PostDetail = () => {
                       {post.needTypes.map((type, index) => (
                         <span
                           key={index}
-                          className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs"
+                          className="px-2 py-1 bg-blue-100 text-gray-800 rounded-md text-xs"
                         >
                           {type}
                         </span>
@@ -346,7 +346,7 @@ const PostDetail = () => {
                         {post.beneficiaryInfo?.location?.address}
                       </p>
                     </div>
-                    <div className="bg-gray-50 p-4 rounded-md">
+                    <div className="bg-gray-50 rounded-md">
                       <h3 className="text-md font-medium text-gray-700 mb-3">
                         Images ({post.beneficiaryInfo.pictures.length})
                       </h3>

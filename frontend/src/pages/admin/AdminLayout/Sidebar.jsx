@@ -7,7 +7,6 @@ const Sidebar = () => {
     { name: 'Dashboard', path: '/admin/dashboard', icon: 'dashboard' },
     { name: 'User Moderation', path: '/admin/users', icon: 'people' },
     { name: 'Post Moderation', path: '/admin/posts', icon: 'article' },
-    { name: 'Settings', path: '/admin/settings', icon: 'settings' },
   ];
 
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
