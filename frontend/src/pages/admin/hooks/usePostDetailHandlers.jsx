@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { banPost, getPostById, unbanPost } from '../../admin/api/adminApi';
+import { getPostById } from '../../admin/api/adminApi';
 
 // hooks/usePostDetailHandlers.js
 export const usePostDetailHandlers = () => {
@@ -22,24 +22,6 @@ export const usePostDetailHandlers = () => {
     };
     fetchPost();
   }, [id]);
-
-  const handleBanPost = async () => {
-    try {
-      await banPost(id);
-      setPost((prev) => ({ ...prev, isBanned: true }));
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  const handleUnbanPost = async () => {
-    try {
-      await unbanPost(id);
-      setPost((prev) => ({ ...prev, isBanned: false }));
-    } catch (err) {
-      setError(err.message);
-    }
-  };
 
   const getPostStatus = () => {
     if (!post) return { text: 'Loading...', color: 'text-gray-500' };
@@ -87,25 +69,7 @@ export const usePostDetailHandlers = () => {
       : { text: 'Need', color: 'bg-blue-500' };
   };
 
-  const getDonationDetails = () => {
-    if (!post || post.postType !== 'donation') return null;
-
-    return {
-      type: post.donationType,
-      amount:
-        post.donationType === 'money'
-          ? `${post.amount} ${post.currency}`
-          : null,
-      materialDetails:
-        post.donationType === 'material' ? post.materialDetails : null,
-      serviceDetails:
-        post.donationType === 'service' ? post.serviceDetails : null,
-      address: post.address,
-      trackingId: post.trackingId,
-    };
-  };
-
-  const getNeedDetails = () => {
+  const handleDeletePost = () => {
     if (!post || post.postType !== 'need') return null;
 
     return {
@@ -136,9 +100,6 @@ export const usePostDetailHandlers = () => {
     formatDate,
     getPostStatus,
     getPostType,
-    getDonationDetails,
-    getNeedDetails,
-    handleBanPost,
-    handleUnbanPost,
+    handleDeletePost,
   };
 };

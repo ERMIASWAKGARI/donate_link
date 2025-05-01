@@ -13,7 +13,7 @@ const Payment = require('../models/paymentModel');
 
 const getAllPosts = asyncWrapper(async (req, res) => {
   try {
-    // console.log('Query:', req.query);
+    console.log('Query:', req.query);
 
     const {
       page = 1,

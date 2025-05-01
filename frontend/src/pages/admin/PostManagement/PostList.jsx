@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import Pagination from '../common/Pagination';
 import usePosts from '../hooks/usePosts';
 import BulkActions from './BulkActions';
-import StatusFilters from './StatusFilters';
 import ActiveFilters from './ActiveFilters';
 import PostFilters from './PostFilters';
 import PostStats from './PostStats';
@@ -13,7 +12,6 @@ import PostTable from './PostTable';
 
 const PostList = () => {
   const navigate = useNavigate();
-  const [selectedPosts, setSelectedPosts] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const {
@@ -31,7 +29,6 @@ const PostList = () => {
     changeType,
     changeSort,
     changePage,
-    // Add other post-specific actions here as needed
     refetch,
   } = usePosts();
 
@@ -43,22 +40,6 @@ const PostList = () => {
   const handleView = (postId) => navigate(`/admin/posts/${postId}`);
 
   // Add post-specific handlers as needed
-  const handleSelectPost = (postId) => {
-    if (!postId) return;
-    setSelectedPosts((prev) =>
-      prev.includes(postId)
-        ? prev.filter((id) => id !== postId)
-        : [...prev, postId]
-    );
-  };
-
-  const handleSelectAll = (isSelected) => {
-    if (isSelected) {
-      setSelectedPosts(posts.map((post) => post._id));
-    } else {
-      setSelectedPosts([]);
-    }
-  };
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -102,27 +83,12 @@ const PostList = () => {
         />
       )}
 
-      {/* Bulk Actions - Add if needed */}
-      {selectedPosts.length > 0 && (
-        <div className="bg-blue-50 px-6 py-3 border-b border-blue-100">
-          <BulkActions
-            selectedCount={selectedPosts.length}
-            isProcessing={isProcessing}
-            // Add bulk action handlers as needed
-          />
-        </div>
-      )}
-
       {/* Main Table */}
       <PostTable
         posts={posts}
         loading={loading || isProcessing}
         error={error}
-        selectedPosts={selectedPosts}
-        onSelectPost={handleSelectPost}
-        onSelectAll={handleSelectAll}
         onView={handleView}
-        isProcessing={isProcessing}
         pagination={pagination} // Make sure to pass this
       />
 

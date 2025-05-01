@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { Spin } from 'antd';
 import { FiArrowLeft } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
@@ -12,10 +13,7 @@ const PostDetail = () => {
     formatDate,
     getPostStatus,
     getPostType,
-    handleBanPost,
-    handleUnbanPost,
-    getDonationDetails,
-    getNeedDetails,
+    handleDeletePost,
   } = usePostDetailHandlers();
 
   if (loading) {
@@ -32,7 +30,6 @@ const PostDetail = () => {
   const postStatus = getPostStatus();
   const postType = getPostType();
   const isDonation = post.postType === 'donation';
-  const details = isDonation ? getDonationDetails() : getNeedDetails();
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -47,15 +44,12 @@ const PostDetail = () => {
         </button>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">{post.title}</h1>
-            <p className="text-indigo-100">
-              {postType.text} • {postStatus.text}
-            </p>
+            <h1 className="text-2xl font-bold text-white">
+              Title: {post.title}
+            </h1>
           </div>
           <div className="mt-3 md:mt-0 flex space-x-2">
-            <span
-              className={`px-3 py-1 rounded-md text-sm font-medium ${postType.color} text-white min-w-[100px] text-center`}
-            >
+            <span className="px-3 py-1 rounded-md text-sm font-medium bg-yellow-400 text-green-900 min-w-[100px] text-center">
               {postType.text}
             </span>
           </div>
@@ -105,7 +99,7 @@ const PostDetail = () => {
               </div>
               <div className="flex justify-between py-2 border-b border-gray-100">
                 <span className="text-gray-600">Status:</span>
-                <span className={`font-medium ${postStatus.color}`}>
+                <span className={`font-medium text-[#008080]`}>
                   {postStatus.text}
                 </span>
               </div>
@@ -278,7 +272,7 @@ const PostDetail = () => {
                         href={`https://www.google.com/maps?q=${post.location.coordinates[1]},${post.location.coordinates[0]}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 underline transition-colors"
+                        className="text-[#008080] hover:underline transition-colors"
                       >
                         View on Map
                       </a>
@@ -343,6 +337,28 @@ const PostDetail = () => {
                         <span className="font-medium">Location:</span>{' '}
                         {post.beneficiaryInfo?.location?.address}
                       </p>
+                    </div>
+                    <div className="bg-gray-50 p-4 rounded-md">
+                      <h3 className="text-md font-medium text-gray-700 mb-3">
+                        Images ({post.beneficiaryInfo.pictures.length})
+                      </h3>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {post.beneficiaryInfo.pictures.map((image, index) => (
+                          <div
+                            key={index}
+                            className="rounded-md overflow-hidden border border-gray-200 hover:shadow-md transition-shadow"
+                          >
+                            <img
+                              src={`http://localhost:5000/uploads/${image.replace(
+                                /\\/g,
+                                '/'
+                              )}`}
+                              alt={`Post image ${index + 1}`}
+                              className="w-full h-32 object-cover"
+                            />
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -482,51 +498,30 @@ const PostDetail = () => {
               />
             </svg>
             <h2 className="text-lg font-semibold text-gray-800">
-              Post Management
+              Post Actions
             </h2>
           </div>
           <div className="flex flex-wrap gap-4">
-            {post.isBanned ? (
-              <button
-                onClick={handleUnbanPost}
-                className="flex items-center text-white bg-[#008080] hover:bg-[#006666] px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm"
+            <button
+              onClick={handleDeletePost}
+              className="flex items-center text-red-500 hover:text-white hover:bg-red-500 border border-red-500 px-3 py-1.5 rounded-md text-sm font-medium transition duration-200"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                Unban Post
-              </button>
-            ) : (
-              <button
-                onClick={handleBanPost}
-                className="flex items-center text-white bg-red-500 hover:bg-red-600 px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm"
-              >
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
-                  />
-                </svg>
-                Ban Post
-              </button>
-            )}
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+              Delete
+            </button>
           </div>
         </div>
       </div>
