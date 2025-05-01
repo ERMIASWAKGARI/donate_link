@@ -19,6 +19,7 @@ import VerifyEmail from './pages/VerifyEmailPage';
 import VerifyOtp from './pages/VerifyOtpPage';
 import AdminDashboard from './pages/admin/Dashboard';
 import UserDetail from './pages/admin/UserDetail/UserDetail';
+import PostDetail from './pages/admin/PostDetail/PostDetail';
 import Users from './pages/admin/Users';
 import VolunteerDashboard from './pages/volunteer/VolunteerDashboard';
 // import UserProfile from "./components/header/UserProfile";
@@ -94,6 +95,7 @@ function App() {
                     <Route path="/admin/users" element={<Users />} />
                     <Route path="/admin/users/:id" element={<UserDetail />} />
                     <Route path="/admin/posts" element={<Posts />} />
+                    <Route path="/admin/posts/:id" element={<PostDetail />} />
                     <Route
                       path="/admin/profile"
                       element={<AdminProfilePage />}

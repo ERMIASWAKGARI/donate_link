@@ -222,7 +222,6 @@ const getAllPosts = async (
         Authorization: `Bearer ${token}`,
       },
     });
-    console.log('Posts response:', response.data);
 
     return {
       posts: response.data.data.posts,
@@ -265,6 +264,39 @@ const getAllDonations = async (page = 1, sort = '', limit = null) => {
   }
 };
 
+// Add these to your existing adminApi.js
+const getPostById = async (id) => {
+  const token = localStorage.getItem('accessToken');
+  const response = await axios.get(`${API_BASE_URL}/posts/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  console.log('Post response:', response.data);
+  return response.data.data;
+};
+
+const banPost = async (id) => {
+  const token = localStorage.getItem('accessToken');
+  const response = await axios.patch(
+    `${API_BASE_URL}/posts/${id}/ban`,
+    {},
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return response.data;
+};
+
+const unbanPost = async (id) => {
+  const token = localStorage.getItem('accessToken');
+  const response = await axios.patch(
+    `${API_BASE_URL}/posts/${id}/unban`,
+    {},
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return response.data;
+};
+
 // Add to exports
 export {
   banUser,
@@ -279,4 +311,7 @@ export {
   verifyUser,
   getAllPosts,
   getAllDonations,
+  getPostById,
+  banPost,
+  unbanPost,
 };

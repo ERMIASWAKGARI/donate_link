@@ -13,7 +13,7 @@ const Payment = require('../models/paymentModel');
 
 const getAllPosts = asyncWrapper(async (req, res) => {
   try {
-    console.log('Query:', req.query);
+    // console.log('Query:', req.query);
 
     const {
       page = 1,
@@ -398,7 +398,7 @@ const verifyUser = asyncWrapper(async (req, res) => {
   const userId = req.params.id;
   const adminId = req.user._id;
 
-  console.log('User ID:', userId);
+  // console.log('User ID:', userId);
 
   const user = await User.findById(userId);
   if (!user) throw new AppError('User not found.', 404);
@@ -424,7 +424,7 @@ const verifyUser = asyncWrapper(async (req, res) => {
 const rejectUserVerification = asyncWrapper(async (req, res) => {
   const userId = req.params.id;
   const { rejectionReason } = req.body;
-  console.log('Rejection Reason:', rejectionReason);
+  // console.log('Rejection Reason:', rejectionReason);
 
   const user = await User.findById(userId);
   if (!user) throw new AppError('User not found.', 404);
@@ -601,6 +601,56 @@ const logAdminAction = async (adminId, action, targetUserId) => {
   });
 };
 
+// controllers/postController.js
+const getPostById = asyncWrapper(async (req, res) => {
+  const { id } = req.params;
+  // console.log('params:', req.params);
+
+  try {
+    // First try to find in Donation collection
+    let post = await Donation.findById(id)
+      .populate('donor', 'name email phone')
+      .lean();
+
+    if (post) {
+      post.postType = 'donation';
+      post.creator = post.donor;
+
+      return res.json({
+        success: true,
+        data: post,
+      });
+    }
+
+    // If not found in Donation, try Need collection
+    post = await Need.findById(id).populate('NGO', 'name email phone').lean();
+
+    // console.log('post 1: ', post);
+
+    if (post) {
+      post.postType = 'need';
+      post.creator = post.NGO;
+      // console.log('post needs: ', post);
+
+      return res.json({
+        success: true,
+        data: post,
+      });
+    }
+
+    return res.status(404).json({
+      success: false,
+      message: 'Post not found',
+    });
+  } catch (error) {
+    console.error('Error fetching post:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching post',
+    });
+  }
+});
+
 module.exports = {
   getAllUsers,
   getUserById,
@@ -613,5 +663,6 @@ module.exports = {
   unbanUser,
   deleteUser,
   getAllPosts,
+  getPostById,
   getAllDonations,
 };

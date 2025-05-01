@@ -12,6 +12,7 @@ const {
   unbanUser,
   deleteUser,
   getAllPosts,
+  getPostById,
   getAllDonations,
 } = require('../controllers/adminController');
 
@@ -43,6 +44,7 @@ router.patch('/users/:id/unban', protect, adminProtect, unbanUser);
 router.delete('/users/:id', protect, adminProtect, deleteUser);
 
 router.get('/posts', protect, adminProtect, getAllPosts);
+router.get('/posts/:id', protect, adminProtect, getPostById);
 router.get('/donations', protect, adminProtect, getAllDonations);
 
 module.exports = router;
