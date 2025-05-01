@@ -1,6 +1,5 @@
 /* eslint-disable react/prop-types */
 // src/pages/admin/PostManagement/ActiveFilters.js
-import { CloseOutlined } from '@ant-design/icons';
 
 const ActiveFilters = ({
   searchQuery,
