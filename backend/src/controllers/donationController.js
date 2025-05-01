@@ -175,7 +175,7 @@ const createMaterialDonation = asyncWrapper(async (req, res, next) => {
       materialDetails: dbMaterialDetails,
       location,
       images: fileUrls,
-      trackingId: generateTrackingId(),
+      trackingId: await generateTrackingId(),
       donationType: "material",
       status: "posted",
     });
@@ -269,7 +269,7 @@ const getAllMaterialDonations = asyncWrapper(async (req, res, next) => {
   console.log("1. Getting all material donations");
   const donations = await Donations.find({
     donationType: "material",
-    // status: "pending",
+   status: "posted",
   }).populate("donor", "name email phone");
 
   sendSuccessResponse(res, 200, {

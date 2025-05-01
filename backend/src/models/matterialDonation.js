@@ -79,6 +79,13 @@ const matteriaDonationSchema = new mongoose.Schema(
         },
       },
     ],
+    status:{
+      type:String,
+      enum:["pending","completed"],
+      default:"pending",
+    }
+
+   
   },
   {
     timestamps: true,

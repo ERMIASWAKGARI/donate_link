@@ -33,6 +33,7 @@ router.post(
   uploadNeedPictures,
   donateItems.createMaterialDonation
 );
+router.put('/updateStatus/:id',authMiddleware(["ngo"]),donateItems.updateDonationStatus)
 router.get("/material/:ngoId/:needId", donateItems.getMaterialDonation);
 router.put("/material/:id", donateItems.updateMaterialDonation);
 // Service Donation Routes
