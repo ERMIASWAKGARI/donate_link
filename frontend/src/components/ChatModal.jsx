@@ -5,7 +5,6 @@ import { useUser } from "../context/UserContext";
 import {
   FiSend,
   FiX,
-  FiPaperclip,
   FiSmile,
   FiSearch,
   FiMessageSquare,
@@ -221,11 +220,11 @@ const ChatModal = ({ onClose, showChatModal }) => {
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"
       }`}
     >
-      <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white p-4 rounded-t-lg flex justify-between items-center">
+      <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white p-4 rounded-t-lg flex justify-between items-center">
         <h2 className="text-lg font-semibold">Messages</h2>
         <button
           onClick={onClose}
-          className="p-1 rounded-full hover:bg-blue-700 transition-colors"
+          className="p-1 rounded-full hover:bg-teal-700 transition-colors"
         >
           <FiX size={20} />
         </button>
@@ -240,13 +239,13 @@ const ChatModal = ({ onClose, showChatModal }) => {
           }`}
         >
           <div className="p-3 border-b border-gray-200 relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
               <FiSearch className="text-gray-400" />
             </div>
             <input
               type="text"
               placeholder="Search conversations..."
-              className="w-full pl-10 pr-3 py-2 text-gray-700 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-8 pr-3 py-2 text-gray-700 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -274,7 +273,7 @@ const ChatModal = ({ onClose, showChatModal }) => {
                   <div
                     key={conv._id}
                     className={`p-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
-                      activeConversation?._id === conv._id ? "bg-blue-50" : ""
+                      activeConversation?._id === conv._id ? "bg-teal-50" : ""
                     }`}
                     onClick={() => handleConversationClick(conv)}
                   >
@@ -289,7 +288,7 @@ const ChatModal = ({ onClose, showChatModal }) => {
                           className="w-10 h-10 rounded-full object-cover"
                         />
                         {unreadMessages && (
-                          <div className="absolute top-0 right-0 w-3 h-3 bg-blue-500 rounded-full border-2 border-white"></div>
+                          <div className="absolute top-0 right-0 w-3 h-3 bg-teal-500 rounded-full border-2 border-white"></div>
                         )}
                       </div>
                       <div className="ml-3 flex-1 min-w-0">
@@ -297,12 +296,6 @@ const ChatModal = ({ onClose, showChatModal }) => {
                           <h3 className="text-sm font-medium text-gray-900 truncate">
                             {otherParticipant?.name}
                           </h3>
-                          <span className="text-xs text-gray-500 whitespace-nowrap">
-                            {new Date(conv.updatedAt).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </span>
                         </div>
                         <p className="text-xs text-gray-500 truncate">
                           {conv.lastMessage?.content || "No messages yet"}
@@ -343,11 +336,16 @@ const ChatModal = ({ onClose, showChatModal }) => {
                     src={
                       activeConversation.participants.find(
                         (p) => p._id !== user._id
-                      )?.profilePicture || "/default-avatar.png"
+                      )?.profilePicture
+                        ? `http://localhost:5000/uploads/${activeConversation.participants
+                            .find((p) => p._id !== user._id)
+                            .profilePicture.replace(/\\/g, "/")}`
+                        : "/default-avatar.png"
                     }
                     alt="Profile"
                     className="w-8 h-8 rounded-full object-cover"
                   />
+
                   <div className="ml-3">
                     <h3 className="font-medium text-gray-900">
                       {
@@ -387,7 +385,7 @@ const ChatModal = ({ onClose, showChatModal }) => {
                           animate={{ opacity: 1, y: 0 }}
                           className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
                             msg.sender._id === user._id
-                              ? "bg-blue-500 text-white"
+                              ? "bg-teal-100 text-black"
                               : "bg-white text-gray-800 border border-gray-200"
                           }`}
                         >
@@ -396,7 +394,7 @@ const ChatModal = ({ onClose, showChatModal }) => {
                             <span
                               className={`text-xs ${
                                 msg.sender._id === user._id
-                                  ? "text-blue-100"
+                                  ? "text-teal-100"
                                   : "text-gray-500"
                               }`}
                             >
@@ -408,11 +406,11 @@ const ChatModal = ({ onClose, showChatModal }) => {
                             {msg.sender._id === user._id && (
                               <span className="ml-1">
                                 {msg.readBy?.length > 1 ? (
-                                  <span className="text-blue-100 text-xs">
+                                  <span className="text-teal-100 text-xs">
                                     ✓✓
                                   </span>
                                 ) : (
-                                  <span className="text-blue-100 text-xs">
+                                  <span className="text-teal-100 text-xs">
                                     ✓
                                   </span>
                                 )}
@@ -443,24 +441,22 @@ const ChatModal = ({ onClose, showChatModal }) => {
                 )}
                 <div className="flex items-center">
                   <button
-                    className="p-2 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors"
+                    className="p-2 text-gray-500 hover:text-teal-500 rounded-full hover:bg-gray-100 transition-colors"
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                   >
                     <FiSmile size={20} />
                   </button>
-                  <button className="p-2 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 transition-colors">
-                    <FiPaperclip size={20} />
-                  </button>
+                  {/*  */}
                   <input
                     type="text"
-                    className="flex-1 border border-gray-300 rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 mx-2 text-gray-700 bg-white"
+                    className="flex-1 border border-gray-300 rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 mx-2 text-gray-700 bg-white"
                     placeholder="Type a message..."
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
                   />
                   <button
-                    className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 disabled:bg-blue-300 transition-colors"
+                    className="p-2 bg-teal-500 text-white rounded-full hover:bg-teal-600 disabled:bg-teal-300 transition-colors"
                     onClick={handleSendMessage}
                     disabled={!message.trim() || isSending}
                   >
