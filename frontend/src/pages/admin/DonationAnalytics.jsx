@@ -179,12 +179,22 @@ const DonationAnalytics = () => {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">Total Donations</h3>
-          <p className="text-3xl font-bold">{donations?.length || 0}</p>
+          <h3 className=" mb-4 text-gray-500 text-sm font-medium truncate">
+            Total Donations
+          </h3>
+          <p className="text-3xl font-bold text-gray-800 ">
+            {donations?.length || 0}
+          </p>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">Monetary Donations</h3>
+          <h3 className="mb-4 text-gray-500 text-sm font-medium truncate">
+            Monetary Donations
+          </h3>
+
+          <p className="text-3xl font-bold text-gray-800 mb-2">
+            {totalCompletedMonetaryDonations}
+          </p>
 
           <div className="space-y-2">
             {monetaryDonationsByCurrency.map((item) => (
@@ -196,23 +206,24 @@ const DonationAnalytics = () => {
               </div>
             ))}
           </div>
-
-          <p className="text-3xl font-bold">
-            Total:{' '}
-            <span className="font-bold">{totalCompletedMonetaryDonations}</span>
-          </p>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">Material Donations</h3>
-          <p className="text-3xl font-bold">{totalMaterialDonations}</p>
+          <h3 className="mb-4 text-gray-500 text-sm font-medium truncate">
+            Material Donations
+          </h3>
+          <p className="text-3xl font-bold text-gray-800">
+            {totalMaterialDonations}
+          </p>
         </div>
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">Donation Types</h3>
+          <h3 className="text-gray-500 text-sm font-medium truncate mb-4">
+            Donation Types
+          </h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -241,7 +252,7 @@ const DonationAnalytics = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">
+          <h3 className="text-gray-500 text-sm font-medium truncate mb-4">
             Monetary Donations by Currency
           </h3>
           <div className="h-64">
@@ -276,7 +287,9 @@ const DonationAnalytics = () => {
 
       {/* Donations Table */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold mb-4">All Donations</h3>
+        <h3 className="text-gray-500 text-sm font-medium truncate mb-4">
+          All Donations
+        </h3>
         <Table
           columns={columns}
           dataSource={donations}

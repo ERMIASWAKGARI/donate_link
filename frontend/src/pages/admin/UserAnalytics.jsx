@@ -180,7 +180,7 @@ const UserAnalytics = () => {
       {/* User Distribution Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          <h2 className="mb-4 text-gray-500 text-sm font-medium truncate">
             User Roles
           </h2>
           <div className="h-80">
@@ -211,7 +211,7 @@ const UserAnalytics = () => {
         </div>
         {/* Verification Status */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          <h2 className="text-gray-500 text-sm font-medium truncate mb-4">
             Verification Status
           </h2>
           <div className="h-64">
@@ -242,7 +242,7 @@ const UserAnalytics = () => {
         </div>
         {/* Banned Status */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          <h2 className="text-gray-500 text-sm font-medium truncate mb-4">
             Account Status
           </h2>
           <div className="h-64">
@@ -274,7 +274,7 @@ const UserAnalytics = () => {
       </div>
       {/* Detailed User Breakdown */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">
+        <h2 className="text-gray-500 text-sm font-medium truncate mb-4">
           Detailed User Breakdown
         </h2>
         <div className="h-96">
