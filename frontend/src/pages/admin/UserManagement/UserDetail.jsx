@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Spinner from '../common/Spinner ';
 import { useUserDetailHandlers } from './UserDetail/useUserDetailHandlers';
 import VerificationDocsPanel from './UserDetail/VerificationDocsPanel';
+import ErrorDisplay from '../common/ErrorDisplay';
 
 const UserDetail = () => {
   const navigate = useNavigate();
@@ -32,7 +33,16 @@ const UserDetail = () => {
       </div>
     );
   }
-  if (error) return <div>Error: {error}</div>;
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <ErrorDisplay
+          message={error.message || 'Failed to load user information.'}
+        />
+      </div>
+    );
+  }
   if (!user) return <div>User not found</div>;
 
   const verificationStatus = getVerificationStatus();

@@ -198,19 +198,22 @@ const getVerificationDocuments = async (userId) => {
   }
 };
 
-const getAllPosts = async (page = 1, sort = '', query = '', limit = null) => {
+const getAllPosts = async (
+  page = 1,
+  sort = '',
+  query = '',
+  limit = 10,
+  type = ''
+) => {
   const token = localStorage.getItem('accessToken');
 
-  // Build query parameters object
   const params = {
-    page: page,
-    include: 'donations,needs',
+    page,
+    limit,
+    sortBy: sort,
+    search: query,
+    type,
   };
-
-  // Only add parameters if they have values
-  if (sort) params.sortBy = sort;
-  if (query) params.search = query;
-  if (limit) params.limit = limit; // Only include limit if specified
 
   try {
     const response = await axios.get(`${API_BASE_URL}/posts`, {
@@ -219,8 +222,6 @@ const getAllPosts = async (page = 1, sort = '', query = '', limit = null) => {
         Authorization: `Bearer ${token}`,
       },
     });
-
-    // console.log('Posts response:', response); // Debugging line
 
     return {
       posts: response.data.data.posts,
@@ -263,6 +264,28 @@ const getAllDonations = async (page = 1, sort = '', limit = null) => {
   }
 };
 
+const getPostById = async (id) => {
+  const token = localStorage.getItem('accessToken');
+  const response = await axios.get(`${API_BASE_URL}/posts/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  console.log('Post response:', response.data);
+  return response.data.data;
+};
+
+const handleDeletePost = async (id) => {
+  const token = localStorage.getItem('accessToken');
+  const response = await axios.patch(
+    `${API_BASE_URL}/posts/${id}/unban`,
+    {},
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return response.data;
+};
+
 // Add to exports
 export {
   banUser,
@@ -277,4 +300,6 @@ export {
   verifyUser,
   getAllPosts,
   getAllDonations,
+  getPostById,
+  handleDeletePost,
 };
