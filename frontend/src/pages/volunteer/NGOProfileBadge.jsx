@@ -54,7 +54,7 @@ const NGOProfileBadge = ({ ngo, onClick }) => {
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center mb-4 w-full text-left hover:bg-gray-50 p-2 rounded-lg transition-colors"
+      className="flex items-center mb-4 w-full text-left hover:bg-teal-100 p-2 rounded-lg transition-colors cursor-pointer"
       aria-label="View NGO profile"
     >
       <div className="flex-shrink-0 mr-4">

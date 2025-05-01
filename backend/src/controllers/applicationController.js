@@ -140,6 +140,26 @@ exports.createApplication = asyncWrapper(async (req, res, next) => {
     application: newApplication,
   });
 });
+
+// Add this to your controller file
+exports.checkApplicationStatus = asyncWrapper(async (req, res, next) => {
+  const { needId } = req.params;
+  const userId = req.user._id;
+
+  const existingApplication = await Application.findOne({
+    need: needId,
+    applicant: userId,
+  });
+
+  // Direct response without using sendSuccessResponse
+  res.status(200).json({
+    status: "success",
+    message: "Application status checked",
+    data: {
+      hasApplied: !!existingApplication,
+    },
+  });
+});
 exports.getNeedApplications = asyncWrapper(async (req, res, next) => {
   const { needId } = req.params;
   const { status, search } = req.query;

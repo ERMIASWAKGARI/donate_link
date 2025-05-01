@@ -5,7 +5,13 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import PropTypes from "prop-types";
 
-const ApplicationForm = ({ need, onSubmit, loading }) => {
+const ApplicationForm = ({
+  need,
+  onSubmit,
+  loading,
+  hasApplied,
+  onApplicationSuccess,
+}) => {
   const {
     register,
     handleSubmit,
@@ -29,11 +35,23 @@ const ApplicationForm = ({ need, onSubmit, loading }) => {
     setValue("category", category);
   };
 
+  const handleFormSubmit = async (data) => {
+    try {
+      await onSubmit(data);
+      if (onApplicationSuccess) {
+        onApplicationSuccess(); // Notify parent of successful application
+      }
+    } catch (err) {
+      console.error("Form submission error:", err);
+      // Error handling remains the same
+    }
+  };
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-xl font-bold text-gray-800 mb-4">Application Form</h2>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
         {/* Service Selection */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -174,14 +192,18 @@ const ApplicationForm = ({ need, onSubmit, loading }) => {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || hasApplied}
           className={`w-full py-2 px-4 rounded-md font-medium transition-colors duration-300 ${
-            loading
+            loading || hasApplied
               ? "bg-teal-300 text-white cursor-not-allowed"
               : "border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white"
           }`}
         >
-          {loading ? "Submitting..." : "Submit Application"}
+          {hasApplied
+            ? "Application Submitted"
+            : loading
+            ? "Submitting..."
+            : "Submit Application"}
         </button>
       </form>
     </div>
@@ -203,10 +225,14 @@ ApplicationForm.propTypes = {
   }).isRequired,
   onSubmit: PropTypes.func.isRequired,
   loading: PropTypes.bool,
+  hasApplied: PropTypes.bool,
+
+  onApplicationSuccess: PropTypes.func,
 };
 
 ApplicationForm.defaultProps = {
   loading: false,
+  hasApplied: false,
 };
 
 export default ApplicationForm;

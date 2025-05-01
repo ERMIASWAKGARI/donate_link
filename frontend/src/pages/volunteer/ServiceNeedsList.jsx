@@ -32,9 +32,9 @@ const ServiceNeedsList = () => {
   const [selectedNGO, setSelectedNGO] = useState(null);
   const [showChatModal, setShowChatModal] = useState(false);
   const [chatModalReady, setChatModalReady] = useState(false);
-  const [showDonations, setShowDonations] = useState(false); // New state for donations page
+  const [showDonations, setShowDonations] = useState(false);
+  const [appliedNeeds, setAppliedNeeds] = useState({});
 
-  // Fetch service needs with combined filters
   const fetchServiceNeeds = useCallback(async () => {
     try {
       setLoading(true);
@@ -63,23 +63,48 @@ const ServiceNeedsList = () => {
     return () => clearTimeout(timer);
   }, [fetchServiceNeeds]);
 
+  const checkApplicationStatuses = useCallback(async (needs) => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      const responses = await Promise.all(
+        needs.map((need) =>
+          axios.get(
+            `http://localhost:5000/api/application/${need._id}/status`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          )
+        )
+      );
+
+      const appliedStatus = responses.reduce((acc, response, index) => {
+        acc[needs[index]._id] = response.data.data.hasApplied;
+        return acc;
+      }, {});
+
+      setAppliedNeeds(appliedStatus);
+    } catch (err) {
+      console.error("Failed to check application status:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (needs.length > 0) {
+      checkApplicationStatuses(needs);
+    }
+  }, [needs, checkApplicationStatuses]);
+
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
   const resetFilters = () => {
-    setFilters({
-      status: "",
-      urgency: "",
-    });
+    setFilters({ status: "", urgency: "" });
     setSearchTerm("");
   };
 
@@ -102,7 +127,6 @@ const ServiceNeedsList = () => {
     }
   }, [chatModalReady]);
 
-  // Reusable Filter Select Component
   const FilterSelect = ({ name, value, onChange, options, icon: Icon }) => (
     <div className="relative">
       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -127,28 +151,27 @@ const ServiceNeedsList = () => {
     </div>
   );
 
-  // Skeleton Loading Component
   const SkeletonLoader = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
       {[...Array(6)].map((_, index) => (
         <div
           key={index}
           className="bg-white rounded-xl shadow-md overflow-hidden"
         >
-          <div className="h-48 bg-gray-200 animate-pulse"></div>
-          <div className="p-6">
-            <div className="flex items-center mb-4">
-              <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse mr-3"></div>
-              <div className="h-4 bg-gray-200 animate-pulse rounded w-2/3"></div>
+          <div className="h-40 sm:h-48 bg-gray-200 animate-pulse"></div>
+          <div className="p-4 sm:p-6">
+            <div className="flex items-center mb-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 animate-pulse mr-2 sm:mr-3"></div>
+              <div className="h-3 sm:h-4 bg-gray-200 animate-pulse rounded w-2/3"></div>
             </div>
-            <div className="h-6 bg-gray-200 animate-pulse rounded mb-2 w-3/4"></div>
-            <div className="h-4 bg-gray-200 animate-pulse rounded mb-4 w-full"></div>
-            <div className="h-4 bg-gray-200 animate-pulse rounded mb-4 w-2/3"></div>
+            <div className="h-4 sm:h-6 bg-gray-200 animate-pulse rounded mb-2 w-3/4"></div>
+            <div className="h-3 sm:h-4 bg-gray-200 animate-pulse rounded mb-3 w-full"></div>
+            <div className="h-3 sm:h-4 bg-gray-200 animate-pulse rounded mb-3 w-2/3"></div>
             <div className="flex justify-between">
-              <div className="h-4 bg-gray-200 animate-pulse rounded w-1/3"></div>
-              <div className="h-4 bg-gray-200 animate-pulse rounded w-1/3"></div>
+              <div className="h-3 sm:h-4 bg-gray-200 animate-pulse rounded w-1/3"></div>
+              <div className="h-3 sm:h-4 bg-gray-200 animate-pulse rounded w-1/3"></div>
             </div>
-            <div className="h-10 bg-gray-200 animate-pulse rounded-full mt-6 w-1/2 ml-auto"></div>
+            <div className="h-8 sm:h-10 bg-gray-200 animate-pulse rounded-full mt-4 sm:mt-6 w-1/2 ml-auto"></div>
           </div>
         </div>
       ))}
@@ -157,24 +180,23 @@ const ServiceNeedsList = () => {
 
   if (error) {
     return (
-      <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+      <div className="bg-red-50 border-l-4 border-red-500 p-3 sm:p-4 mb-4 sm:mb-6">
         <div className="flex items-center">
           <FaExclamationCircle className="text-red-500 mr-2" />
-          <span className="text-red-700">{error}</span>
+          <span className="text-red-700 text-sm sm:text-base">{error}</span>
         </div>
       </div>
     );
   }
 
-  // Render DonationsPage if showDonations is true
   if (showDonations) {
     return <DonationPage />;
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Enhanced Search and Filter Section */}
-      <div className="bg-white rounded-lg shadow-md p-2 mb-4">
+    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
+      {/* Search and Filter Section */}
+      <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 mb-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Search Input */}
           <div className="relative md:col-span-2">
@@ -229,9 +251,9 @@ const ServiceNeedsList = () => {
           </div>
         </div>
 
-        <div className="mt-4 flex justify-between items-center">
-          <div className="text-sm text-gray-500 flex items-center">
-            <FaFilter className="mr-2" />
+        <div className="mt-3 sm:mt-4 flex justify-between items-center">
+          <div className="text-xs sm:text-sm text-gray-500 flex items-center">
+            <FaFilter className="mr-1 sm:mr-2" />
             {filters.status || filters.urgency
               ? "Filters applied"
               : "No filters"}
@@ -239,7 +261,7 @@ const ServiceNeedsList = () => {
           {(filters.status || filters.urgency || searchTerm) && (
             <button
               onClick={resetFilters}
-              className="flex items-center text-sm text-[#008080] hover:text-[#006666]"
+              className="flex items-center text-xs sm:text-sm text-[#008080] hover:text-[#006666]"
             >
               <FaTimes className="mr-1" />
               Reset all
@@ -252,15 +274,17 @@ const ServiceNeedsList = () => {
       {loading ? (
         <SkeletonLoader />
       ) : needs.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-md p-8 text-center">
-          <FaInfoCircle className="mx-auto text-4xl text-gray-400 mb-4" />
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">
+        <div className="bg-white rounded-lg shadow-md p-6 sm:p-8 text-center">
+          <FaInfoCircle className="mx-auto text-3xl sm:text-4xl text-gray-400 mb-3 sm:mb-4" />
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">
             No service needs found
           </h3>
-          <p className="text-gray-500">Try adjusting your search or filters</p>
+          <p className="text-gray-500 text-sm sm:text-base">
+            Try adjusting your search or filters
+          </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {needs.map((need) => (
             <div
               key={need._id}
@@ -268,7 +292,7 @@ const ServiceNeedsList = () => {
             >
               {/* Need Image */}
               {need.beneficiaryInfo?.pictures?.length > 0 && (
-                <div className="h-48 overflow-hidden relative">
+                <div className="h-40 sm:h-48 overflow-hidden relative">
                   <img
                     src={`http://localhost:5000/uploads/${need.beneficiaryInfo.pictures[0].replace(
                       /\\/g,
@@ -276,19 +300,20 @@ const ServiceNeedsList = () => {
                     )}`}
                     alt={need.title}
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                   <button
                     type="button"
                     onClick={() => setSelectedNeed(need)}
-                    className="absolute top-2 right-2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
+                    className="absolute top-2 right-2 bg-teal-400 text-white p-1 sm:p-2 rounded-full hover:bg-teal-300 transition-all"
                     aria-label="View details"
                   >
-                    <FaInfoCircle />
+                    <FaInfoCircle size={14} className="sm:text-base" />
                   </button>
                 </div>
               )}
 
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 <NGOProfileBadge
                   ngo={{
                     ...need.NGO,
@@ -297,9 +322,8 @@ const ServiceNeedsList = () => {
                   onClick={() => handleNGOProfileClick(need.NGO)}
                 />
 
-                {/* Need Title and Status */}
                 <div className="flex justify-between items-start mb-2">
-                  <h2 className="text-xl font-bold text-gray-800">
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-800 line-clamp-1">
                     {need.title}
                   </h2>
                   <span
@@ -315,22 +339,29 @@ const ServiceNeedsList = () => {
                   </span>
                 </div>
 
-                {/* Need Description */}
-                <p className="text-gray-700 mb-4 line-clamp-2">
+                <p className="text-gray-700 mb-3 sm:mb-4 line-clamp-2 text-sm sm:text-base">
                   {need.description}
                 </p>
 
-                {/* Quick Details */}
-                <div className="flex justify-between text-sm text-gray-600 mb-4">
+                <div className="flex justify-between text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
                   <div className="flex items-center">
-                    <FaMapMarkerAlt className="mr-2 text-gray-400" />
-                    <span className="truncate max-w-[120px]">
+                    <FaMapMarkerAlt className="mr-1 sm:mr-2 text-gray-400" />
+                    <span className="truncate max-w-[100px] sm:max-w-[120px]">
                       {need.beneficiaryInfo?.location?.address}
                     </span>
                   </div>
+
+                  <div className="flex items-center ">
+                    <FaUsers className="mr-1 sm:mr-2 text-gray-400" />
+                    <span>
+                      {need.beneficiaryInfo?.numberOfBeneficiaries || 0}{" "}
+                      beneficiaries
+                    </span>
+                  </div>
+
                   <div className="flex items-center">
                     <span
-                      className={`inline-block w-3 h-3 rounded-full mr-2 ${
+                      className={`inline-block w-2 h-2 sm:w-3 sm:h-3 rounded-full mr-1 sm:mr-2 ${
                         need.urgencyLevel === "High"
                           ? "bg-red-500"
                           : need.urgencyLevel === "Medium"
@@ -342,23 +373,17 @@ const ServiceNeedsList = () => {
                   </div>
                 </div>
 
-                {/* Beneficiary Count */}
-                <div className="flex items-center text-sm text-gray-500 mb-4">
-                  <FaUsers className="mr-2 text-gray-400" />
-                  <span>
-                    {need.beneficiaryInfo?.numberOfBeneficiaries || 0}{" "}
-                    beneficiaries
-                  </span>
-                </div>
-
-                {/* Action Button */}
                 <div className="flex justify-end">
                   <button
-                    type="button"
                     onClick={() => setSelectedNeed(need)}
-                    className="bg-yellow-400 text-[#000] px-6 py-2 rounded-full font-normal hover:bg-yellow-500 transition cursor-pointer shadow-md"
+                    disabled={appliedNeeds[need._id]}
+                    className={`bg-yellow-400 text-[#000] px-4 sm:px-6 py-1 sm:py-2 rounded-full font-normal transition cursor-pointer shadow-md text-sm sm:text-base ${
+                      appliedNeeds[need._id]
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-yellow-500"
+                    }`}
                   >
-                    Apply Now
+                    {appliedNeeds[need._id] ? "Applied" : "Apply Now"}
                   </button>
                 </div>
               </div>
@@ -367,7 +392,7 @@ const ServiceNeedsList = () => {
         </div>
       )}
 
-      {/* Need Details Modal */}
+      {/* Modals */}
       {selectedNeed && (
         <NeedDetailsModal
           need={selectedNeed}
@@ -375,7 +400,6 @@ const ServiceNeedsList = () => {
         />
       )}
 
-      {/* NGO Profile Modal */}
       {selectedNGO && (
         <NGOProfileModal
           ngo={selectedNGO}
@@ -384,7 +408,6 @@ const ServiceNeedsList = () => {
         />
       )}
 
-      {/* Chat Modal */}
       {showChatModal && (
         <ChatModal
           onClose={() => setShowChatModal(false)}
