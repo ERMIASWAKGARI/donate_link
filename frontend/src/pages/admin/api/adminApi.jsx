@@ -35,6 +35,7 @@ const getAllUsers = async (
       Authorization: `Bearer ${token}`,
     },
   });
+  // console.log("users list: ",response.data.data.users)
 
   return {
     users: response.data.data.users,

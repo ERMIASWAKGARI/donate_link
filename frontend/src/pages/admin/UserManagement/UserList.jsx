@@ -110,7 +110,7 @@ const UserList = () => {
       <div className="bg-[rgb(0,128,128)] px-6 py-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <h2 className="text-2xl font-bold text-white">
-            User Management Dashboard
+            User Moderation Dashboard
           </h2>
           <UserStats
             pagination={pagination}
