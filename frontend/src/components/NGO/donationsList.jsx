@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useUser } from "../../context/UserContext";
 import AxiosInstance from "../../config/axiosConfig";
+import ServiceApplicationsTable from "./ServiceApplicationsTable";
 import {
   FaChevronLeft,
   FaChevronRight,
@@ -137,6 +138,7 @@ const DonationsList = () => {
             ...prev,
             services: serviceResponse.data.donations || [],
           }));
+          console.log("service response", serviceResponse);
         } else if (selectedCategory === "money") {
           const moneyResponse = await AxiosInstance.get(
             `donation/money/${selectedNeed._id}`,
@@ -443,7 +445,12 @@ const DonationsList = () => {
                     />
                   ) : getDonationsByType()?.length > 0 ? (
                     <div className="space-y-4">
-                      {/* Other donation types can go here */}
+                      <ServiceApplicationsTable
+                        applications={getDonationsByType()}
+                        loading={loading.donations}
+                        onStatusUpdate={handleStatusUpdate}
+                        onViewDetails={openDonationDetails}
+                      />
                     </div>
                   ) : null}
                 </div>
@@ -482,7 +489,7 @@ const DonationsList = () => {
         onRequestClose={closeModal}
         contentLabel="Donation Details"
         className="bg-white overflow-y-auto rounded-lg shadow-xl max-w-2xl w-full z-50 mx-auto p-6 relative max-h-[90vh]"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center p-4 z-50"
+        overlayClassName="fixed inset-0 bg-white/30 bg-opacity-20 flex items-center justify-center p-4 z-50"
       >
         {selectedDonation && (
           <div>
