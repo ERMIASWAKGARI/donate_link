@@ -139,9 +139,51 @@ const getAllPosts = asyncWrapper(async (req, res) => {
   }
 });
 
-// @desc    Get all donations
-// @route   GET /api/admin/donations
-// @access  Private/Admin
+const deleteDonationPost = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if post exists
+    const post = await Donation.findById(id);
+    if (!post) {
+      return res.status(404).json({ message: 'Donation post not found' });
+    }
+
+    // Delete the post
+    await Donation.findByIdAndDelete(id);
+
+    // Optionally: Delete related images/files from storage
+
+    res.status(200).json({ message: 'Donation post deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting donation post:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const deleteNeedPost = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log('id: ', req.params);
+
+    // Check if post exists
+    const post = await Need.findById(id);
+    if (!post) {
+      return res.status(404).json({ message: 'Need post not found' });
+    }
+
+    // Delete the post
+    await Need.findByIdAndDelete(id);
+
+    // Optionally: Delete related images/files from storage
+
+    res.status(200).json({ message: 'Need post deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting need post:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 const getAllDonations = asyncWrapper(async (req, res) => {
   const { page = 1, limit, sortBy = '-createdAt', search = '' } = req.query;
 
@@ -665,4 +707,6 @@ module.exports = {
   getAllPosts,
   getPostById,
   getAllDonations,
+  deleteDonationPost,
+  deleteNeedPost,
 };

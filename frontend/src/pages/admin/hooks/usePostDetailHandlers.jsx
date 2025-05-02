@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getPostById } from '../../admin/api/adminApi';
+import { getPostById, deletePost } from '../../admin/api/adminApi';
 
 // hooks/usePostDetailHandlers.js
 export const usePostDetailHandlers = () => {
@@ -69,19 +69,6 @@ export const usePostDetailHandlers = () => {
       : { text: 'Need', color: 'bg-blue-500' };
   };
 
-  const handleDeletePost = () => {
-    if (!post || post.postType !== 'need') return null;
-
-    return {
-      needTypes: post.needTypes,
-      urgency: post.urgencyLevel,
-      targetMoney: post.targetMoney,
-      endDate: post.endDate,
-      beneficiaryInfo: post.beneficiaryInfo,
-      categories: post.categories,
-    };
-  };
-
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -91,6 +78,16 @@ export const usePostDetailHandlers = () => {
       hour: '2-digit',
       minute: '2-digit',
     });
+  };
+
+  const handleDeletePost = async () => {
+    try {
+      await deletePost(post._id, post.postType);
+    } catch (err) {
+      setError(err);
+      console.error('Error deleting post:', err);
+      throw err;
+    }
   };
 
   return {

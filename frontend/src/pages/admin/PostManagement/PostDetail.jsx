@@ -1,12 +1,16 @@
 /* eslint-disable no-unused-vars */
-import { Spin } from 'antd';
-import { FiArrowLeft } from 'react-icons/fi';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import { FiArrowLeft } from 'react-icons/fi';
+import { Spin } from 'antd';
 import { usePostDetailHandlers } from '../hooks/usePostDetailHandlers';
+import { deletePost } from '../api/adminApi';
 import ErrorDisplay from '../common/ErrorDisplay';
 
 const PostDetail = () => {
   const navigate = useNavigate();
+
   const {
     post,
     loading,
@@ -16,6 +20,23 @@ const PostDetail = () => {
     getPostType,
     handleDeletePost,
   } = usePostDetailHandlers();
+
+  // State for confirmation modal
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const confirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await handleDeletePost();
+      navigate('/admin/posts'); // Redirect after successful deletion
+    } catch (err) {
+      console.error('Error deleting post:', err);
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -28,7 +49,7 @@ const PostDetail = () => {
   if (error) {
     return (
       <div className="p-6">
-        <ErrorDisplay message={error.message || 'Failed to load users'} />
+        <ErrorDisplay message={error.message || 'Failed to load post'} />
       </div>
     );
   }
@@ -41,6 +62,37 @@ const PostDetail = () => {
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-white/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full shadow-md">
+            <h3 className="text-lg font-semibold mb-4">Delete Post</h3>
+            <p className="mb-6 text-sm text-gray-700">
+              Are you sure you want to delete this post? This action cannot be
+              undone.
+              <span className="block mt-2 font-medium">
+                Post Title: {post.title}
+              </span>
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={isDeleting}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 rounded-md text-sm font-medium text-white bg-red-500 hover:bg-red-600 disabled:opacity-50"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Post'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header Section */}
       <div className="bg-[#008080] px-6 py-4">
         <button
@@ -490,6 +542,7 @@ const PostDetail = () => {
         </div>
 
         {/* Actions Card */}
+        {/* Actions Card */}
         <div className="bg-white rounded-lg p-5 shadow-md border border-gray-100">
           <div className="flex items-center mb-4 pb-2 border-b border-gray-200">
             <svg
@@ -511,7 +564,7 @@ const PostDetail = () => {
           </div>
           <div className="flex flex-wrap gap-4">
             <button
-              onClick={handleDeletePost}
+              onClick={() => setShowDeleteModal(true)}
               className="flex items-center text-red-500 hover:text-white hover:bg-red-500 border border-red-500 px-3 py-1.5 rounded-md text-sm font-medium transition duration-200"
             >
               <svg
@@ -528,7 +581,7 @@ const PostDetail = () => {
                   d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                 />
               </svg>
-              Delete
+              Delete Post
             </button>
           </div>
         </div>

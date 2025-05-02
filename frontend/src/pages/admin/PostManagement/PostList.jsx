@@ -39,15 +39,13 @@ const PostList = () => {
 
   const handleView = (postId) => navigate(`/admin/posts/${postId}`);
 
-  // Add post-specific handlers as needed
-
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
       {/* Header Section */}
       <div className="bg-[#008080] px-6 py-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <h2 className="text-2xl font-bold text-white">
-            Post Management Dashboard
+            Post Moderation Dashboard
           </h2>
           <PostStats
             pagination={pagination}

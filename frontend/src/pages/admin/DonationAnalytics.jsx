@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
+import { useState } from 'react';
 import { Spin, Table, Tag } from 'antd';
 import useDashboardDonations from './hooks/useDashboardDonations';
 import ErrorDisplay from './common/ErrorDisplay';
@@ -21,6 +22,10 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 const DonationAnalytics = () => {
   const { donations, loading, error } = useDashboardDonations(true);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+  });
 
   // Calculate total monetary donations by currency
   const monetaryDonationsByCurrency =
@@ -174,8 +179,6 @@ const DonationAnalytics = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Donations Analytics</h2>
-
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
@@ -294,7 +297,17 @@ const DonationAnalytics = () => {
           columns={columns}
           dataSource={donations}
           rowKey="_id"
-          pagination={{ pageSize: 5 }}
+          pagination={{
+            ...pagination,
+            showSizeChanger: true,
+            pageSizeOptions: ['5', '10', '20', '50', '100'],
+            onShowSizeChange: (current, size) => {
+              setPagination({ ...pagination, current: 1, pageSize: size });
+            },
+            onChange: (page, pageSize) => {
+              setPagination({ ...pagination, current: page, pageSize });
+            },
+          }}
         />
       </div>
     </div>
