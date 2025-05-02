@@ -277,6 +277,7 @@ const getPostById = async (id) => {
 };
 
 const deletePost = async (id, postType) => {
+  console.log('id and postype: ', id, postType);
   const token = localStorage.getItem('accessToken');
   try {
     const endpoint =

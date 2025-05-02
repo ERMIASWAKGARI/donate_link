@@ -164,6 +164,7 @@ const deleteDonationPost = async (req, res) => {
 const deleteNeedPost = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log('id: ', req.params);
 
     // Check if post exists
     const post = await Need.findById(id);

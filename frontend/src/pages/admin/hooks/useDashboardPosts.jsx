@@ -25,6 +25,8 @@ const useDashboardPosts = (fetchAll = false) => {
     fetchPosts();
   }, [fetchAll]);
 
+  // hooks/usePostDetailHandlers.js
+
   return {
     posts,
     loading,

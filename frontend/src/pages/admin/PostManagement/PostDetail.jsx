@@ -11,17 +11,24 @@ import ErrorDisplay from '../common/ErrorDisplay';
 const PostDetail = () => {
   const navigate = useNavigate();
 
-  const { post, loading, error, formatDate, getPostStatus, getPostType } =
-    usePostDetailHandlers();
+  const {
+    post,
+    loading,
+    error,
+    formatDate,
+    getPostStatus,
+    getPostType,
+    handleDeletePost,
+  } = usePostDetailHandlers();
 
   // State for confirmation modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const confirmDelete = async ({ id }) => {
+  const confirmDelete = async () => {
     setIsDeleting(true);
     try {
-      await deletePost(post._id, post.postType);
+      await handleDeletePost();
       navigate('/admin/posts'); // Redirect after successful deletion
     } catch (err) {
       console.error('Error deleting post:', err);

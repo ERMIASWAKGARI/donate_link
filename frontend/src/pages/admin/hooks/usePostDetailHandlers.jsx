@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getPostById } from '../../admin/api/adminApi';
+import { getPostById, deletePost } from '../../admin/api/adminApi';
 
 // hooks/usePostDetailHandlers.js
 export const usePostDetailHandlers = () => {
@@ -80,6 +80,16 @@ export const usePostDetailHandlers = () => {
     });
   };
 
+  const handleDeletePost = async () => {
+    try {
+      await deletePost(post._id, post.postType);
+    } catch (err) {
+      setError(err);
+      console.error('Error deleting post:', err);
+      throw err;
+    }
+  };
+
   return {
     post,
     loading,
@@ -87,5 +97,6 @@ export const usePostDetailHandlers = () => {
     formatDate,
     getPostStatus,
     getPostType,
+    handleDeletePost,
   };
 };
