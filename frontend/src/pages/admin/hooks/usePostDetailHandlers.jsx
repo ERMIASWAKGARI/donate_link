@@ -69,19 +69,6 @@ export const usePostDetailHandlers = () => {
       : { text: 'Need', color: 'bg-blue-500' };
   };
 
-  const handleDeletePost = () => {
-    if (!post || post.postType !== 'need') return null;
-
-    return {
-      needTypes: post.needTypes,
-      urgency: post.urgencyLevel,
-      targetMoney: post.targetMoney,
-      endDate: post.endDate,
-      beneficiaryInfo: post.beneficiaryInfo,
-      categories: post.categories,
-    };
-  };
-
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -100,6 +87,5 @@ export const usePostDetailHandlers = () => {
     formatDate,
     getPostStatus,
     getPostType,
-    handleDeletePost,
   };
 };

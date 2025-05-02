@@ -276,14 +276,25 @@ const getPostById = async (id) => {
   return response.data.data;
 };
 
-const handleDeletePost = async (id) => {
+const deletePost = async (id, postType) => {
   const token = localStorage.getItem('accessToken');
-  const response = await axios.patch(
-    `${API_BASE_URL}/posts/${id}/unban`,
-    {},
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  return response.data;
+  try {
+    const endpoint =
+      postType === 'donation'
+        ? `${API_BASE_URL}/posts/donation/${id}`
+        : `${API_BASE_URL}/posts/need/${id}`;
+
+    const response = await axios.delete(endpoint, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log('delete response: ', response);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting post:', error);
+    throw error;
+  }
 };
 
 // Add to exports
@@ -301,5 +312,5 @@ export {
   getAllPosts,
   getAllDonations,
   getPostById,
-  handleDeletePost,
+  deletePost,
 };
