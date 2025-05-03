@@ -1,19 +1,14 @@
 import { useState, useRef } from "react";
 import { FaTimes, FaPlus, FaUpload } from "react-icons/fa";
-
 import Axios from "../../config/axiosConfig";
 import MapComponent from "./mapComponent";
 import {
   materialCategories,
-  getSubCategories,
   serviceCategories,
   getServiceSubCategories,
-  getUnits,
 } from "../../constants/category";
+import MaterialCategoryFields from "./MaterialCategoryFields";
 
-// Fix for default marker icons in React-Leaflet
-
-// eslint-disable-next-line react/prop-types
 const NgoNeedForm = ({ onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
     title: "",
@@ -34,6 +29,10 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
   const [showMap, setShowMap] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Add "Other" option to all category lists
+  const enhancedMaterialCategories = [...materialCategories, { name: "Other" }];
+  const enhancedServiceCategories = [...serviceCategories, { name: "Other" }];
 
   const handleMapClick = (e) => {
     const { lat, lng } = e.latlng;
@@ -101,6 +100,13 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
     setFormData((prev) => {
       const updatedCategories = [...prev.categories[type]];
       updatedCategories[index][field] = value;
+
+      // If category is changed to "Other", reset subcategory and unit
+      if (field === "categoryName" && value === "Other") {
+        updatedCategories[index].subCategoryName = "";
+        updatedCategories[index].unit = "";
+      }
+
       return {
         ...prev,
         categories: { ...prev.categories, [type]: updatedCategories },
@@ -110,8 +116,6 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
 
   const handleImageSelection = (e) => {
     const files = Array.from(e.target.files);
-
-    // Check if adding these files would exceed limit
     const totalFiles = previewImages.length + files.length;
     if (totalFiles > 10) {
       alert(
@@ -120,7 +124,6 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
       return;
     }
 
-    // Create previews for new files
     const newPreviews = files.map((file) => ({
       file,
       preview: URL.createObjectURL(file),
@@ -529,161 +532,12 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
             </h3>
             {formData.categories.material.map((category, index) => (
               <div key={index} className="mb-4 p-4 border rounded-lg">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
-                  {/* Category Selection */}
-                  <div>
-                    <label className="block text-gray-700 text-sm mb-1">
-                      Category Name*
-                    </label>
-                    <select
-                      value={category.categoryName}
-                      onChange={(e) => {
-                        handleCategoryChange(
-                          "material",
-                          index,
-                          "categoryName",
-                          e.target.value
-                        );
-                        handleCategoryChange(
-                          "material",
-                          index,
-                          "subCategoryName",
-                          ""
-                        );
-                        handleCategoryChange("material", index, "unit", "");
-                      }}
-                      className="w-full p-2 border border-gray-300 rounded text-sm"
-                      required
-                    >
-                      <option value="">Select Category</option>
-                      {materialCategories.map((cat) => (
-                        <option key={cat.name} value={cat.name}>
-                          {cat.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Subcategory - Dynamic */}
-                  <div>
-                    <label className="block text-gray-700 text-sm mb-1">
-                      Sub-Category*
-                    </label>
-                    {category.categoryName === "Other" ? (
-                      <input
-                        type="text"
-                        value={category.subCategoryName}
-                        onChange={(e) =>
-                          handleCategoryChange(
-                            "material",
-                            index,
-                            "subCategoryName",
-                            e.target.value
-                          )
-                        }
-                        className="w-full p-2 border border-gray-300 rounded text-sm"
-                        maxLength="50"
-                        required
-                      />
-                    ) : (
-                      <select
-                        value={category.subCategoryName}
-                        onChange={(e) =>
-                          handleCategoryChange(
-                            "material",
-                            index,
-                            "subCategoryName",
-                            e.target.value
-                          )
-                        }
-                        className="w-full p-2 border border-gray-300 rounded text-sm"
-                        disabled={!category.categoryName}
-                        required
-                      >
-                        <option value="">Select Subcategory</option>
-                        {category.categoryName &&
-                          getSubCategories(category.categoryName).map(
-                            (subCat) => (
-                              <option key={subCat} value={subCat}>
-                                {subCat}
-                              </option>
-                            )
-                          )}
-                      </select>
-                    )}
-                  </div>
-
-                  {/* Unit */}
-                  <div>
-                    <label className="block text-gray-700 text-sm mb-1">
-                      Unit*
-                    </label>
-                    {category.categoryName === "Other" ? (
-                      <input
-                        type="text"
-                        value={category.unit}
-                        onChange={(e) =>
-                          handleCategoryChange(
-                            "material",
-                            index,
-                            "unit",
-                            e.target.value
-                          )
-                        }
-                        className="w-full p-2 border border-gray-300 rounded text-sm"
-                        maxLength="20"
-                        required
-                      />
-                    ) : (
-                      <select
-                        value={category.unit}
-                        onChange={(e) =>
-                          handleCategoryChange(
-                            "material",
-                            index,
-                            "unit",
-                            e.target.value
-                          )
-                        }
-                        className="w-full p-2 border border-gray-300 rounded text-sm"
-                        disabled={!category.categoryName}
-                        required
-                      >
-                        <option value="">Select Unit</option>
-                        {category.categoryName &&
-                          getUnits(category.categoryName).map((unit) => (
-                            <option key={unit} value={unit}>
-                              {unit}
-                            </option>
-                          ))}
-                      </select>
-                    )}
-                  </div>
-
-                  {/* Quantity */}
-                  <div>
-                    <label className="block text-gray-700 text-sm mb-1">
-                      Target Amount*
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={category.targetAmountNeeded}
-                      onChange={(e) =>
-                        handleCategoryChange(
-                          "material",
-                          index,
-                          "targetAmountNeeded",
-                          e.target.value
-                        )
-                      }
-                      className="w-full p-2 border border-gray-300 rounded text-sm"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Remove Category Button */}
+                <MaterialCategoryFields
+                  category={category}
+                  index={index}
+                  handleCategoryChange={handleCategoryChange}
+                  materialCategories={materialCategories}
+                />
                 <button
                   type="button"
                   onClick={() => {
@@ -700,14 +554,154 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
                 </button>
               </div>
             ))}
-
-            {/* Add Material Category Button */}
             <button
               type="button"
               onClick={() => addCategory("material")}
-              className="flex items-center px-3 py-1 bg-primary text-white rounded hover:bg-blue-600 text-sm mb-6"
+              className="flex items-center text-blue-500 hover:text-blue-700"
             >
               <FaPlus className="mr-1" /> Add Material Category
+            </button>
+          </div>
+        )}
+
+        {formData.needTypes.includes("service") && (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">
+              Service Needs
+            </h3>
+            {formData.categories.service.map((category, index) => (
+              <div key={index} className="mb-4 p-4 border rounded-lg">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                  {/* Service Category Selection */}
+                  <div>
+                    <label className="block text-gray-700 text-sm mb-1">
+                      Category Name*
+                    </label>
+                    <select
+                      value={category.categoryName}
+                      onChange={(e) => {
+                        handleCategoryChange(
+                          "service",
+                          index,
+                          "categoryName",
+                          e.target.value
+                        );
+                        handleCategoryChange(
+                          "service",
+                          index,
+                          "subCategoryName",
+                          ""
+                        );
+                      }}
+                      className="w-full p-2 border border-gray-300 rounded text-sm"
+                      required
+                    >
+                      <option value="">Select Category</option>
+                      {enhancedServiceCategories.map((cat) => (
+                        <option key={cat.name} value={cat.name}>
+                          {cat.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Service Subcategory */}
+                  <div>
+                    <label className="block text-gray-700 text-sm mb-1">
+                      Sub-Category*
+                    </label>
+                    {category.categoryName === "Other" ? (
+                      <input
+                        type="text"
+                        value={category.subCategoryName}
+                        onChange={(e) =>
+                          handleCategoryChange(
+                            "service",
+                            index,
+                            "subCategoryName",
+                            e.target.value
+                          )
+                        }
+                        className="w-full p-2 border border-gray-300 rounded text-sm"
+                        placeholder="Enter custom subcategory"
+                        maxLength="50"
+                        required
+                      />
+                    ) : (
+                      <select
+                        value={category.subCategoryName}
+                        onChange={(e) =>
+                          handleCategoryChange(
+                            "service",
+                            index,
+                            "subCategoryName",
+                            e.target.value
+                          )
+                        }
+                        className="w-full p-2 border border-gray-300 rounded text-sm"
+                        disabled={!category.categoryName}
+                        required
+                      >
+                        <option value="">Select Subcategory</option>
+                        {category.categoryName &&
+                          getServiceSubCategories(category.categoryName).map(
+                            (subCat) => (
+                              <option key={subCat} value={subCat}>
+                                {subCat}
+                              </option>
+                            )
+                          )}
+                        <option value="Other">Other</option>
+                      </select>
+                    )}
+                  </div>
+
+                  {/* Vacancy */}
+                  <div>
+                    <label className="block text-gray-700 text-sm mb-1">
+                      Vacancy*
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={category.vacancy}
+                      onChange={(e) =>
+                        handleCategoryChange(
+                          "service",
+                          index,
+                          "vacancy",
+                          e.target.value
+                        )
+                      }
+                      className="w-full p-2 border border-gray-300 rounded text-sm"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updated = [...formData.categories.service];
+                    updated.splice(index, 1);
+                    setFormData((prev) => ({
+                      ...prev,
+                      categories: { ...prev.categories, service: updated },
+                    }));
+                  }}
+                  className="text-red-500 text-sm hover:text-red-700"
+                >
+                  Remove Category
+                </button>
+              </div>
+            ))}
+
+            <button
+              type="button"
+              onClick={() => addCategory("service")}
+              className="flex items-center text-blue-500 hover:text-blue-700"
+            >
+              <FaPlus className="mr-1" /> Add Service Category
             </button>
           </div>
         )}

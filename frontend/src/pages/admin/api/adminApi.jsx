@@ -35,6 +35,7 @@ const getAllUsers = async (
       Authorization: `Bearer ${token}`,
     },
   });
+  // console.log("users list: ",response.data.data.users)
 
   return {
     users: response.data.data.users,
@@ -197,6 +198,108 @@ const getVerificationDocuments = async (userId) => {
     throw error;
   }
 };
+
+const getAllPosts = async (
+  page = 1,
+  sort = '',
+  query = '',
+  limit = 10,
+  type = ''
+) => {
+  const token = localStorage.getItem('accessToken');
+
+  const params = {
+    page,
+    limit,
+    sortBy: sort,
+    search: query,
+    type,
+  };
+
+  try {
+    const response = await axios.get(`${API_BASE_URL}/posts`, {
+      params,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return {
+      posts: response.data.data.posts,
+      pagination: response.data.pagination,
+      totalCount: response.data.count,
+    };
+  } catch (error) {
+    console.error('Error fetching posts:', error.message);
+    throw error;
+  }
+};
+
+const getAllDonations = async (page = 1, sort = '', limit = null) => {
+  const token = localStorage.getItem('accessToken');
+
+  const params = {
+    page,
+    sortBy: sort,
+  };
+
+  // Only include limit if specified
+  if (limit) params.limit = limit;
+
+  try {
+    const response = await axios.get(`${API_BASE_URL}/donations`, {
+      params,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return {
+      donations: response.data.data.donations,
+      pagination: response.data.pagination,
+      totalCount: response.data.count,
+    };
+  } catch (error) {
+    console.error('Error fetching donations:', error.message);
+    throw error;
+  }
+};
+
+const getPostById = async (id) => {
+  const token = localStorage.getItem('accessToken');
+  const response = await axios.get(`${API_BASE_URL}/posts/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  console.log('Post response:', response.data);
+  return response.data.data;
+};
+
+const deletePost = async (id, postType) => {
+  console.log('id and postype: ', id, postType);
+  const token = localStorage.getItem('accessToken');
+  try {
+    const endpoint =
+      postType === 'donation'
+        ? `${API_BASE_URL}/posts/donation/${id}`
+        : `${API_BASE_URL}/posts/need/${id}`;
+
+    const response = await axios.delete(endpoint, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log('delete response: ', response);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting post:', error);
+    throw error;
+  }
+};
+
+// Add to exports
 export {
   banUser,
   bulkBanUsers,
@@ -208,4 +311,8 @@ export {
   rejectUser,
   unbanUser,
   verifyUser,
+  getAllPosts,
+  getAllDonations,
+  getPostById,
+  deletePost,
 };

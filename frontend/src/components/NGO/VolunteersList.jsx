@@ -1,7 +1,19 @@
-import { Eye } from "lucide-react";
+import { Eye, Check, X } from "lucide-react";
 import { motion } from "framer-motion";
 
-const VolunteersList = ({ volunteer, volunteers, handleViewDetails }) => {
+const VolunteersList = ({
+  volunteer,
+  volunteers,
+  handleViewDetails,
+  onStatusChange,
+}) => {
+  const handleStatusUpdate = (id, newStatus) => {
+    // Call the external function to persist status
+    if (onStatusChange) {
+      onStatusChange(id, newStatus);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -13,34 +25,19 @@ const VolunteersList = ({ volunteer, volunteers, handleViewDetails }) => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Volunteer Name
               </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Email
               </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
               </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Application Date
               </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
@@ -103,6 +100,28 @@ const VolunteersList = ({ volunteer, volunteers, handleViewDetails }) => {
                     >
                       <Eye className="w-5 h-5" />
                     </button>
+                    {vol.status === "pending" && (
+                      <>
+                        <button
+                          onClick={() =>
+                            handleStatusUpdate(vol._id, "accepted")
+                          }
+                          className="p-2 rounded-lg bg-green-100 text-green-800 hover:bg-green-200 transition"
+                          aria-label="Accept"
+                        >
+                          <Check className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleStatusUpdate(vol._id, "rejected")
+                          }
+                          className="p-2 rounded-lg bg-red-100 text-red-800 hover:bg-red-200 transition"
+                          aria-label="Reject"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </td>
               </motion.tr>

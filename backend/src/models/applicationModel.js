@@ -48,7 +48,7 @@ const applicationSchema = new mongoose.Schema(
         "Rejected",
         "On Hold",
         "Withdrawn",
-        "accepted",
+        "Accepted",
       ],
       default: "Submitted",
     },
@@ -56,15 +56,36 @@ const applicationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 applicationSchema.post("save", async function (doc) {
-  if (doc.status === "accepted") {
-    const {
-      checkCertificates,
-    } = require("../controllers/certificateController");
+  if (doc.status === "Accepted") {
     console.log(
-      `🙋 Volunteer application ${doc._id} approved - checking certificates`
+      `\n🏆 Application ${doc._id} Accepted - Starting Certificate Check`
     );
-    await checkCertificates(doc.applicant, "volunteer");
+
+    try {
+      const {
+        checkCertificates,
+      } = require("../controllers/certificateController");
+      await checkCertificates(doc.applicant, "volunteer");
+
+      console.log(`✓ Certificate check completed for ${doc.applicant}`);
+    } catch (error) {
+      console.error("❌ Certificate check failed:", error.message);
+      // Consider adding error notification here
+    }
   }
+});
+
+// Add this to applicationModel.js
+applicationSchema.pre("save", function (next) {
+  if (this.isModified("status")) {
+    console.log(
+      `🔄 Status changing from ${this._originalStatus || "[none]"} to ${
+        this.status
+      }`
+    );
+    this._originalStatus = this.status; // Store for reference
+  }
+  next();
 });
 const Application = mongoose.model("Application", applicationSchema);
 

@@ -1,9 +1,12 @@
-import { Spin } from 'antd';
-import { FiArrowLeft } from 'react-icons/fi';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Spinner from '../common/Spinner ';
+import { FiArrowLeft } from 'react-icons/fi';
+
+import { Spin } from 'antd';
+
 import { useUserDetailHandlers } from './UserDetail/useUserDetailHandlers';
 import VerificationDocsPanel from './UserDetail/VerificationDocsPanel';
+import ErrorDisplay from '../common/ErrorDisplay';
 
 const UserDetail = () => {
   const navigate = useNavigate();
@@ -25,6 +28,32 @@ const UserDetail = () => {
     formatDate,
   } = useUserDetailHandlers();
 
+  // State for confirmation modal
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [actionType, setActionType] = useState(null); // 'ban' or 'unban'
+
+  // Handle ban/unban confirmation
+  const handleConfirmAction = () => {
+    if (actionType === 'ban') {
+      handleBan();
+    } else {
+      handleUnban();
+    }
+    setShowConfirmModal(false);
+  };
+
+  // Show ban confirmation modal
+  const confirmBan = () => {
+    setActionType('ban');
+    setShowConfirmModal(true);
+  };
+
+  // Show unban confirmation modal
+  const confirmUnban = () => {
+    setActionType('unban');
+    setShowConfirmModal(true);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -32,7 +61,16 @@ const UserDetail = () => {
       </div>
     );
   }
-  if (error) return <div>Error: {error}</div>;
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <ErrorDisplay
+          message={error.message || 'Failed to load user information.'}
+        />
+      </div>
+    );
+  }
   if (!user) return <div>User not found</div>;
 
   const verificationStatus = getVerificationStatus();
@@ -43,6 +81,49 @@ const UserDetail = () => {
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-white/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full shadow-md">
+            <h3 className="text-lg font-semibold mb-4">Confirm Action</h3>
+            <p className="mb-6 text-sm text-gray-700">
+              Are you sure you want to{' '}
+              <span className="font-bold text-red-600">
+                {actionType === 'ban' ? 'ban' : 'unban'}
+              </span>{' '}
+              this user?
+              {actionType === 'ban' && (
+                <span className="block mt-2">
+                  The user will no longer be able to access the platform.
+                </span>
+              )}
+              {actionType === 'unban' && (
+                <span className="block mt-2">
+                  The user will regain access to the platform.
+                </span>
+              )}
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmAction}
+                className="px-4 py-2 rounded-md text-sm font-medium text-white"
+                style={{
+                  backgroundColor: actionType === 'ban' ? '#ef4444' : '#008080',
+                }}
+              >
+                Confirm {actionType === 'ban' ? 'Ban' : 'Unban'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header Section */}
       <div className="bg-[#008080] px-6 py-4">
         <button
@@ -64,8 +145,6 @@ const UserDetail = () => {
           </div>
         </div>
       </div>
-
-      {/* User Information Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
         {/* Account Information */}
         <div className="bg-gray-50 rounded-lg p-5 shadow-sm">
@@ -190,8 +269,8 @@ const UserDetail = () => {
       {user.role !== 'individual_donor' && (
         <div className="px-6 pb-6">
           {docsLoading ? (
-            <div className="flex justify-center py-4">
-              <Spinner size="md" color="indigo" />
+            <div className="flex items-center justify-center h-64">
+              <Spin size="large" />
             </div>
           ) : verificationDocs ? (
             <VerificationDocsPanel
@@ -232,7 +311,7 @@ const UserDetail = () => {
         <div className="flex flex-wrap gap-2">
           {user.isBanned ? (
             <button
-              onClick={handleUnban}
+              onClick={confirmUnban}
               className="flex items-center text-[#008080] hover:text-white hover:bg-[#008080] border border-[#008080] px-3 py-1.5 rounded-md text-sm font-medium transition duration-200"
             >
               <svg
@@ -252,7 +331,7 @@ const UserDetail = () => {
             </button>
           ) : (
             <button
-              onClick={handleBan}
+              onClick={confirmBan}
               className="flex items-center text-red-500 hover:text-white hover:bg-red-500 border border-red-500 px-3 py-1.5 rounded-md text-sm font-medium transition duration-200"
             >
               <svg

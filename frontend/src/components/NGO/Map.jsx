@@ -56,7 +56,7 @@ const Map = ({ latitude, longitude }) => {
   };
 
   return (
-    <div style={{ height: "100%", width: "100%" }}>
+    <div className="relative z-0" style={{ height: "100%", width: "100%" }}>
       {error && (
         <p style={{ color: "red", textAlign: "center", margin: "10px 0" }}>
           {error}
