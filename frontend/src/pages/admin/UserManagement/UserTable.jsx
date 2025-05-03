@@ -1,4 +1,5 @@
 /* eslint-disable react/prop-types */
+import { useState } from 'react';
 import { Spin } from 'antd';
 import DataTable from '../common/DataTable';
 import ErrorDisplay from '../common/ErrorDisplay';
@@ -144,6 +145,54 @@ export const UserTable = ({
   onUnban,
   isProcessing,
 }) => {
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [actionType, setActionType] = useState(null); // 'ban' or 'unban'
+  const [userIdToProcess, setUserIdToProcess] = useState(null);
+
+  // Function to show ban confirmation
+  const showBanConfirm = (userId) => {
+    setActionType('ban');
+    setUserIdToProcess(userId);
+    setShowConfirmModal(true);
+  };
+
+  // Function to show unban confirmation
+  const showUnbanConfirm = (userId) => {
+    setActionType('unban');
+    setUserIdToProcess(userId);
+    setShowConfirmModal(true);
+  };
+
+  // Handle confirmation
+  const handleConfirm = () => {
+    if (actionType === 'ban') {
+      onBan(userIdToProcess);
+    } else {
+      onUnban(userIdToProcess);
+    }
+    setShowConfirmModal(false);
+    setActionType(null);
+    setUserIdToProcess(null);
+  };
+
+  // Create a new columns array with the proper handlers
+  const columns = userColumns.map((column) => {
+    if (column.accessor === 'actions') {
+      return {
+        ...column,
+        Cell: ({ row }) =>
+          column.Cell({
+            row,
+            onView,
+            onBan: showBanConfirm,
+            onUnban: showUnbanConfirm,
+            isProcessing,
+          }),
+      };
+    }
+    return column;
+  });
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -162,23 +211,46 @@ export const UserTable = ({
 
   return (
     <div className="px-6 py-4">
+      {/* Custom Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-white/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full shadow-md">
+            <h3 className="text-lg font-semibold mb-4">Confirm Action</h3>
+            <p className="mb-6 text-sm text-gray-700">
+              Are you sure you want to{' '}
+              <span className="font-bold text-red-600">
+                {actionType === 'ban' ? 'ban' : 'unban'}
+              </span>{' '}
+              this user?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowConfirmModal(false);
+                  setActionType(null);
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirm}
+                className="px-4 py-2 rounded-md text-sm font-medium text-white"
+                style={{
+                  backgroundColor: actionType === 'ban' ? '#ef4444' : '#008080',
+                }}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Data Table */}
       <div className="rounded-lg border border-gray-200 overflow-hidden">
         <DataTable
-          columns={userColumns.map((col) =>
-            col.accessor === 'actions'
-              ? {
-                  ...col,
-                  Cell: (props) =>
-                    col.Cell({
-                      ...props,
-                      onView,
-                      onBan,
-                      onUnban,
-                      isProcessing,
-                    }),
-                }
-              : col
-          )}
+          columns={columns}
           data={users || []}
           onSelect={onSelectUser}
           onSelectAll={onSelectAll}

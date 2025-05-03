@@ -10,7 +10,11 @@ router.post(
 
   applicationController.createApplication
 );
+router.get(
+  "/:needId/status",
 
+  applicationController.checkApplicationStatus
+);
 // NGO routes
 router.get(
   "/needs/:needId/applications",

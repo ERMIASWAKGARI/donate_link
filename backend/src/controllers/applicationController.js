@@ -64,7 +64,7 @@ exports.createApplication = asyncWrapper(async (req, res, next) => {
     status: "Submitted",
   });
   console.log(`[Application] Created application ID: ${newApplication._id}`);
-z
+
   // Notification handling
   try {
     console.log("[Notification] Creating notification...");
@@ -138,6 +138,26 @@ z
   return sendSuccessResponse(res, 201, {
     message: "Application submitted successfully",
     application: newApplication,
+  });
+});
+
+// Add this to your controller file
+exports.checkApplicationStatus = asyncWrapper(async (req, res, next) => {
+  const { needId } = req.params;
+  const userId = req.user._id;
+
+  const existingApplication = await Application.findOne({
+    need: needId,
+    applicant: userId,
+  });
+
+  // Direct response without using sendSuccessResponse
+  res.status(200).json({
+    status: "success",
+    message: "Application status checked",
+    data: {
+      hasApplied: !!existingApplication,
+    },
   });
 });
 exports.getNeedApplications = asyncWrapper(async (req, res, next) => {

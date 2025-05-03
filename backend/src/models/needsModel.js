@@ -1,10 +1,10 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const needsSchema = new mongoose.Schema(
   {
     NGO: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
 
@@ -14,7 +14,7 @@ const needsSchema = new mongoose.Schema(
       trim: true,
       maxlength: 100,
     },
-hasDonations: {
+    hasDonations: {
       type: Boolean,
       default: false,
     },
@@ -22,7 +22,7 @@ hasDonations: {
       type: [
         {
           type: String,
-          enum: ["money", "material", "service"],
+          enum: ['money', 'material', 'service'],
         },
       ],
       required: true,
@@ -30,13 +30,13 @@ hasDonations: {
         validator: function (v) {
           return v.length > 0 && v.length <= 3 && new Set(v).size === v.length;
         },
-        message: "Must specify 1-3 unique need types",
+        message: 'Must specify 1-3 unique need types',
       },
     },
 
     urgencyLevel: {
       type: String,
-      enum: ["Low", "Medium", "High"],
+      enum: ['Low', 'Medium', 'High'],
       required: true,
     },
 
@@ -49,20 +49,19 @@ hasDonations: {
 
     status: {
       type: String,
-      enum: ["Open", "Fulfilled", "Expired", "Closed"],
-      default: "Open",
+      enum: ['Open', 'Fulfilled', 'Expired', 'Closed'],
+      default: 'Open',
     },
 
     endDate: {
       type: Date,
       required: true,
-   
     },
 
     targetMoney: {
       type: Number,
       required: function () {
-        return this.needTypes.includes("money");
+        return this.needTypes.includes('money');
       },
       min: 0,
       default: null,
@@ -80,7 +79,7 @@ hasDonations: {
           validator: function (v) {
             return v.length <= 10; // Correctly check the total number of images
           },
-          message: "Cannot upload more than 10 pictures",
+          message: 'Cannot upload more than 10 pictures',
         },
       },
       location: {
@@ -105,7 +104,7 @@ hasDonations: {
     application: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Application",
+        ref: 'Application',
       },
     ],
     isReportGenerated: {
@@ -118,27 +117,26 @@ hasDonations: {
           categoryName: {
             type: String,
             required: function () {
-              return this.parent().parent().needTypes.includes("material");
+              return this.parent().parent().needTypes.includes('material');
             },
             maxlength: 50,
           },
           subCategoryName: {
             type: String,
             required: function () {
-              return this.parent().parent().needTypes.includes("material");
+              return this.parent().parent().needTypes.includes('material');
             },
             maxlength: 50,
           },
           targetAmountNeeded: {
             type: String,
             required: function () {
-              return this.parent().parent().needTypes.includes("material");
+              return this.parent().parent().needTypes.includes('material');
             },
             min: 1,
           },
           unit: {
             type: String,
-           
           },
         },
       ],
@@ -148,21 +146,21 @@ hasDonations: {
           categoryName: {
             type: String,
             required: function () {
-              return this.parent().parent().needTypes.includes("service");
+              return this.parent().parent().needTypes.includes('service');
             },
             maxlength: 50,
           },
           subCategoryName: {
             type: String,
             required: function () {
-              return this.parent().parent().needTypes.includes("service");
+              return this.parent().parent().needTypes.includes('service');
             },
             maxlength: 50,
           },
           vacancy: {
             type: String,
             required: function () {
-              return this.parent().parent().needTypes.includes("service");
+              return this.parent().parent().needTypes.includes('service');
             },
             min: 1,
           },
@@ -175,21 +173,21 @@ hasDonations: {
   }
 );
 
-needsSchema.pre("save", function (next) {
-  if (this.endDate <= new Date() && this.status !== "Closed") {
-    this.status = "Closed";
+needsSchema.pre('save', function (next) {
+  if (this.endDate <= new Date() && this.status !== 'Closed') {
+    this.status = 'Closed';
   }
   next();
 });
 
 // Middleware to check for expired needs on every find operation (optional)
-needsSchema.post("find", function (docs) {
+needsSchema.post('find', function (docs) {
   docs.forEach((doc) => {
-    if (doc.endDate <= new Date() && doc.status !== "Closed") {
-      doc.status = "Closed";
+    if (doc.endDate <= new Date() && doc.status !== 'Closed') {
+      doc.status = 'Closed';
       doc.save();
     }
   });
 });
 
-module.exports = mongoose.model("Needs", needsSchema);
+module.exports = mongoose.model('Needs', needsSchema);
