@@ -132,10 +132,9 @@ const PendingDonations = () => {
     setShowDetailsModal(false);
     setSelectedDonation(null);
   };
-
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+      <div className="z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm w-full h-full">
         <Spin size="large" />
       </div>
     );
