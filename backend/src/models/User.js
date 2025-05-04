@@ -18,17 +18,17 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
     preferences: {
-      type:[String],
+      type: [String],
       default: [],
-      enum: [
-        'Food', 
-        'Medical',
-        'Clothing',
-        'Learning',
-        'Drinking',
-        'Shelter',
-        "other"
-      ],
+      // enum: [
+      //   'Food',
+      //   'Medical',
+      //   'Clothing',
+      //   'Learning',
+      //   'Drinking',
+      //   'Shelter',
+      //   "other"
+      // ],
     },
 
     email: { type: String, lowercase: true },
