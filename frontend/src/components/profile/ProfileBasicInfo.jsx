@@ -46,11 +46,13 @@ export const ProfileBasicInfo = ({
           <NgoInfo
             user={user}
             editingField={editingField}
+            formData={formData}
             loading={loading}
             onEdit={setEditingField}
             onCancel={handleCancelEdit}
             onSave={handleSaveField}
             handleFieldChange={handleFieldChange}
+            hasChanges={hasChanges}
           />
         );
       case 'individual_donor':

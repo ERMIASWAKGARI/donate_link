@@ -1,12 +1,17 @@
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useState } from "react";
+import { NavLink } from "react-router-dom";
 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const navItems = [
-    { name: 'Dashboard', path: '/admin/dashboard', icon: 'dashboard' },
-    { name: 'User Moderation', path: '/admin/users', icon: 'people' },
-    { name: 'Post Moderation', path: '/admin/posts', icon: 'article' },
+    { name: "Dashboard", path: "/admin/dashboard", icon: "dashboard" },
+    { name: "User Moderation", path: "/admin/users", icon: "people" },
+    { name: "Post Moderation", path: "/admin/posts", icon: "article" },
+    {
+      name: "Newsletter Control",
+      path: "/admin/newsletter",
+      icon: "subscriptions",
+    },
   ];
 
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
@@ -14,7 +19,7 @@ const Sidebar = () => {
   return (
     <div
       className={`bg-[#008080] text-white shadow-md flex flex-col h-screen transition-all duration-300 ${
-        isCollapsed ? 'w-20' : 'w-64'
+        isCollapsed ? "w-20" : "w-64"
       }`}
     >
       {/* Header with hamburger */}
@@ -25,7 +30,7 @@ const Sidebar = () => {
           className="p-1 rounded-md hover:bg-teal-700 transition-colors"
         >
           <span className="material-icons">
-            {isCollapsed ? 'menu' : 'menu_open'}
+            {isCollapsed ? "menu" : "menu_open"}
           </span>
         </button>
       </div>
@@ -38,7 +43,7 @@ const Sidebar = () => {
             to={item.path}
             className={({ isActive }) =>
               `flex items-center px-6 py-3 transition-colors duration-200 ${
-                isActive ? 'bg-yellow-400 text-gray-800' : 'hover:bg-yellow-500'
+                isActive ? "bg-yellow-400 text-gray-800" : "hover:bg-yellow-500"
               }`
             }
           >
