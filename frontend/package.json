@@ -21,6 +21,7 @@
     "@react-pdf/renderer": "^4.3.0",
     "@reduxjs/toolkit": "^2.6.1",
     "@tailwindcss/vite": "^4.0.7",
+    "@tanstack/react-table": "^8.21.3",
     "antd": "^5.24.7",
     "aos": "^2.3.4",
     "cors": "^2.8.5",
