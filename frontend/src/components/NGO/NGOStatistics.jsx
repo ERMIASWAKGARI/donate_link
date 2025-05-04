@@ -144,8 +144,8 @@ const NGOStatistics = () => {
           Icon={FaHandHoldingUsd}
         />
         <StatCard
-          title="Material Donations"
-          value={`${statistics.materialDonations} items`}
+          title="Number of Material Donations"
+          value={`${statistics.materialDonations} `}
           Icon={FaBoxOpen}
         />
         <StatCard
