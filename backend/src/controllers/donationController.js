@@ -547,7 +547,63 @@ const deleteAllDonations = asyncWrapper(async (req, res, next) => {
     next(new AppError("Test deletion failed: " + err.message, 500));
   }
 });
+const getDonationAcceptedForNGO = asyncWrapper(async (req, res, next) => {
+  try {
+    const { NGO } = req.params;
+
+    // Get all donations where this NGO is the matched NGO
+    const donations = await Donations.find({
+      NGO: NGO,
+      status: "accepted",
+    })
+      .populate("donor", "name email phone")
+      .populate("need", "title description")
+      .sort({ createdAt: -1 }); // Sort by newest first
+
+    // Format the response data
+    const formattedDonations = donations.map((donation) => ({
+      id: donation._id,
+      trackingId: donation.trackingId,
+      donationType: donation.donationType,
+      title: donation.title || `Donation #${donation.trackingId}`,
+      description: donation.description,
+      status: donation.status,
+      createdAt: donation.createdAt,
+      updatedAt:donation.updatedAt,
+      donor: donation.donor,
+      need: donation.need,
+      details: {
+        ...(donation.donationType === "money" && {
+          amount: donation.amount,
+          currency: donation.currency,
+        }),
+        ...(donation.donationType === "material" && {
+          category: donation.materialDetails.category,
+          subCategory: donation.materialDetails.subCategory,
+          quantity: donation.materialDetails.quantity,
+          unit: donation.materialDetails.unit,
+          condition: donation.materialDetails.condition,
+        }),
+        ...(donation.donationType === "service" && {
+          serviceType: donation.serviceDetails,
+        }),
+      },
+    }));
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        count: donations.length,
+        donations: formattedDonations,
+      },
+    });
+  } catch (err) {
+    console.error("Error fetching donations for NGO:", err);
+    next(new AppError("Failed to get donations: " + err.message, 500));
+  }
+});
 module.exports = {
+  getDonationAcceptedForNGO,
   createMaterialDonation,
   getAllMaterialDonations,
   requestMaterialDonation,

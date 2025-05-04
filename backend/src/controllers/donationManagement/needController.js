@@ -17,6 +17,7 @@ const sendNotificationToGroup =
   require("../../utils/socketConfig").sendNotificationToGroup; // Adjust path as needed
 // Helper function to handle the upload
 const Payment = require("../../models/paymentModel");
+const Donations=require("../../models/donationsModel")
 const handleUpload = (req, res) => {
   return new Promise((resolve, reject) => {
     uploadNeedPictures(req, res, (err) => {
@@ -870,9 +871,10 @@ console.log("ngo is:",ngoId)
         },
       },
     ]);
-    const totalMaterialItems = await MaterialDonation.countDocuments({
-      NGO: ngoId,
-    });
+    const totalMaterialItems =
+      await MaterialDonation.countDocuments({
+        NGO: ngoId,
+      }) + await Donations.countDocuments({ NGO: ngoId });
 
     const volunteerHours = await Application.aggregate([
       { $match: { status: "Approved", NGO: ngoId } },
