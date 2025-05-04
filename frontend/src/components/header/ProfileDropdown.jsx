@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
-import { AnimatePresence, motion } from "framer-motion";
-import { forwardRef } from "react";
-import { NavLink } from "react-router-dom";
-import { icons } from "./HeaderConfig";
+import { AnimatePresence, motion } from 'framer-motion';
+import { forwardRef } from 'react';
+import { NavLink } from 'react-router-dom';
+import { icons } from './HeaderConfig';
 
 const ProfileDropdown = forwardRef(
   ({ user, handleLogout, links, isOpen, setIsOpen }, ref) => {
@@ -13,7 +13,7 @@ const ProfileDropdown = forwardRef(
         opacity: 1,
         transition: {
           duration: 0.2,
-          ease: "easeOut",
+          ease: 'easeOut',
         },
       },
       exit: {
@@ -32,8 +32,16 @@ const ProfileDropdown = forwardRef(
           whileHover={{ scale: 1.05 }}
           onClick={() => setIsOpen(!isOpen)}
         >
-          <div className="w-9 h-9 rounded-full bg-yellow-400 flex items-center justify-center">
-            <icons.User size={18} className="text-[#008080]" />
+          <div className="w-9 h-9 rounded-full bg-yellow-400 flex items-center justify-center overflow-hidden">
+            {user && user.profilePicture ? (
+              <img
+                src={`http://localhost:5000/uploads/${user.profilePicture}`}
+                alt="User Profile"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <icons.User size={18} className="text-[#008080]" />
+            )}
           </div>
         </motion.button>
 
@@ -49,13 +57,13 @@ const ProfileDropdown = forwardRef(
               {/* User Info Section */}
               <div className="px-4 py-3 bg-gray-50 border-b">
                 <p className="text-sm font-medium text-gray-700">
-                  {user ? user.name : "Guest"}
+                  {user ? user.name : 'Guest'}
                 </p>
                 <p className="text-sm font-semibold text-[#008080] truncate">
-                  {user ? user.email : "N/A"}
+                  {user ? user.email : 'N/A'}
                 </p>
                 <p className="text-xs font-medium text-[#008080] capitalize">
-                  {user ? user.role.replace("_", " ") : "Guest"}
+                  {user ? user.role.replace('_', ' ') : 'Guest'}
                 </p>
               </div>
 
@@ -66,7 +74,7 @@ const ProfileDropdown = forwardRef(
                   return (
                     <motion.div
                       key={index}
-                      whileHover={{ backgroundColor: "#f3f4f6" }}
+                      whileHover={{ backgroundColor: '#f3f4f6' }}
                     >
                       <NavLink
                         to={link.to}
@@ -89,7 +97,7 @@ const ProfileDropdown = forwardRef(
               {/* Help & Logout */}
               <div className="py-1 border-t border-gray-100">
                 <motion.div
-                  whileHover={{ backgroundColor: "#fee2e2" }}
+                  whileHover={{ backgroundColor: '#fee2e2' }}
                   whileTap={{ scale: 0.98 }}
                 >
                   <button
@@ -109,6 +117,6 @@ const ProfileDropdown = forwardRef(
   }
 );
 
-ProfileDropdown.displayName = "ProfileDropdown";
+ProfileDropdown.displayName = 'ProfileDropdown';
 
 export default ProfileDropdown;
