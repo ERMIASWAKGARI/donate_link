@@ -119,6 +119,14 @@ const PostAnalytics = () => {
       <Tabs defaultActiveKey="1" className="custom-tabs">
         <Tabs.TabPane tab="Organization Donations" key="1">
           <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-gray-500 text-sm font-medium truncate mb-4">
+                Total Donations Posted by Organizations
+              </h3>
+              <p className="text-3xl font-bold text-gray-800">
+                {donationPosts.length}
+              </p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
               {donationStatusData.map((status) => (
                 <div
@@ -213,7 +221,7 @@ const PostAnalytics = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="bg-white rounded-lg shadow p-6">
                 <h3 className="text-gray-500 text-sm font-medium truncate mb-4">
-                  Total Needs
+                  Total Needs Posted by NGOs
                 </h3>
                 <p className="text-3xl font-bold text-gray-800">
                   {needsPosts.length}

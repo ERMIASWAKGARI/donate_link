@@ -82,7 +82,7 @@ const useUsers = () => {
         });
       }
     } catch (err) {
-      setError(err.message || 'Failed to fetch users');
+      setError(err || 'Failed to fetch users');
       setUsers([]);
     } finally {
       setLoading(false);

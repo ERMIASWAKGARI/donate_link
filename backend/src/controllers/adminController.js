@@ -12,129 +12,178 @@ const MaterialDonation = require('../models/matterialDonation');
 const Payment = require('../models/paymentModel');
 
 const getAllPosts = asyncWrapper(async (req, res) => {
-  console.log('Query:', req.query);
+  try {
+    console.log('Query:', req.query);
 
-  const {
-    page = 1,
-    limit, // Make limit optional
-    sortBy = '-createdAt',
-    search = '',
-  } = req.query;
+    const {
+      page = 1,
+      limit,
+      sortBy = '-createdAt',
+      search = '',
+      type = '',
+    } = req.query;
 
-  // Create aggregation pipelines for both collections
-  const donationPipeline = [
-    {
-      $match: {
-        $or: [
-          { title: { $regex: search, $options: 'i' } },
-          { description: { $regex: search, $options: 'i' } },
-        ],
+    const baseMatch = {
+      $or: [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+      ],
+    };
+
+    // Create aggregation pipelines for both collections
+    const donationPipeline = [
+      { $match: { ...baseMatch } },
+      { $addFields: { postType: 'donation' } },
+
+      {
+        $project: {
+          _id: 1,
+          title: 1,
+          description: 1,
+          images: 1,
+          status: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          organization: 1,
+          postType: 1,
+          needTypes: 1,
+          amount: 1,
+          category: 1,
+        },
       },
-    },
-    {
-      $addFields: {
-        postType: 'donation',
-        needTypes: null,
+    ];
+
+    const needPipeline = [
+      { $match: { ...baseMatch } },
+      { $addFields: { postType: 'need' } },
+
+      {
+        $project: {
+          _id: 1,
+          title: 1,
+          description: 1,
+          images: 1,
+          status: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          ngo: 1,
+          postType: 1,
+          needTypes: 1,
+          targetAmount: 1,
+          category: 1,
+        },
       },
-    },
-    {
-      $project: {
-        _id: 1,
-        title: 1,
-        description: 1,
-        images: 1,
-        status: 1,
-        createdAt: 1,
-        updatedAt: 1,
-        organization: 1,
-        postType: 1,
-        needTypes: 1,
-        amount: 1,
-        category: 1,
+    ];
+
+    // Initialize empty arrays
+    let donations = [];
+    let needs = [];
+
+    // Query based on type
+    if (type === 'donation') {
+      donations = (await Donation.aggregate(donationPipeline)) || [];
+    } else if (type === 'need') {
+      needs = (await Need.aggregate(needPipeline)) || [];
+    } else {
+      // Query both if no type specified
+      [donations, needs] = await Promise.all([
+        Donation.aggregate(donationPipeline) || [],
+        Need.aggregate(needPipeline) || [],
+      ]);
+    }
+
+    // Combine results (ensure both are arrays)
+    const allPosts = [...(donations || []), ...(needs || [])];
+
+    // Apply sorting
+    const sortOrder = sortBy.startsWith('-') ? -1 : 1;
+    const sortField = sortBy.replace(/^-/, '');
+
+    allPosts.sort((a, b) => {
+      if (a[sortField] < b[sortField]) return -1 * sortOrder;
+      if (a[sortField] > b[sortField]) return 1 * sortOrder;
+      return 0;
+    });
+
+    // Handle pagination only if limit is specified
+    let responseData;
+    if (limit) {
+      const startIndex = (page - 1) * limit;
+      const endIndex = page * limit;
+      responseData = allPosts.slice(startIndex, endIndex);
+    } else {
+      responseData = allPosts;
+    }
+
+    res.json({
+      success: true,
+      count: allPosts.length,
+      pagination: limit
+        ? {
+            currentPage: Number(page),
+            totalPages: Math.ceil(allPosts.length / limit),
+            totalItems: allPosts.length,
+          }
+        : null,
+      data: {
+        posts: responseData,
       },
-    },
-  ];
-
-  const needPipeline = [
-    {
-      $match: {
-        $or: [
-          { title: { $regex: search, $options: 'i' } },
-          { description: { $regex: search, $options: 'i' } },
-        ],
-      },
-    },
-    {
-      $addFields: {
-        postType: 'need',
-      },
-    },
-    {
-      $project: {
-        _id: 1,
-        title: 1,
-        description: 1,
-        images: 1,
-        status: 1,
-        createdAt: 1,
-        updatedAt: 1,
-        ngo: 1,
-        postType: 1,
-        needTypes: 1,
-        targetAmount: 1,
-        category: 1,
-      },
-    },
-  ];
-
-  // Execute parallel queries
-  const [donations, needs] = await Promise.all([
-    Donation.aggregate(donationPipeline),
-    Need.aggregate(needPipeline),
-  ]);
-
-  // Combine and sort results
-  let allPosts = [...donations, ...needs];
-
-  // Apply sorting
-  const sortOrder = sortBy.startsWith('-') ? -1 : 1;
-  const sortField = sortBy.replace(/^-/, '');
-
-  allPosts.sort((a, b) => {
-    if (a[sortField] < b[sortField]) return -1 * sortOrder;
-    if (a[sortField] > b[sortField]) return 1 * sortOrder;
-    return 0;
-  });
-
-  // Handle pagination only if limit is specified
-  let responseData;
-  if (limit) {
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
-    responseData = allPosts.slice(startIndex, endIndex);
-  } else {
-    responseData = allPosts;
+    });
+  } catch (error) {
+    console.error('Error in getAllPosts:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+    });
   }
-
-  res.json({
-    success: true,
-    count: allPosts.length,
-    pagination: limit
-      ? {
-          currentPage: Number(page),
-          totalPages: Math.ceil(allPosts.length / limit),
-          totalItems: allPosts.length,
-        }
-      : null,
-    data: {
-      posts: responseData,
-    },
-  });
 });
 
-// @desc    Get all donations
-// @route   GET /api/admin/donations
-// @access  Private/Admin
+const deleteDonationPost = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if post exists
+    const post = await Donation.findById(id);
+    if (!post) {
+      return res.status(404).json({ message: 'Donation post not found' });
+    }
+
+    // Delete the post
+    await Donation.findByIdAndDelete(id);
+
+    // Optionally: Delete related images/files from storage
+
+    res.status(200).json({ message: 'Donation post deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting donation post:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const deleteNeedPost = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log('id: ', req.params);
+
+    // Check if post exists
+    const post = await Need.findById(id);
+    if (!post) {
+      return res.status(404).json({ message: 'Need post not found' });
+    }
+
+    // Delete the post
+    await Need.findByIdAndDelete(id);
+
+    // Optionally: Delete related images/files from storage
+
+    res.status(200).json({ message: 'Need post deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting need post:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 const getAllDonations = asyncWrapper(async (req, res) => {
   const { page = 1, limit, sortBy = '-createdAt', search = '' } = req.query;
 
@@ -391,7 +440,7 @@ const verifyUser = asyncWrapper(async (req, res) => {
   const userId = req.params.id;
   const adminId = req.user._id;
 
-  console.log('User ID:', userId);
+  // console.log('User ID:', userId);
 
   const user = await User.findById(userId);
   if (!user) throw new AppError('User not found.', 404);
@@ -417,7 +466,7 @@ const verifyUser = asyncWrapper(async (req, res) => {
 const rejectUserVerification = asyncWrapper(async (req, res) => {
   const userId = req.params.id;
   const { rejectionReason } = req.body;
-  console.log('Rejection Reason:', rejectionReason);
+  // console.log('Rejection Reason:', rejectionReason);
 
   const user = await User.findById(userId);
   if (!user) throw new AppError('User not found.', 404);
@@ -594,6 +643,56 @@ const logAdminAction = async (adminId, action, targetUserId) => {
   });
 };
 
+// controllers/postController.js
+const getPostById = asyncWrapper(async (req, res) => {
+  const { id } = req.params;
+  // console.log('params:', req.params);
+
+  try {
+    // First try to find in Donation collection
+    let post = await Donation.findById(id)
+      .populate('donor', 'name email phone')
+      .lean();
+
+    if (post) {
+      post.postType = 'donation';
+      post.creator = post.donor;
+
+      return res.json({
+        success: true,
+        data: post,
+      });
+    }
+
+    // If not found in Donation, try Need collection
+    post = await Need.findById(id).populate('NGO', 'name email phone').lean();
+
+    // console.log('post 1: ', post);
+
+    if (post) {
+      post.postType = 'need';
+      post.creator = post.NGO;
+      // console.log('post needs: ', post);
+
+      return res.json({
+        success: true,
+        data: post,
+      });
+    }
+
+    return res.status(404).json({
+      success: false,
+      message: 'Post not found',
+    });
+  } catch (error) {
+    console.error('Error fetching post:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching post',
+    });
+  }
+});
+
 module.exports = {
   getAllUsers,
   getUserById,
@@ -606,5 +705,8 @@ module.exports = {
   unbanUser,
   deleteUser,
   getAllPosts,
+  getPostById,
   getAllDonations,
+  deleteDonationPost,
+  deleteNeedPost,
 };
