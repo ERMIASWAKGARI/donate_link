@@ -11,7 +11,7 @@ export const EditableField = ({
   onEdit,
   onCancel,
   onSave,
-  hasChanges, // New prop to determine if there are changes
+  hasChanges,
 }) => {
   return (
     <div className="mb-6">

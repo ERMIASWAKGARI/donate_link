@@ -213,13 +213,35 @@ export const FieldRenderer = ({
   }
 
   if (fieldConfig.type === 'multiselect') {
+    console.log(
+      'multiselect',
+      fieldConfig.fieldName,
+      user[fieldConfig.fieldName]
+    );
+
+    // Handle nested fields (like preferences)
+    const fieldPath = fieldConfig.fieldName.split('.');
+    let userValue = user;
+    let formDataValue = formData;
+
+    for (const path of fieldPath) {
+      userValue = userValue?.[path];
+      formDataValue = formDataValue?.[path];
+    }
+
     // Get current values - prioritize formData over user data when editing
     const currentValues =
       editingField === fieldConfig.fieldName
-        ? Array.isArray(formData[fieldConfig.fieldName])
-          ? formData[fieldConfig.fieldName]
-          : user[fieldConfig.fieldName] || []
-        : user[fieldConfig.fieldName] || [];
+        ? Array.isArray(formDataValue)
+          ? formDataValue
+          : Array.isArray(userValue)
+          ? userValue
+          : []
+        : Array.isArray(userValue)
+        ? userValue
+        : [];
+
+    console.log('currentValues', currentValues);
 
     // Separate predefined options and custom values
     const predefinedOptions = fieldConfig.options || [];
@@ -229,6 +251,7 @@ export const FieldRenderer = ({
     const selectedPredefined = currentValues.filter((value) =>
       predefinedOptions.includes(value)
     );
+    console.log('selected: ', selectedPredefined);
 
     const availableOptions = predefinedOptions.filter(
       (option) => !selectedPredefined.includes(option)

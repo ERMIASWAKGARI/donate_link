@@ -192,6 +192,12 @@ export const donorFields = [
 
 export const ngoFields = [
   {
+    fieldName: 'preferences',
+    label: 'Preferences',
+    type: 'multiselect',
+    options: ['Food', 'Medical', 'Clothing', 'Learning', 'Drinking', 'Shelter'],
+  },
+  {
     fieldName: 'organizationName',
     label: 'Organization Name',
     type: 'text',
