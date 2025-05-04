@@ -279,11 +279,11 @@ const ProfilePage = () => {
                 Please check your inbox and click the verification link to
                 complete the update.
               </p>
-              <div className="bg-blue-50 p-3 rounded mt-3">
-                <p className="text-sm font-medium text-blue-800">
+              <div className="bg-teal-50 p-3 rounded mt-3">
+                <p className="text-sm font-medium text-[#008080]">
                   Didn&apos;t receive the email?
                 </p>
-                <ul className="list-disc pl-5 text-sm text-blue-700 mt-1">
+                <ul className="list-disc pl-5 text-sm text-[#008080] mt-1">
                   <li>Check your spam folder</li>
                   <li>Wait a few minutes</li>
                   <li>Contact support if you still don&apos;t see it</li>
