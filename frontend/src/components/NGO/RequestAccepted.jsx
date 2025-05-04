@@ -6,12 +6,12 @@ import {
   FaChevronDown,
   FaChevronUp,
   FaMapMarkerAlt,
-  FaCheck,
+  FaDonate,
 } from "react-icons/fa";
 import { FiLoader } from "react-icons/fi";
 import { UserContext } from "../../context/UserContext";
 import Modal from "react-modal";
-
+import Map from "./Map";
 Modal.setAppElement("#root");
 
 const NGODonationRequests = () => {
@@ -31,6 +31,7 @@ const NGODonationRequests = () => {
           `/organization/requestAccepted/${user._id}`
         );
         setDonations(response.data.data.donations);
+        console.log("response", response);
       } catch (err) {
         setError(err.response?.data?.message || err.message);
       } finally {
@@ -188,7 +189,6 @@ const NGODonationRequests = () => {
                     {donation.description || "No description provided"}
                   </p>
                 </div>
-
                 <div>
                   <h4 className="text-sm font-medium text-gray-500">Donor</h4>
                   <p className="mt-1 text-sm text-gray-900">
@@ -242,40 +242,11 @@ const NGODonationRequests = () => {
                   )}
                 </div>
               </div>
-
               <div className="mt-4 flex justify-end gap-3">
-                {donation.donationType === "material" &&
-                  donation.location?.coordinates && (
-                    <button
-                      onClick={() => {
-                        getCurrentLocation();
-                        openGoogleMaps(donation.location.coordinates);
-                      }}
-                      className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                      <FaMapMarkerAlt className="mr-2" />
-                      Get Directions
-                    </button>
-                  )}
-
-                {donation.status !== "completed" && (
-                  <>
-                    <input
-                      type="text"
-                      value={trackingId}
-                      onChange={(e) => setTrackingId(e.target.value)}
-                      placeholder="Enter tracking ID"
-                      className="px-3 py-2 border border-gray-300 rounded"
-                    />
-                    <button
-                      onClick={() => handleMarkAsCompleted(donation._id)}
-                      className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                    >
-                      <FaCheck className="mr-2" />
-                      Mark as Completed
-                    </button>
-                  </>
-                )}
+                <Map
+                  latitude={donation?.location?.coordinates[1]}
+                  longitude={donation?.location?.coordinates[0]}
+                />
               </div>
             </div>
           )}

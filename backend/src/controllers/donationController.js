@@ -572,6 +572,7 @@ const getDonationAcceptedForNGO = asyncWrapper(async (req, res, next) => {
       updatedAt:donation.updatedAt,
       donor: donation.donor,
       need: donation.need,
+      location:donation.location,
       details: {
         ...(donation.donationType === "money" && {
           amount: donation.amount,
