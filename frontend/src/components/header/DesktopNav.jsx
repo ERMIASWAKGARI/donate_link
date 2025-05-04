@@ -1,16 +1,16 @@
 /* eslint-disable react/prop-types */
-import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, MessageSquare } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { useChat } from "../../context/ChatContext";
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronDown, MessageSquare } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useChat } from '../../context/ChatContext';
 // import NotificationDropdown from '../NotificationDropdown';
-import { headerLinks } from "./HeaderConfig";
-import ProfileDropdown from "./ProfileDropdown";
+import { headerLinks } from './HeaderConfig';
+import ProfileDropdown from './ProfileDropdown';
 // import { useSocket } from "../context/SocketContext";
-import NotificationBell from "./../../components/NotificationBell";
+import NotificationBell from './../../components/NotificationBell';
 
-import ChatModal from "../ChatModal"; // Import the ChatModal component
+import ChatModal from '../ChatModal'; // Import the ChatModal component
 
 const DesktopNav = ({ user, handleLogout }) => {
   const navigate = useNavigate();
@@ -38,7 +38,7 @@ const DesktopNav = ({ user, handleLogout }) => {
       opacity: 1,
       transition: {
         duration: 0.2,
-        ease: "easeOut",
+        ease: 'easeOut',
       },
     },
     exit: {
@@ -61,9 +61,9 @@ const DesktopNav = ({ user, handleLogout }) => {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [activeDropdown]);
 
@@ -73,118 +73,10 @@ const DesktopNav = ({ user, handleLogout }) => {
 
   return (
     <div className="hidden md:flex space-x-6 items-center">
-      {/* How It Works Dropdown */}
-      <div className="relative" ref={dropdownRefs.howItWorks}>
-        <motion.button
-          onClick={() => toggleDropdown("howItWorks")}
-          className="flex items-center hover:text-yellow-400 transition"
-          whileHover={{ scale: 1.05 }}
-        >
-          How It Works
-          <motion.div
-            animate={{ rotate: activeDropdown === "howItWorks" ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <ChevronDown size={16} className="ml-1" />
-          </motion.div>
-        </motion.button>
-
-        <AnimatePresence>
-          {activeDropdown === "howItWorks" && (
-            <motion.div
-              variants={dropdownVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="absolute left-0 mt-2 w-56 bg-white text-black rounded-md shadow-xl z-50 overflow-hidden"
-            >
-              {[
-                { to: "/donate", text: "Choose Items to Donate" },
-                { to: "/ngos", text: "Select an NGO" },
-                { to: "/impact", text: "Track Your Impact" },
-                { to: "/faq", text: "FAQs" },
-              ].map((item, index) => (
-                <motion.div
-                  key={index}
-                  whileHover={{ x: 5 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
-                  <NavLink
-                    to={item.to}
-                    className={({ isActive }) =>
-                      `block px-4 py-3 hover:bg-gray-100 transition ${
-                        isActive ? "bg-gray-100 font-medium" : ""
-                      }`
-                    }
-                    onClick={() => setActiveDropdown(null)}
-                  >
-                    {item.text}
-                  </NavLink>
-                </motion.div>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Donations Dropdown */}
-      <div className="relative" ref={dropdownRefs.donations}>
-        <motion.button
-          onClick={() => toggleDropdown("donations")}
-          className="flex items-center hover:text-yellow-400 transition"
-          whileHover={{ scale: 1.05 }}
-        >
-          Donations
-          <motion.div
-            animate={{ rotate: activeDropdown === "donations" ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <ChevronDown size={16} className="ml-1" />
-          </motion.div>
-        </motion.button>
-
-        <AnimatePresence>
-          {activeDropdown === "donations" && (
-            <motion.div
-              variants={dropdownVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="absolute left-0 mt-2 w-56 bg-white text-black rounded-md shadow-xl z-50 overflow-hidden"
-            >
-              {[
-                { to: "/donate", text: "Make a Donation" },
-                { to: "/causes", text: "View Causes" },
-                { to: "/recurring", text: "Recurring Donations" },
-                { to: "/history", text: "Donation History" },
-              ].map((item, index) => (
-                <motion.div
-                  key={index}
-                  whileHover={{ x: 5 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
-                  <NavLink
-                    to={item.to}
-                    className={({ isActive }) =>
-                      `block px-4 py-3 hover:bg-gray-100 transition ${
-                        isActive ? "bg-gray-100 font-medium" : ""
-                      }`
-                    }
-                    onClick={() => setActiveDropdown(null)}
-                  >
-                    {item.text}
-                  </NavLink>
-                </motion.div>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
       {/* Role-specific main navigation items */}
-      {role === "organization_donor" && (
+      {role === 'organization_donor' && (
         <motion.button
-          onClick={() => navigate("/post-donation")}
+          onClick={() => navigate('/post-donation')}
           className="bg-yellow-400 text-green-900 px-3 py-1 rounded-md text-sm font-medium hover:bg-yellow-500 transition-colors shadow-sm"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.98 }}
@@ -193,7 +85,7 @@ const DesktopNav = ({ user, handleLogout }) => {
         </motion.button>
       )}
 
-      {(role === "ngo" || role === "volunteer") && (
+      {(role === 'ngo' || role === 'volunteer') && (
         <>
           <motion.button
             onClick={() => setShowChatModal(true)}
@@ -205,7 +97,7 @@ const DesktopNav = ({ user, handleLogout }) => {
             <span className="text-sm font-medium">Chat</span>
             {unreadCount > 0 && (
               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                {unreadCount > 9 ? "9+" : unreadCount}
+                {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
           </motion.button>
@@ -234,7 +126,7 @@ const DesktopNav = ({ user, handleLogout }) => {
                   initial={{ y: 20, opacity: 0, scale: 0.98 }}
                   animate={{ y: 0, opacity: 1, scale: 1 }}
                   exit={{ y: 20, opacity: 0, scale: 0.98 }}
-                  transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                   className="relative w-full max-w-2xl h-[80vh]"
                 >
                   <ChatModal
@@ -250,13 +142,13 @@ const DesktopNav = ({ user, handleLogout }) => {
       {/* Language Dropdown */}
       <div className="relative" ref={dropdownRefs.language}>
         <motion.button
-          onClick={() => toggleDropdown("language")}
+          onClick={() => toggleDropdown('language')}
           className="flex items-center hover:text-yellow-400 transition"
           whileHover={{ scale: 1.05 }}
         >
           ENG
           <motion.div
-            animate={{ rotate: activeDropdown === "language" ? 180 : 0 }}
+            animate={{ rotate: activeDropdown === 'language' ? 180 : 0 }}
             transition={{ duration: 0.2 }}
           >
             <ChevronDown size={16} className="ml-1" />
@@ -264,7 +156,7 @@ const DesktopNav = ({ user, handleLogout }) => {
         </motion.button>
 
         <AnimatePresence>
-          {activeDropdown === "language" && (
+          {activeDropdown === 'language' && (
             <motion.div
               variants={dropdownVariants}
               initial="hidden"
@@ -272,11 +164,11 @@ const DesktopNav = ({ user, handleLogout }) => {
               exit="exit"
               className="absolute left-0 mt-2 w-32 bg-white text-black rounded-md shadow-xl z-50 overflow-hidden"
             >
-              {["English", "Amaric", "Afan Oromo"].map((language, index) => (
+              {['English', 'Amaric', 'Afan Oromo'].map((language, index) => (
                 <motion.div
                   key={index}
                   whileHover={{ x: 5 }}
-                  transition={{ type: "spring", stiffness: 300 }}
+                  transition={{ type: 'spring', stiffness: 300 }}
                 >
                   <button
                     onClick={() => {
@@ -302,8 +194,8 @@ const DesktopNav = ({ user, handleLogout }) => {
         user={user}
         handleLogout={handleLogout}
         links={allLinks}
-        isOpen={activeDropdown === "profile"}
-        setIsOpen={(isOpen) => setActiveDropdown(isOpen ? "profile" : null)}
+        isOpen={activeDropdown === 'profile'}
+        setIsOpen={(isOpen) => setActiveDropdown(isOpen ? 'profile' : null)}
         ref={dropdownRefs.profile}
       />
     </div>
