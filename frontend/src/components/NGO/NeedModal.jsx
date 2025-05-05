@@ -18,7 +18,7 @@ const NeedModal = ({
 }) => {
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50 px-4 animate-fadeIn">
+      <div className="fixed inset-0 bg-white/30 bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50 px-4 animate-fadeIn">
         <div className="bg-white rounded-2xl shadow-xl w-full max-w-5xl max-h-[90vh] overflow-y-auto border border-gray-200 animate-scaleIn">
           <div className="p-6 pt-0">
             {/* Header with sticky positioning */}

@@ -17,6 +17,7 @@ const sendNotificationToGroup =
   require("../../utils/socketConfig").sendNotificationToGroup; // Adjust path as needed
 // Helper function to handle the upload
 const Payment = require("../../models/paymentModel");
+const Donations=require("../../models/donationsModel")
 const handleUpload = (req, res) => {
   return new Promise((resolve, reject) => {
     uploadNeedPictures(req, res, (err) => {
@@ -849,7 +850,7 @@ const getReportByNgo = async (req, res) => {
 const getNGOStatistics = async (req, res) => {
   try {
     const ngoId = req.user._id;
-
+console.log("ngo is:",ngoId)
     const totalNeedsPosted = await Need.countDocuments({ NGO: ngoId });
 
     const beneficiariesReached = await Need.aggregate([
@@ -870,16 +871,10 @@ const getNGOStatistics = async (req, res) => {
         },
       },
     ]);
-    const totalMaterialItems = await MaterialDonation.aggregate([
-      { $match: { NGO: ngoId } },
-      { $unwind: "$materials" },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: "$materials.quantity" },
-        },
-      },
-    ]);
+    const totalMaterialItems =
+      await MaterialDonation.countDocuments({
+        NGO: ngoId,
+      }) + await Donations.countDocuments({ NGO: ngoId });
 
     const volunteerHours = await Application.aggregate([
       { $match: { status: "Approved", NGO: ngoId } },
@@ -921,7 +916,7 @@ const getNGOStatistics = async (req, res) => {
 
     const result = {
       monetaryDonations: monetaryDonations[0]?.total || 0, // Still placeholder
-      materialDonations: totalMaterialItems[0]?.total || 0,
+      materialDonations: totalMaterialItems,
       volunteerServiceHours: volunteerHours[0]?.total || 0,
       beneficiariesReached: beneficiariesReached[0]?.total || 0,
       totalNeedsPosted,

@@ -37,7 +37,7 @@ exports.checkCertificates = async (userId, userRole) => {
     // Count approved volunteer applications
     const volunteeringCount = await Application.countDocuments({
       applicant: userId,
-      status: "Accepted",
+      status: "Completed",
     });
 
     // Debug logs
@@ -126,7 +126,10 @@ exports.getUserCertificates = asyncWrapper(async (req, res, next) => {
     Certificate.find({ user: req.user._id }).sort("-issuedAt").lean(),
     Payment.countDocuments({ donorId: req.user._id, status: "Completed" }),
     MaterialDonation.countDocuments({ donorId: req.user._id }),
-    Application.countDocuments({ applicant: req.user._id, status: "Accepted" }),
+    Application.countDocuments({
+      applicant: req.user._id,
+      status: "Completed",
+    }),
   ]);
 
   const totalDonations = monetaryDonations + materialDonations;
