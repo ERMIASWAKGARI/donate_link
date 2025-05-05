@@ -98,6 +98,17 @@ const NGODonationRequests = () => {
     }
   };
 
+  const handleDonationClick = (donationId) => {
+    // If clicking the already expanded donation, collapse it
+    if (expandedDonation === donationId) {
+      setExpandedDonation(null);
+    }
+    // Otherwise, expand the clicked donation
+    else {
+      setExpandedDonation(donationId);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -135,11 +146,7 @@ const NGODonationRequests = () => {
         >
           <div
             className="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50"
-            onClick={() =>
-              setExpandedDonation(
-                expandedDonation === donation._id ? null : donation._id
-              )
-            }
+            onClick={() => handleDonationClick(donation._id)}
           >
             <div className="flex items-center space-x-4">
               {donation.donationType === "money" ? (

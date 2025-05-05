@@ -4,6 +4,12 @@ import "react-toastify/dist/ReactToastify.css";
 import ChatModal from "./components/ChatModal";
 import ForgotPassword from "./components/ForgotPassword";
 import NgoDashboard from "./components/NGO/NgoDashboard";
+import PostedNeeds from "./components/NGO/postedNeeds";
+import PendingDonations from "./components/NGO/pendingDonations";
+import DonationsList from "./components/NGO/donationsList";
+import NGOStatistics from "./components/NGO/NGOStatistics";
+import VolunteerApplication from "./components/NGO/VolunteerApplication";
+import Reports from "./components/NGO/Reports";
 import PrivateRoute from "./components/PrivateRoute";
 import ResetPassword from "./components/ResetPassword";
 import ScrollToTop from "./components/common/ScrollToTop";
@@ -76,8 +82,19 @@ function App() {
                   {/* Corrected: Just the Route component */}
                   <Route path="/chat" element={<ChatModal />} />
 
-                  <Route element={<PrivateRoute />}>
-                    <Route path="/ngo/dashboard" element={<NgoDashboard />} />
+                  <Route path="/ngo/dashboard" element={<NgoDashboard />}>
+                    <Route index element={<NGOStatistics />} />
+                    <Route path="needs" element={<PostedNeeds />} />
+                    <Route path="donations" element={<DonationsList />} />
+                    <Route
+                      path="pending-donations"
+                      element={<PendingDonations />}
+                    />
+                    <Route
+                      path="volunteers"
+                      element={<VolunteerApplication />}
+                    />
+                    <Route path="reports" element={<Reports />} />
                   </Route>
                   <Route element={<PrivateRoute />}>
                     <Route path="/report/:id" element={<NGOReportViewer />} />

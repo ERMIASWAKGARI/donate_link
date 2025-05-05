@@ -259,7 +259,7 @@ const PendingDonations = () => {
           </div>
         )}
         {showDetailsModal && selectedDonation && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-1000 backdrop-blur-sm">
+          <div className="fixed inset-0 bg-white/40 bg-opacity-50 flex items-center justify-center p-4 z-1000 backdrop-blur-sm">
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-hide transform transition-all duration-300 ease-out">
               {/* Header */}
               <div className="sticky z-2000 top-0 bg-white z-10 p-6 pb-4 border-b border-gray-100 flex justify-between items-start">
