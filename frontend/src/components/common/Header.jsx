@@ -175,7 +175,7 @@ const Header = () => {
                       className="absolute left-0 mt-2 w-56 bg-white text-black rounded-md shadow-xl z-50 overflow-hidden"
                     >
                       {[
-                        { to: "/signup", text: "Sign Up" },
+                        { to: "/register", text: "Sign Up" },
                         { to: "/donate", text: "Choose Items to Donate" },
                         { to: "/ngos", text: "Select an NGO" },
                         { to: "/impact", text: "Track Your Impact" },
