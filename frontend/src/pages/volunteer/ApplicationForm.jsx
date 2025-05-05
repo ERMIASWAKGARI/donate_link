@@ -154,6 +154,13 @@ const ApplicationForm = ({
           </label>
           <input
             type="number"
+            min="1"
+            onInput={(e) => {
+              const value = e.target.value;
+              if (value === "0" || value.startsWith("-")) {
+                e.target.value = "";
+              }
+            }}
             {...register("hoursPerWeek", {
               required: "Hours per week is required",
               min: { value: 1, message: "Minimum 1 hour" },

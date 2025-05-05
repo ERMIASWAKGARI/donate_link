@@ -13,6 +13,8 @@ export const useProfile = (user, onProfileUpdate) => {
   };
 
   const handleFieldChange = (fieldName, value) => {
+    console.log('field name', fieldName, value);
+
     setFormData((prev) => {
       const newFormData = {
         ...prev,
@@ -41,6 +43,8 @@ export const useProfile = (user, onProfileUpdate) => {
 
       // Check if there are actual changes
       const hasChanges = checkForChanges(newFormData, fieldName);
+      console.log('has changes bbb', hasChanges);
+
       setHasChanges(hasChanges);
 
       return newFormData;
@@ -49,6 +53,7 @@ export const useProfile = (user, onProfileUpdate) => {
 
   // Helper function to check for actual changes
   const checkForChanges = (currentFormData, fieldName) => {
+    console.log('fielddd: ', currentFormData);
     if (fieldName === 'address') {
       return (
         currentFormData.address?.country !== user.address?.country ||

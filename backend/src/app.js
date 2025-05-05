@@ -14,6 +14,8 @@ const applicationRoutes = require("./routes/applicationRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const paymentRoutes = require("./routes/paymentRoutes"); // <-- Import payment routes
 const certificateRoutes = require("./routes/certificates");
+const subscriberRoutes = require("./routes/subscriber");
+const newsletterRoutes = require("./routes/newsletter");
 const path = require("path");
 
 dotenv.config();
@@ -70,6 +72,8 @@ app.use("/api/application", applicationRoutes);
 app.use("/api/notification", notificationRoutes);
 app.use("/api/certificate", certificateRoutes);
 app.use("/api/payment", paymentRoutes); // <-- Add this line for payment routes
+app.use("/api/subscriber", subscriberRoutes);
+app.use("/api/newsletters", newsletterRoutes);
 app.all("*", (req, res, next) => {
   next(new AppError(`Cannot find ${req.originalUrl} on this server!`, 404));
 });

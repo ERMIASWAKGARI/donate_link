@@ -1,3 +1,5 @@
+// src/components/dashboard/NgoDashboard.jsx
+
 import { useContext, useState } from "react";
 import {
   FaBars,
@@ -10,59 +12,21 @@ import {
   FaUser,
   FaFileAlt,
 } from "react-icons/fa";
-import PendingDonations from "./pendingDonations";
-import PostedNeeds from "./postedNeeds";
-import DonationsList from "./donationsList";
-import VolunteerApplication from "./VolunteerApplication";
+import { Outlet, NavLink } from "react-router-dom";
 import { UserContext } from "../../context/UserContext";
 import Header from "../header/Header";
-import Reports from "./Reports";
-import NGOStatistics from "./NGOStatistics";
 
 export default function NgoDashboard() {
-  const [activeSection, setActiveSection] = useState("home");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [showNeedForm, setShowNeedForm] = useState(false);
-
   const { user } = useContext(UserContext);
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
-  const toggleMobileSidebar = () => {
-    setMobileSidebarOpen(!mobileSidebarOpen);
-  };
-
-  const renderContent = () => {
-    switch (activeSection) {
-      case "needs":
-        return (
-          <PostedNeeds
-            showNeedForm={showNeedForm}
-            setShowNeedForm={setShowNeedForm}
-          />
-        );
-      case "donations":
-        return <DonationsList />;
-      case "volunteers":
-        return <VolunteerApplication />;
-      case "pending-donations":
-        return <PendingDonations />;
-      case "reports":
-        return <Reports />;
-      default:
-        return <NGOStatistics />;
-    }
-  };
-
-  // Assuming your header height is around 64px (h-16)
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+  const toggleMobileSidebar = () => setMobileSidebarOpen(!mobileSidebarOpen);
   const headerHeight = "4px";
 
   return (
     <div className="flex flex-col h-screen">
-      {/* Fixed Header */}
       <Header />
       <div className="flex flex-1 overflow-hidden">
         <div
@@ -88,9 +52,7 @@ export default function NgoDashboard() {
         >
           <div className="p-4 flex items-center justify-between border-b border-blue-700">
             <h1 className="text-xl font-bold truncate">
-              {sidebarOpen || mobileSidebarOpen
-                ? `${user?.name}`
-                : `${user?.name.slice(0, 1)}`}
+              {sidebarOpen || mobileSidebarOpen ? user?.name : user?.name[0]}
             </h1>
             <button
               onClick={toggleSidebar}
@@ -103,105 +65,47 @@ export default function NgoDashboard() {
               )}
             </button>
           </div>
+
           <nav className="p-4">
             <ul className="space-y-2">
-              <li>
-                <button
-                  onClick={() => {
-                    setActiveSection("home");
-                    setMobileSidebarOpen(false);
-                  }}
-                  className={`flex items-center p-2 w-full rounded transition-colors ${
-                    activeSection === "home" ? "bg-yellow-400" : ""
-                  }`}
-                >
-                  <FaHome className="text-lg flex-shrink-0" />
-                  {(sidebarOpen || mobileSidebarOpen) && (
-                    <span className="ml-3 truncate">Dashboard</span>
-                  )}
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => {
-                    setActiveSection("needs");
-                    setMobileSidebarOpen(false);
-                    setShowNeedForm(false);
-                  }}
-                  className={`flex items-center p-2 w-full rounded transition-colors ${
-                    activeSection === "needs" ? "bg-yellow-400" : ""
-                  }`}
-                >
-                  <FaHandHoldingHeart className="text-lg flex-shrink-0" />
-                  {(sidebarOpen || mobileSidebarOpen) && (
-                    <span className="ml-3 truncate">Posted Needs</span>
-                  )}
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => {
-                    setActiveSection("donations");
-                    setMobileSidebarOpen(false);
-                  }}
-                  className={`flex items-center p-2 w-full rounded transition-colors ${
-                    activeSection === "donations" ? "bg-yellow-400" : ""
-                  }`}
-                >
-                  <FaHandsHelping className="text-lg flex-shrink-0" />
-                  {(sidebarOpen || mobileSidebarOpen) && (
-                    <span className="ml-3 truncate">Received Donations</span>
-                  )}
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => {
-                    setActiveSection("pending-donations");
-                    setMobileSidebarOpen(false);
-                  }}
-                  className={`flex items-center p-2 w-full rounded transition-colors ${
-                    activeSection === "pending-donations" ? "bg-yellow-400" : ""
-                  }`}
-                >
-                  <FaHandsHelping className="text-lg flex-shrink-0" />
-                  {(sidebarOpen || mobileSidebarOpen) && (
-                    <span className="ml-3 truncate">Available Donations</span>
-                  )}
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => {
-                    setActiveSection("volunteers");
-                    setMobileSidebarOpen(false);
-                  }}
-                  className={`flex items-center p-2 w-full rounded transition-colors ${
-                    activeSection === "volunteers" ? "bg-yellow-400" : ""
-                  }`}
-                >
-                  <FaUser className="text-lg flex-shrink-0" />
-                  {(sidebarOpen || mobileSidebarOpen) && (
-                    <span className="ml-3 truncate">Applications</span>
-                  )}
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => {
-                    setActiveSection("reports");
-                    setMobileSidebarOpen(false);
-                  }}
-                  className={`flex items-center p-2 w-full rounded transition-colors ${
-                    activeSection === "reports" ? "bg-yellow-400" : ""
-                  }`}
-                >
-                  <FaFileAlt className="text-lg flex-shrink-0" />
-                  {(sidebarOpen || mobileSidebarOpen) && (
-                    <span className="ml-3 truncate">Reports</span>
-                  )}
-                </button>
-              </li>
+              {[
+                { to: "", icon: <FaHome />, label: "Dashboard" },
+                {
+                  to: "needs",
+                  icon: <FaHandHoldingHeart />,
+                  label: "Posted Needs",
+                },
+                {
+                  to: "donations",
+                  icon: <FaHandsHelping />,
+                  label: "Received Donations",
+                },
+                {
+                  to: "pending-donations",
+                  icon: <FaHandsHelping />,
+                  label: "Available Donations",
+                },
+                { to: "volunteers", icon: <FaUser />, label: "Applications" },
+                { to: "reports", icon: <FaFileAlt />, label: "Reports" },
+              ].map(({ to, icon, label }) => (
+                <li key={to}>
+                  <NavLink
+                    to={to}
+                    end
+                    className={({ isActive }) =>
+                      `flex items-center p-2 w-full rounded transition-colors ${
+                        isActive ? "bg-yellow-400 text-black" : ""
+                      }`
+                    }
+                    onClick={() => setMobileSidebarOpen(false)}
+                  >
+                    {icon}
+                    {(sidebarOpen || mobileSidebarOpen) && (
+                      <span className="ml-3 truncate">{label}</span>
+                    )}
+                  </NavLink>
+                </li>
+              ))}
             </ul>
           </nav>
         </div>
@@ -212,7 +116,7 @@ export default function NgoDashboard() {
             className="flex-1 overflow-y-auto p-4"
             style={{ height: `calc(100vh - ${headerHeight})` }}
           >
-            {renderContent()}
+            <Outlet />
           </div>
         </div>
       </div>

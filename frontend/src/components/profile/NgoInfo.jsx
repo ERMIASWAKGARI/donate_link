@@ -7,16 +7,20 @@ export const NgoInfo = ({
   user,
   editingField,
   loading,
+  formData,
   onEdit,
   onCancel,
   onSave,
   handleFieldChange,
   hasChanges,
 }) => {
+  console.log('has changes', hasChanges);
+
   const horizontalFields = [
     'organizationName',
     'missionStatement',
     'registrationNumber',
+    'preferences',
   ];
   const otherFields = ngoFields.filter(
     (field) => !horizontalFields.includes(field.fieldName)
@@ -41,6 +45,7 @@ export const NgoInfo = ({
                 key={field.fieldName}
                 fieldConfig={field}
                 user={user}
+                formData={formData}
                 editingField={editingField}
                 loading={loading}
                 onEdit={onEdit}

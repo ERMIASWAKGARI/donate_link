@@ -1,11 +1,38 @@
-import React, { useEffect } from "react";
+import { useEffect, useState } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css"; // Import AOS styles
+import axiosInstance from "../../api/api";
 
 const Newsletter = () => {
   useEffect(() => {
     AOS.init({ duration: 1200 }); // Initialize AOS with a custom duration
   }, []);
+
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState(null);
+  const [isError, setIsError] = useState(false);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await axiosInstance.post("/subscriber", { email });
+      setMessage(response.data.message);
+      setIsError(false);
+      setEmail(""); // Clear input after success
+    } catch (error) {
+      setMessage(
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          "An error occurred."
+      );
+      setIsError(true);
+    }
+
+    // Hide message after 5 seconds
+    setTimeout(() => {
+      setMessage(null);
+    }, 5000);
+  };
 
   return (
     <section className="py-16 bg-gray-100" id="contact">
@@ -25,12 +52,17 @@ const Newsletter = () => {
             Subscribe to our newsletter and never miss a chance to make a
             difference.
           </p>
-          <form className="flex flex-col md:flex-row justify-center items-center gap-4">
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col md:flex-row justify-center items-center gap-4"
+          >
             <input
               type="email"
               placeholder="Enter your email"
               className="w-full md:w-96 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#008080]"
               required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               data-aos="zoom-in" // Zoom-in effect for the input field
             />
             <button
@@ -42,6 +74,17 @@ const Newsletter = () => {
               Subscribe
             </button>
           </form>
+          {message && (
+            <p
+              className={`mt-2 text-sm ${
+                isError ? "text-red-500" : "text-green-500"
+              }`}
+            >
+              {message}
+            </p>
+          )}
+
+          {/* </div> */}
         </div>
       </div>
     </section>

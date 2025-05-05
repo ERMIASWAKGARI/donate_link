@@ -124,7 +124,7 @@ const NGOStatistics = () => {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+      <div className="z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm w-full h-full">
         <Spin size="large" />
       </div>
     );
@@ -137,15 +137,15 @@ const NGOStatistics = () => {
     <div className="ngo-statistics p-6 max-w-8xl mx-auto">
       <h2 className="text-2xl font-bold text-center mb-6">NGO Statistics</h2>
 
-      <div className="statistics-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+      <div className="statistics-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
         <StatCard
           title="Monetary Donations"
-          value={statistics.monetaryDonations?.toFixed(2)}
+          value={statistics.monetaryDonations?.toFixed(0)}
           Icon={FaHandHoldingUsd}
         />
         <StatCard
-          title="Material Donations"
-          value={`${statistics.materialDonations} items`}
+          title="Number of Material Donations"
+          value={`${statistics.materialDonations} `}
           Icon={FaBoxOpen}
         />
         <StatCard

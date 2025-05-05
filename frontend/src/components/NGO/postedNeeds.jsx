@@ -7,6 +7,7 @@ import NeedsList from "./NeedsList";
 import Pagination from "./Pagination"; // Import the custom Pagination component
 import NeedModal from "./NeedModal";
 import { Spin } from "antd";
+import Loading from "./Loading";
 
 function PostedNeeds() {
   const { user } = useContext(UserContext);
@@ -100,11 +101,7 @@ function PostedNeeds() {
   };
 
   if (loading) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
-        <Spin size="large" />
-      </div>
-    );
+    return <Loading />;
   }
 
   return (

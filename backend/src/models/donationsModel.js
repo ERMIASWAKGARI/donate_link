@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const User = require("./User");
-const sendNotification="../utils/notificationService"
+const { sendNotification } = require("../utils/notificationService");
+
 // Constants for scoring weights
 const SCORE_WEIGHTS = {
   PREFERENCE: 60, // Highest priority
@@ -422,10 +423,11 @@ donationsSchema.methods.cancelRequest = async function (ngoId) {
 donationsSchema.methods.sendMatchNotifications = async function () {
   // Implementation would go here
   console.log(`Notification sent for donation ${this._id} to NGO ${this.NGO}`);
-  await sendNotification.sendNotification(
+  await sendNotification(
     this.NGO,
-    "New Donation given for your requests",
-    `You have been matched with a new donation: ${this.title}`
+    `your request for donation ${this.title} is accepted please track using id: ${this.trackingId}`,
+    "request-accepted",
+    `/#`
   );
 };
 
