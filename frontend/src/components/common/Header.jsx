@@ -163,7 +163,7 @@ const Header = () => {
                     animate={{ rotate: isOpen ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <ChevronDown size={16} className="ml-1" />
+                    {/* <ChevronDown size={16} className="ml-1" /> */}
                   </motion.div>
                 </motion.button>
 
@@ -207,7 +207,7 @@ const Header = () => {
               </div>
 
               {/* Donations Dropdown */}
-              <div className="relative" ref={donationsRef}>
+              {/* <div className="relative" ref={donationsRef}>
                 <motion.button
                   onClick={() => setIsDonationsOpen(!isDonationsOpen)}
                   className="flex items-center hover:text-yellow-400 transition"
@@ -258,7 +258,7 @@ const Header = () => {
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </div>
+              </div> */}
 
               {/* Contact Us */}
               <a
@@ -272,8 +272,11 @@ const Header = () => {
                   whileHover={{ scaleX: 1 }}
                 />
               </a>
+
+              <GoogleTranslate />
             </div>
-            <GoogleTranslate />
+
+            {/* <GoogleTranslate /> */}
             {/* Add this right before the Register button */}
             <div className="hidden md:flex items-center space-x-4">
               <motion.button
