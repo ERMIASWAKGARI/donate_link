@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import logo from "../../assets/logo.png";
+import logo from "../../../src/assets/logosa.png";
 import { UserContext } from "../../context/UserContext";
 import DesktopNav from "./DesktopNav";
 import MobileMenu from "./MobileMenu";
@@ -63,10 +63,10 @@ const Header = () => {
               }
             }}
           >
-            <img src={logo} alt="Logo" className="h-10 w-auto" />
-            <span className="ml-2 text-yellow-400 font-bold text-xl">
+            <img src={logo} alt="Logo" className="h-18 w-auto" />
+            {/* <span className="ml-2 text-yellow-400 font-bold text-xl">
               DonateLink
-            </span>
+            </span> */}
           </motion.div>
 
           {/* Desktop Navigation */}

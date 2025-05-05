@@ -103,10 +103,7 @@ const Header = () => {
               whileHover={{ scale: 1.05 }}
               onClick={() => navigate("/")}
             >
-              <img src={logo} alt="Logo" className="h-14 w-auto" />
-              <span className="ml-2 text-yellow-400 font-bold text-xl">
-                DonatiLink
-              </span>
+              <img src={logo} alt="Logo" className="h-18 w-auto" />
             </motion.div>
 
             {/* Desktop Menu */}
