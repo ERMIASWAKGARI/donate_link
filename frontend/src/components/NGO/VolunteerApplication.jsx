@@ -175,18 +175,15 @@ function VolunteerApplication() {
         className="max-w-7xl mx-auto"
       >
         {/* Header Section */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
             Volunteer Management
           </h1>
-          <p className="mt-3 max-w-xl mx-auto text-lg text-gray-600">
-            Review and manage volunteer applications for your NGO
-          </p>
         </div>
 
         {/* Service Needs Selection */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-200">
-          <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-4 border border-gray-200">
+          <div className="mb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <label
                 htmlFor="service-need"
