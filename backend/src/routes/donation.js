@@ -60,7 +60,7 @@ router.get(
 
   donationController.getDonationByTrackingId
 );
-
+router.get("/requestAccepted/:NGO",authMiddleware(["ngo"]),donationController.getDonationAcceptedForNGO);
 router.delete(
   "/delete-all-test", // Changed endpoint to make it clear this is for testing
   // Only requires authentication

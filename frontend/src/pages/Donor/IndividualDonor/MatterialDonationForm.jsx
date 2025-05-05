@@ -129,7 +129,6 @@ const MaterialDonationForm = ({
                   onChange={(e) => onMaterialChange(index, e)}
                   min="1"
                   className="w-full p-2 border rounded"
-                  required
                 />
               </div>
             </div>

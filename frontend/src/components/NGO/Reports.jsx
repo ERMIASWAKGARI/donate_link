@@ -60,7 +60,7 @@ const Reports = () => {
   };
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+      <div className="z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm w-full h-full">
         <Spin size="large" />
       </div>
     );
@@ -128,7 +128,11 @@ const Reports = () => {
                     <p className="mb-4 text-gray-500">Select one need:</p>
                     <div className="grid grid-cols-1 gap-3 mb-4">
                       {needs
-                        .filter((need) => need.isReportGenerated === false)
+                        .filter(
+                          (need) =>
+                            need.isReportGenerated === false &&
+                            need.status === "Closed"
+                        )
                         .map((need) => (
                           <label
                             key={need._id}

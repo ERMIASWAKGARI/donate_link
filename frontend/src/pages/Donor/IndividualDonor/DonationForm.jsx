@@ -127,56 +127,28 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
     setSuccess(null);
 
     try {
-      // Validate form data
+      // Validate user is logged in
       if (!user) {
         throw new Error("You must be logged in to make a donation");
       }
 
-      if (formData.type === "money" && !formData.amount) {
-        throw new Error("Please enter an amount");
-      }
+      // Check if at least something is being donated
+      const isMoneyDonation = formData.type === "money" && formData.amount;
+      const isMaterialDonation =
+        formData.type === "material" &&
+        formData.materials.some((m) => m.quantity && m.quantity > 0);
+      const isServiceDonation =
+        formData.type === "service" &&
+        formData.services.some((s) => s.motivation);
 
-      if (formData.type === "material") {
-        for (const material of formData.materials) {
-          if (!material.quantity) {
-            throw new Error("Please fill all material quantities");
-          }
-        }
-        if (!formData.location.address) {
-          throw new Error("Please provide a location for material donation");
-        }
-      }
-
-      if (formData.type === "service") {
-        for (const service of formData.services) {
-          if (!service.motivation) {
-            throw new Error("Please provide your motivation for each service");
-          }
-          if (!service.startDate || !service.endDate) {
-            throw new Error(
-              "Please provide start and end dates for each service"
-            );
-          }
-          if (!validateDates(service.startDate, service.endDate)) {
-            throw new Error(
-              "End date must be after start date for each service"
-            );
-          }
-          if (
-            !service.hoursPerWeek ||
-            isNaN(service.hoursPerWeek) ||
-            service.hoursPerWeek <= 0
-          ) {
-            throw new Error(
-              "Please provide valid hours per week for each service"
-            );
-          }
-        }
+      if (!isMoneyDonation && !isMaterialDonation && !isServiceDonation) {
+        throw new Error("Please provide at least one donation");
       }
 
       // Submit based on donation type
       let response;
-      if (formData.type === "money") {
+      if (formData.type === "money" && formData.amount) {
+        // Only process money donation if amount is provided
         response = await Axios.post("/payment/initialize", {
           amount: parseFloat(formData.amount),
           currency: formData.currency,
@@ -190,10 +162,25 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
         });
 
         console.log("response pay", response);
-
         window.location.href = response.data.data.checkout_url;
         return;
       } else if (formData.type === "material") {
+        // Filter out materials with no quantity or quantity <= 0
+        const validMaterials = formData.materials.filter(
+          (m) => m.quantity && m.quantity > 0
+        );
+
+        if (validMaterials.length === 0) {
+          throw new Error(
+            "Please provide quantities for at least one material"
+          );
+        }
+
+        // Validate location only if donating materials
+        if (!formData.location.address) {
+          throw new Error("Please provide a location for material donation");
+        }
+
         const formDataToSend = new FormData();
         formDataToSend.append("NGO", need.NGO._id);
         formDataToSend.append("donorId", user._id);
@@ -202,7 +189,7 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
         formDataToSend.append(
           "materials",
           JSON.stringify(
-            formData.materials.map((m) => ({
+            validMaterials.map((m) => ({
               categoryName: m.categoryName,
               subCategoryName: m.subCategoryName,
               quantity: parseInt(m.quantity),
@@ -245,12 +232,19 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
           },
         });
       } else if (formData.type === "service") {
-        // Validate each service field according to model requirements
-        for (const service of formData.services) {
-          if (!service.motivation || service.motivation.length > 1000) {
-            throw new Error(
-              "Motivation is required and must be less than 1000 characters"
-            );
+        // Filter out services with no motivation
+        const validServices = formData.services.filter(
+          (s) => s.motivation && s.motivation.trim() !== ""
+        );
+
+        if (validServices.length === 0) {
+          throw new Error("Please provide motivation for at least one service");
+        }
+
+        // Validate service dates only for services being donated
+        for (const service of validServices) {
+          if (service.motivation.length > 1000) {
+            throw new Error("Motivation must be less than 1000 characters");
           }
           if (!service.startDate) {
             throw new Error("Start date is required for each service");
@@ -266,16 +260,17 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
           }
         }
 
+        // Process each valid service (assuming one service per donation for now)
         response = await Axios.post("/donation/service", {
-          applicant: user?._id, // Changed from donorId to applicant
-          need: need?._id, // Changed from needId to need
-          category: formData.services[0].category, // Using first service's category
-          subCategory: formData.services[0].subCategory, // Using first service's subCategory
-          motivation: formData.services[0].motivation, // Using first service's motivation
-          startDate: formData.services[0].startDate,
-          endDate: formData.services[0].endDate || null,
-          hoursPerWeek: parseInt(formData.services[0].hoursPerWeek),
-          status: "Submitted", // Added default status
+          applicant: user?._id,
+          need: need?._id,
+          category: validServices[0].category,
+          subCategory: validServices[0].subCategory,
+          motivation: validServices[0].motivation,
+          startDate: validServices[0].startDate,
+          endDate: validServices[0].endDate || null,
+          hoursPerWeek: parseInt(validServices[0].hoursPerWeek),
+          status: "Submitted",
           message: formData.message || "",
         });
       }
@@ -289,7 +284,6 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
           // ... reset form data ...
         });
         setSuccess(null);
-
         window.scrollTo(0, 0);
         onClose();
       }, 3000);

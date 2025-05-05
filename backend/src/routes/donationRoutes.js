@@ -29,7 +29,7 @@ router.get("/:id", needsController.getNeedById);
 // Material Donation Routes
 router.post(
   "/material",
- authMiddleware(["organization_donor", "individual_donor"]),
+  authMiddleware(["organization_donor", "individual_donor", "volunteer"]),
   uploadNeedPictures,
   donateItems.createMaterialDonation
 );

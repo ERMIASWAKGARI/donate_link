@@ -76,7 +76,7 @@ const Map = ({ latitude, longitude }) => {
           <Popup>
             <div>
               <FaMapMarkerAlt style={{ marginRight: "5px" }} />
-              Destination: {position[0].toFixed(6)}, {position[1].toFixed(6)}
+              Destination: {position[0]?.toFixed(6)}, {position[1]?.toFixed(6)}
             </div>
           </Popup>
         </Marker>
