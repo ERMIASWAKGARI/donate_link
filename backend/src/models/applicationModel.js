@@ -49,6 +49,7 @@ const applicationSchema = new mongoose.Schema(
         "On Hold",
         "Withdrawn",
         "Accepted",
+        "Completed",
       ],
       default: "Submitted",
     },

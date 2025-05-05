@@ -75,8 +75,8 @@ const updateApplcationStatus = async (req, res) => {
       return res.status(404).json({ message: "Application not found" });
     }
 
-    if (status === "Accepted") {
-      console.log(`Application ${id} accepted, checking certificates...`);
+    if (status === "Completed") {
+      console.log(`Application ${id} completed, checking certificates...`);
       try {
         const {
           checkCertificates,

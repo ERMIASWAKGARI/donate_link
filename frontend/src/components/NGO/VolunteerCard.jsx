@@ -44,6 +44,8 @@ const VolunteerCard = ({
         return "bg-green-100 text-green-800";
       case "rejected":
         return "bg-red-100 text-red-800";
+      case "completed":
+        return "bg-purple-100 text-purple-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -115,13 +117,17 @@ const VolunteerCard = ({
                 >
                   Contact
                 </button>
-
                 {/* Always show status change options */}
                 <button
                   onClick={() => handleAction("Accepted", volunteer._id)}
-                  disabled={volunteer.status === "Accepted" || isProcessing}
+                  disabled={
+                    volunteer.status === "Accepted" ||
+                    volunteer.status === "Completed" ||
+                    isProcessing
+                  }
                   className={`block w-full text-left px-4 py-2 text-sm ${
-                    volunteer.status === "Accepted"
+                    volunteer.status === "Accepted" ||
+                    volunteer.status === "Completed"
                       ? "text-green-400 cursor-not-allowed"
                       : actionType === "Accepted" && isProcessing
                       ? "text-green-400"
@@ -160,11 +166,17 @@ const VolunteerCard = ({
                     "Accept"
                   )}
                 </button>
+
                 <button
                   onClick={() => handleAction("Rejected", volunteer._id)}
-                  disabled={volunteer.status === "Rejected" || isProcessing}
+                  disabled={
+                    volunteer.status === "Rejected" ||
+                    volunteer.status === "Completed" ||
+                    isProcessing
+                  }
                   className={`block w-full text-left px-4 py-2 text-sm ${
-                    volunteer.status === "Rejected"
+                    volunteer.status === "Rejected" ||
+                    volunteer.status === "Completed"
                       ? "text-red-400 cursor-not-allowed"
                       : actionType === "Rejected" && isProcessing
                       ? "text-red-400"
@@ -201,6 +213,51 @@ const VolunteerCard = ({
                     "Rejected"
                   ) : (
                     "Reject"
+                  )}
+                </button>
+                <button
+                  onClick={() => handleAction("Completed", volunteer._id)}
+                  disabled={volunteer.status !== "Accepted" || isProcessing}
+                  className={`block w-full text-left px-4 py-2 text-sm ${
+                    volunteer.status === "Completed"
+                      ? "text-purple-400 cursor-not-allowed"
+                      : actionType === "Completed" && isProcessing
+                      ? "text-purple-400"
+                      : volunteer.status !== "Accepted"
+                      ? "text-purple-300 cursor-not-allowed"
+                      : "text-purple-600 hover:bg-purple-50"
+                  } transition-colors`}
+                >
+                  {actionType === "Completed" && isProcessing ? (
+                    <span className="flex items-center">
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      {volunteer.status === "Completed"
+                        ? "Completed"
+                        : "Completing..."}
+                    </span>
+                  ) : volunteer.status === "Completed" ? (
+                    "Completed"
+                  ) : (
+                    "Mark as Complete"
                   )}
                 </button>
               </motion.div>
