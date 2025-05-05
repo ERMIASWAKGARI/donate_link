@@ -105,7 +105,7 @@ const Header = () => {
               whileHover={{ scale: 1.05 }}
               onClick={() => navigate("/")}
             >
-              <img src={logo} alt="Logo" className="h-25 w-auto" />
+              <img src={logo} alt="Logo" className="h-18 w-auto" />
             </motion.div>
 
             {/* Desktop Menu */}
@@ -177,7 +177,7 @@ const Header = () => {
                       className="absolute left-0 mt-2 w-56 bg-white text-black rounded-md shadow-xl z-50 overflow-hidden"
                     >
                       {[
-                        { to: "/signup", text: "Sign Up" },
+                        { to: "/register", text: "Sign Up" },
                         { to: "/donate", text: "Choose Items to Donate" },
                         { to: "/ngos", text: "Select an NGO" },
                         { to: "/impact", text: "Track Your Impact" },

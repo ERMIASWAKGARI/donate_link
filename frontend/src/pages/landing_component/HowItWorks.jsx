@@ -1,8 +1,9 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { FaUserPlus, FaGift, FaBuilding, FaChartLine } from "react-icons/fa";
 import { motion } from "framer-motion";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import { useNavigate } from "react-router-dom";
 
 const HowItWorksSection = () => {
   useEffect(() => {
@@ -11,7 +12,7 @@ const HowItWorksSection = () => {
       once: true,
     });
   }, []);
-
+  const navigate = useNavigate();
   // Animation variants
   const container = {
     hidden: { opacity: 0 },
@@ -171,6 +172,7 @@ const HowItWorksSection = () => {
             whileHover={{ scale: 1.05, backgroundColor: "#16a34a" }}
             whileTap={{ scale: 0.95 }}
             className="px-8 py-3 bg-primary text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+            onClick={() => navigate("/register")}
           >
             Get Started Now
           </motion.button>

@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
-import pic1 from '../../assets/pic1.jpg';
-import pic2 from '../../assets/pic2.jpg';
-import pic3 from '../../assets/pic3.jpg';
+import pic1 from "../../assets/pic1.jpg";
+import pic2 from "../../assets/pic2.jpg";
+import pic3 from "../../assets/pic3.jpg";
 import AOS from "aos";
 import "aos/dist/aos.css"; // Import AOS styles
 
@@ -10,7 +10,7 @@ const testimonials = [
     id: 1,
     quote:
       "Donating through this platform was so easy and transparent. I could see exactly where my money was going!",
-    author: "John Doe",
+    author: "Humed Jemal",
     role: "Donor",
     image: pic1,
   },
@@ -18,7 +18,7 @@ const testimonials = [
     id: 2,
     quote:
       "The support we received through this platform helped us reach more people in need. Truly grateful!",
-    author: "James Thomsen",
+    author: "Benyam Belete",
     role: "NGO Representative",
     image: pic2,
   },
@@ -26,8 +26,8 @@ const testimonials = [
     id: 3,
     quote:
       "I love how simple the process is. The ability to track my impact makes me feel connected to the cause.",
-    author: "Brook Clark",
-    role: "Donor",
+    author: "Tolassa Kebede",
+    role: "Volunteer",
     image: pic3,
   },
 ];
