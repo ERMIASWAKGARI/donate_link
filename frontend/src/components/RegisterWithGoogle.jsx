@@ -1,99 +1,129 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
-// eslint-disable-next-line react/prop-types
-const RegisterWithGoogle = ({ googleUser }) => {
+import SuccessMessage from '../components/SuccessMessage';
+import ErrorMessage from '../components/ErrorMessage';
+
+const RegisterWithGoogle = ({ googleUser, onCancel }) => {
   const navigate = useNavigate();
-
   const [role, setRole] = useState('');
-  const [phone, setPhone] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     const userData = {
       ...googleUser,
       role,
-      phone: phone || undefined, // Optional phone field
     };
 
-    console.log(userData);
+    try {
+      const response = await fetch('http://localhost:5000/api/users/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+      });
 
-    const response = await fetch('http://localhost:5000/api/users/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(userData),
-    });
+      const data = await response.json();
 
-    const data = await response.json();
-    console.log('Registration Response:', data);
+      if (data.status === 'success') {
+        localStorage.setItem('accessToken', data.data.accessToken);
+        setMessage({ type: 'success', text: 'Registration successful!' });
 
-    if (data.status === 'success') {
-      console.log('User Data:', data.data.role);
-      localStorage.setItem('accessToken', data.data.accessToken);
-      alert('Registration successful!');
-      if (data.data.role === 'admin') {
-        navigate('/admin/dashboard');
-      } else if (
-        data.data.role === 'individual_donor' ||
-        data.data.role === 'organization_donor'
-      ) {
-        navigate('/donor/dashboard');
-      } else if (data.data.role === 'ngo') {
-        navigate('/ngo/dashboard');
-      } else if (data.data.role === 'volunteer') {
-        navigate('/volunteer/dashboard');
+        // Redirect based on role
+        setTimeout(() => {
+          if (data.data.role === 'admin') {
+            navigate('/admin/dashboard');
+          } else if (
+            ['individual_donor', 'organization_donor'].includes(data.data.role)
+          ) {
+            navigate('/donor/dashboard');
+          } else if (data.data.role === 'ngo') {
+            navigate('/ngo/dashboard');
+          } else if (data.data.role === 'volunteer') {
+            navigate('/volunteer/dashboard');
+          } else {
+            navigate('/dashboard');
+          }
+        }, 1500);
       } else {
-        navigate('/dashboard');
+        setMessage({
+          type: 'error',
+          text: data.message || 'Registration failed',
+        });
       }
-    } else {
-      alert('Registration Failed: ' + data.message);
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: 'An error occurred. Please try again.',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-96">
-        <h2 className="text-2xl font-bold mb-4 text-center text-gray-700">
-          Complete Registration
-        </h2>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+    >
+      <motion.div
+        initial={{ scale: 0.9, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        className="bg-gray-100  rounded-xl shadow-xl w-full max-w-md overflow-hidden"
+      >
+        <div className="p-8">
+          <div className="flex justify-center items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">
+              Complete Registration
+            </h2>
+          </div>
+          {message.type === 'success' && (
+            <SuccessMessage message={message.text} className="mb-4" />
+          )}
+          {message.type === 'error' && (
+            <ErrorMessage error={message.text} className="mb-4" />
+          )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Phone Number (Optional) */}
-          <input
-            type="tel"
-            placeholder="Phone Number (Optional)"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Role Selection (Required) */}
+            <div>
+              <label className="text-gray-700 mb-1 flex items-center">
+                Your Role
+              </label>
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                required
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080]"
+              >
+                <option value="">Select your role</option>
+                <option value="individual_donor">Individual Donor</option>
+                <option value="organization_donor">Organization Donor</option>
+                <option value="volunteer">Volunteer</option>
+                <option value="ngo">NGO Partner</option>
+              </select>
+            </div>
 
-          {/* Role Selection (Required) */}
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            required
-            className="w-full p-2 border border-gray-300 rounded bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
-          >
-            <option value="">Select Role</option>
-            <option value="individual_donor">Individual Donor</option>
-            <option value="organization_donor">Organization Donor</option>
-            <option value="volunteer">Volunteer</option>
-            <option value="ngo">NGO</option>
-          </select>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-700 transition"
-          >
-            Complete Registration
-          </button>
-        </form>
-      </div>
-    </div>
+            <motion.button
+              type="submit"
+              className="w-full bg-[#008080] text-white p-3 rounded-lg font-medium disabled:opacity-50"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              disabled={loading}
+            >
+              {loading ? 'Processing...' : 'Sign Up'}
+            </motion.button>
+          </form>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 };
 
