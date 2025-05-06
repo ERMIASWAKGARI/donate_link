@@ -63,7 +63,6 @@ function App() {
                   <Route path="/verify-otp" element={<VerifyOtp />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/certificates" element={<CertificatesPage />} />
                   <Route
                     path="/unsubscribe/:email"
                     element={<UnsubscribePage />}
@@ -76,10 +75,20 @@ function App() {
                       element={<IndividualDashboard />}
                     />
                     <Route path="/donor/NeedDetail" element={<NeedDetail />} />
-                    <Route path="/post-donation" element={<DonationForm />} />
+                    <Route
+                      element={
+                        <RoleBasedRoute allowedRoles={['organization_donor']} />
+                      }
+                    >
+                      <Route path="/post-donation" element={<DonationForm />} />
+                    </Route>
                     <Route
                       path="/donor/payment-success"
                       element={<PaymentSuccess />}
+                    />
+                    <Route
+                      path="/certificates"
+                      element={<CertificatesPage />}
                     />
 
                     {/* ngo routes */}
