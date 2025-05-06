@@ -43,8 +43,7 @@ const createServiceApplication = async (req, res) => {
     });
 
     await newApplication.save();
-    needBeingApplied.hasDonations = true;
-    needBeingApplied.save();
+    
     res.status(201).json({
       message: "Application submitted successfully",
       application: newApplication,
@@ -74,6 +73,11 @@ const updateApplcationStatus = async (req, res) => {
     if (!updatedApplication) {
       console.log(`Application ${id} not found`);
       return res.status(404).json({ message: "Application not found" });
+    }
+    const need = await Need.find({need:updatedApplication.need});
+    if(status==="Approved"){
+need.hasDonations=true
+need.save()
     }
 
     if (status === "Completed") {

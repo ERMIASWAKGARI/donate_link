@@ -403,6 +403,54 @@ const getNeedsByNgo = async (req, res) => {
     });
   }
 };
+const getNeedsReportShouldGeneratedFor = async (req, res) => {
+  try {
+    const ngoId = req.params.ngoId;
+    const { status, page = 1, limit = 10 } = req.query;
+
+    const filter = { NGO: ngoId, isReportGenerated: false,hasDonations:true };
+
+    if (status) {
+      filter.status = status;
+    }
+
+    // Convert page and limit to numbers
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    // Get total count of documents
+    const total = await Need.countDocuments(filter);
+
+    const needs = await Need.find(filter)
+      .sort({ createdAt: -1 }) // Sort by newest first
+      .skip(skip)
+      .limit(limitNumber);
+    // .populate("application", "status donor") // Uncomment if you need to populate
+
+    if (!needs || needs.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "No needs found for this NGO",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      count: needs.length,
+      total,
+      page: pageNumber,
+      pages: Math.ceil(total / limitNumber),
+      data: needs,
+    });
+  } catch (error) {
+    console.error("Error fetching NGO needs:", error);
+    res.status(500).json({
+      success: false,
+      error: "Server error",
+    });
+  }
+};
 const getReportPreview = async (req, res) => {
   try {
     const { needId, categories } = req.params;
@@ -1006,6 +1054,7 @@ console.log("service application", serviceApplicationsByStatus);
 };
 
 module.exports = {
+  getNeedsReportShouldGeneratedFor,
   getNeedById,
   deleteNeed,
   getNGOStatistics,
