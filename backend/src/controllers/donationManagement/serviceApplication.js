@@ -39,6 +39,7 @@ const createServiceApplication = async (req, res) => {
       endDate,
       hoursPerWeek,
       status,
+      NGO:needBeingApplied?.NGO
     });
 
     await newApplication.save();
