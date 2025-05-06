@@ -117,11 +117,15 @@ const VolunteersList = ({
                           }
                           disabled={
                             vol.status === "rejected" ||
-                            vol.status === "completed"
+                            vol.status === "accepted" ||
+                            vol.status === "completed" ||
+                            vol.status === "Incomplete"
                           }
                           className={`p-2 rounded-lg ${
                             vol.status === "rejected" ||
-                            vol.status === "completed"
+                            vol.status === "accepted" ||
+                            vol.status === "completed" ||
+                            vol.status === "Incomplete"
                               ? "bg-red-100 text-red-400 cursor-not-allowed"
                               : "bg-red-100 text-red-800 hover:bg-red-200"
                           } transition`}
@@ -129,7 +133,6 @@ const VolunteersList = ({
                         >
                           <X className="w-5 h-5" />
                         </button>
-
                         {vol.status === "accepted" && (
                           <button
                             onClick={() =>
@@ -153,6 +156,78 @@ const VolunteersList = ({
                               <polyline points="22 4 12 14.01 9 11.01"></polyline>
                             </svg>
                           </button>
+                        )}
+
+                        <span
+                          className={`px-2 py-1 text-xs font-medium rounded-full capitalize ${
+                            vol.status === "pending"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : vol.status === "accepted"
+                              ? "bg-green-100 text-green-800"
+                              : vol.status === "rejected"
+                              ? "bg-red-100 text-red-800"
+                              : vol.status === "completed"
+                              ? "bg-purple-100 text-purple-800"
+                              : vol.status === "incomplete"
+                              ? "bg-orange-100 text-orange-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {vol.status}
+                        </span>
+
+                        {vol.status === "accepted" && (
+                          <>
+                            <button
+                              onClick={() =>
+                                handleStatusUpdate(vol._id, "completed")
+                              }
+                              className="p-2 rounded-lg bg-purple-100 text-purple-800 hover:bg-purple-200 transition"
+                              aria-label="Complete"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleStatusUpdate(vol._id, "incomplete")
+                              }
+                              className="p-2 rounded-lg bg-orange-100 text-orange-800 hover:bg-orange-200 transition"
+                              aria-label="Incomplete"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line
+                                  x1="4.93"
+                                  y1="4.93"
+                                  x2="19.07"
+                                  y2="19.07"
+                                ></line>
+                              </svg>
+                            </button>
+                          </>
                         )}
                       </>
                     )}
