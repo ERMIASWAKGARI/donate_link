@@ -1,99 +1,183 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import SuccessMessage from '../components/SuccessMessage';
+import ErrorMessage from '../components/ErrorMessage';
 
-// eslint-disable-next-line react/prop-types
-const RegisterWithGoogle = ({ googleUser }) => {
+const RegisterWithGoogle = ({ googleUser, onCancel }) => {
   const navigate = useNavigate();
-
   const [role, setRole] = useState('');
-  const [phone, setPhone] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+
+    if (!agreedToTerms) {
+      setMessage({
+        type: 'error',
+        text: 'You must agree to the terms and conditions',
+      });
+      setLoading(false);
+      return;
+    }
 
     const userData = {
       ...googleUser,
       role,
-      phone: phone || undefined, // Optional phone field
     };
 
-    console.log(userData);
+    try {
+      const response = await fetch('http://localhost:5000/api/users/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+      });
 
-    const response = await fetch('http://localhost:5000/api/users/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(userData),
-    });
+      const data = await response.json();
 
-    const data = await response.json();
-    console.log('Registration Response:', data);
+      if (data.status === 'success') {
+        localStorage.setItem('accessToken', data.data.accessToken);
+        setMessage({ type: 'success', text: 'Registration successful!' });
 
-    if (data.status === 'success') {
-      console.log('User Data:', data.data.role);
-      localStorage.setItem('accessToken', data.data.accessToken);
-      alert('Registration successful!');
-      if (data.data.role === 'admin') {
-        navigate('/admin/dashboard');
-      } else if (
-        data.data.role === 'individual_donor' ||
-        data.data.role === 'organization_donor'
-      ) {
-        navigate('/donor/dashboard');
-      } else if (data.data.role === 'ngo') {
-        navigate('/ngo/dashboard');
-      } else if (data.data.role === 'volunteer') {
-        navigate('/volunteer/dashboard');
+        // Redirect based on role
+        setTimeout(() => {
+          if (data.data.role === 'admin') {
+            navigate('/admin/dashboard');
+          } else if (
+            ['individual_donor', 'organization_donor'].includes(data.data.role)
+          ) {
+            navigate('/donor/dashboard');
+          } else if (data.data.role === 'ngo') {
+            navigate('/ngo/dashboard');
+          } else if (data.data.role === 'volunteer') {
+            navigate('/volunteer/dashboard');
+          } else {
+            navigate('/dashboard');
+          }
+        }, 1500);
       } else {
-        navigate('/dashboard');
+        setMessage({
+          type: 'error',
+          text: data.message || 'Registration failed',
+        });
       }
-    } else {
-      alert('Registration Failed: ' + data.message);
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: 'An error occurred. Please try again.',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-96">
-        <h2 className="text-2xl font-bold mb-4 text-center text-gray-700">
-          Complete Registration
-        </h2>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+    >
+      <motion.div
+        initial={{ scale: 0.9, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        className="bg-gray-100 rounded-xl shadow-xl w-full max-w-md overflow-hidden"
+      >
+        <div className="p-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">
+              Complete Registration
+            </h2>
+            <button
+              onClick={onCancel}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              ✕
+            </button>
+          </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Phone Number (Optional) */}
-          <input
-            type="tel"
-            placeholder="Phone Number (Optional)"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
+          {message.type === 'success' && (
+            <SuccessMessage message={message.text} className="mb-4" />
+          )}
+          {message.type === 'error' && (
+            <ErrorMessage error={message.text} className="mb-4" />
+          )}
 
-          {/* Role Selection (Required) */}
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            required
-            className="w-full p-2 border border-gray-300 rounded bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
-          >
-            <option value="">Select Role</option>
-            <option value="individual_donor">Individual Donor</option>
-            <option value="organization_donor">Organization Donor</option>
-            <option value="volunteer">Volunteer</option>
-            <option value="ngo">NGO</option>
-          </select>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="text-gray-700 mb-1 flex items-center">
+                Your Role
+              </label>
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                required
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080]"
+              >
+                <option value="">Select your role</option>
+                <option value="individual_donor">Individual Donor</option>
+                <option value="organization_donor">Organization Donor</option>
+                <option value="volunteer">Volunteer</option>
+                <option value="ngo">NGO Partner</option>
+              </select>
+            </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-700 transition"
-          >
-            Complete Registration
-          </button>
-        </form>
-      </div>
-    </div>
+            {/* Terms and Conditions Checkbox */}
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="terms-google"
+                  type="checkbox"
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-[#008080]"
+                  required
+                />
+              </div>
+              <label
+                htmlFor="terms-google"
+                className="ml-2 text-sm text-gray-600"
+              >
+                I agree to the{' '}
+                <a
+                  href="/terms"
+                  className="text-[#008080] hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Terms and Conditions
+                </a>{' '}
+                and{' '}
+                <a
+                  href="/privacy"
+                  className="text-[#008080] hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Privacy Policy
+                </a>
+              </label>
+            </div>
+
+            <motion.button
+              type="submit"
+              className={`w-full bg-[#008080] text-white p-3 rounded-lg font-medium ${
+                !agreedToTerms ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              whileHover={agreedToTerms ? { scale: 1.02 } : {}}
+              whileTap={agreedToTerms ? { scale: 0.98 } : {}}
+              disabled={!agreedToTerms || loading}
+            >
+              {loading ? 'Signing Up...' : 'Sign Up'}
+            </motion.button>
+          </form>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

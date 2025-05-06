@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { Spin } from 'antd';
 
@@ -38,6 +39,7 @@ const ConfirmModal = ({ open, onClose, onConfirm, title, description }) => {
 };
 
 const AccountPage = () => {
+  const navigate = useNavigate();
   const { user, logout, accessToken } = useUser();
   const [activeTab, setActiveTab] = useState('password');
   const [formData, setFormData] = useState({
@@ -178,6 +180,26 @@ const AccountPage = () => {
   return (
     <AdminLayout>
       <div>
+        <div className="container mx-auto px-4 pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center text-[#008080] hover:text-[#006666] transition-colors mb-2"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 mr-1"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Go Back
+          </button>
+        </div>
         <div className="relative max-w-2xl mx-auto my-8 p-6 bg-white rounded-xl shadow-md border border-gray-100">
           {loading && (
             <div className="absolute inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
