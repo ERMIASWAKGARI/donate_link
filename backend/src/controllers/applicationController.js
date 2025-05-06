@@ -62,6 +62,7 @@ exports.createApplication = asyncWrapper(async (req, res, next) => {
     endDate,
     hoursPerWeek,
     status: "Submitted",
+    NGO:req?.user?._id
   });
   console.log(`[Application] Created application ID: ${newApplication._id}`);
 

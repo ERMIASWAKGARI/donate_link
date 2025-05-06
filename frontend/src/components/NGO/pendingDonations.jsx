@@ -33,8 +33,8 @@ const PendingDonations = () => {
         },
       });
       setDonations(response.data.message.donations);
+      console.log("donations", donations);
       setLoading(false);
-      console.log(donations);
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -192,6 +192,7 @@ const PendingDonations = () => {
                         alt="Donation"
                         className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                       />
+                      <div>here is picture</div>
                     </div>
                   )}
 

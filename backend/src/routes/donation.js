@@ -6,6 +6,7 @@ const { upload } = require("../services/multer");
 
 const donationController = require("../controllers/donationController");
 const authMiddleware = require("../middleware/authenticationMiddleware");
+const uploadNeedPictures = require("../middleware/uploadNeedPictures");
 
 const router = express.Router();
 
@@ -24,7 +25,8 @@ router.post(
 );
 router.post(
   "/material",
-  upload, // Now matches frontend field name
+ authMiddleware(["organization_donor"]),
+ uploadNeedPictures,
   donationController.createMaterialDonation
 );
 //route for updating the requests for material donations

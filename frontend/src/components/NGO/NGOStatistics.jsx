@@ -3,6 +3,8 @@ import { Bar } from "react-chartjs-2";
 import "chart.js/auto";
 import axios from "../../config/axiosConfig";
 import { Spin } from "antd";
+import { Pie } from "react-chartjs-2";
+
 // Icon imports
 import {
   FaHandHoldingUsd,
@@ -121,6 +123,142 @@ const NGOStatistics = () => {
       },
     ],
   };
+  const moneyDonationData = {
+    labels:
+      statistics?.monetaryDonationsByCurrency?.map(
+        (d) => `${d.currency} (${d.count})`
+      ) || [],
+    datasets: [
+      {
+        data:
+          statistics?.monetaryDonationsByCurrency?.map((d) => d.total) || [],
+        backgroundColor: [
+          "rgba(0, 128, 0, 0.7)", // ETB - Green
+          "rgba(0, 86, 179, 0.7)", // USD - Blue
+          "rgba(153, 102, 255, 0.7)", // EUR - Purple
+          "rgba(255, 159, 64, 0.7)", // GBP - Orange
+        ],
+        borderColor: [
+          "rgba(0, 128, 0, 1)",
+          "rgba(0, 86, 179, 1)",
+          "rgba(153, 102, 255, 1)",
+          "rgba(255, 159, 64, 1)",
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  // Enhanced Service Applications Chart
+  const serviceStatusData = {
+    labels: statistics?.serviceApplicationsByStatus?.map((d) => d.status) || [],
+    datasets: [
+      {
+        data:
+          statistics?.serviceApplicationsByStatus?.map((d) => d.count) || [],
+        backgroundColor: [
+          "rgba(54, 162, 235, 0.7)", // Submitted - Blue
+          "rgba(255, 206, 86, 0.7)", // Under Review - Yellow
+          "rgba(255, 159, 64, 0.7)", // Interview Scheduled - Orange
+          "rgba(75, 192, 192, 0.7)", // Approved - Teal
+          "rgba(153, 102, 255, 0.7)", // Accepted - Purple
+          "rgba(0, 128, 0, 0.7)", // Completed - Green
+          "rgba(199, 199, 199, 0.7)", // On Hold - Gray
+          "rgba(255, 99, 132, 0.7)", // Rejected - Red
+          "rgba(83, 102, 255, 0.7)", // Withdrawn - Indigo
+        ],
+        borderColor: [
+          "rgba(54, 162, 235, 1)",
+          "rgba(255, 206, 86, 1)",
+          "rgba(255, 159, 64, 1)",
+          "rgba(75, 192, 192, 1)",
+          "rgba(153, 102, 255, 1)",
+          "rgba(0, 128, 0, 1)",
+          "rgba(199, 199, 199, 1)",
+          "rgba(255, 99, 132, 1)",
+          "rgba(83, 102, 255, 1)",
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const pieOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      datalabels: {
+        formatter: (value, ctx) => {
+          const dataArr = ctx.chart.data.datasets[0].data;
+          const sum = dataArr.reduce((a, b) => a + b, 0);
+          const percentage = ((value * 100) / sum).toFixed(1) + "%";
+          return percentage;
+        },
+        color: "#fff",
+        font: {
+          weight: "bold",
+          size: 14,
+        },
+      },
+      legend: {
+        position: "right",
+        labels: {
+          padding: 20,
+          font: {
+            size: 12,
+          },
+          usePointStyle: true,
+          pointStyle: "circle",
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            const label = context.label || "";
+            const value = context.raw || 0;
+            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const percentage = Math.round((value / total) * 100);
+
+            // For money chart
+            if (
+              context.datasetIndex === 0 &&
+              context.chart.data.labels[context.dataIndex].includes("ETB")
+            ) {
+              const currencyData = statistics.monetaryDonationsByCurrency.find(
+                (d) => d.currency === "ETB"
+              );
+              return [
+                `${label}`,
+                `Total: ${currencyData.total.toLocaleString()} ETB`,
+                `Transactions: ${currencyData.count}`,
+                `Avg: ${currencyData.avgAmount.toFixed(2)} ETB`,
+                `(${percentage}%)`,
+              ];
+            }
+
+            // For service chart
+            if (
+              context.datasetIndex === 0 &&
+              context.chart.id === "serviceChart"
+            ) {
+              const statusData = statistics.serviceApplicationsByStatus.find(
+                (d) => d.status === context.label
+              );
+              return [
+                `${label}: ${value}`,
+                statusData.avgHours
+                  ? `Avg Hours: ${statusData.avgHours.toFixed(1)}/week`
+                  : "",
+                `(${percentage}%)`,
+              ];
+            }
+
+            return `${label}: ${value} (${percentage}%)`;
+          },
+        },
+      },
+    },
+  };
 
   if (loading) {
     return (
@@ -137,21 +275,11 @@ const NGOStatistics = () => {
     <div className="ngo-statistics p-6 max-w-8xl mx-auto">
       <h2 className="text-2xl font-bold text-center mb-6">NGO Statistics</h2>
 
-      <div className="statistics-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-        <StatCard
-          title="Monetary Donations"
-          value={statistics.monetaryDonations?.toFixed(0)}
-          Icon={FaHandHoldingUsd}
-        />
+      <div className="statistics-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8 lg:mx-auto place-items-center text-center">
         <StatCard
           title="Number of Material Donations"
-          value={`${statistics.materialDonations} `}
+          value={`${statistics.materialDonations}`}
           Icon={FaBoxOpen}
-        />
-        <StatCard
-          title="Volunteer Hours"
-          value={`${statistics.volunteerServiceHours} hrs`}
-          Icon={FaUserClock}
         />
         <StatCard
           title="Beneficiaries"
@@ -165,17 +293,38 @@ const NGOStatistics = () => {
         />
       </div>
 
-      <div className="graph-container bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-xl font-semibold mb-4">Donations Over Time</h3>
-        {statistics.donationTrends.length === 0 ? (
-          <p className="text-center text-gray-500 py-10">
-            No donation data available.
-          </p>
-        ) : (
-          <div className="h-80">
-            <Bar options={donationOptions} data={donationData} height={320} />
-          </div>
-        )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Money Donations by Currency */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-xl font-semibold mb-4">
+            Money Donations by Currency
+          </h3>
+          {statistics?.monetaryDonationsByCurrency?.length > 0 ? (
+            <div className="h-80">
+              <Pie data={moneyDonationData} options={pieOptions} />
+            </div>
+          ) : (
+            <p className="text-center text-gray-500 py-10">
+              No monetary donation data available.
+            </p>
+          )}
+        </div>
+
+        {/* Service Applications by Status */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-xl font-semibold mb-4">
+            Service Applications by Status
+          </h3>
+          {statistics?.serviceApplicationsByStatus?.length > 0 ? (
+            <div className="h-80">
+              <Pie data={serviceStatusData} options={pieOptions} />
+            </div>
+          ) : (
+            <p className="text-center text-gray-500 py-10">
+              No service application data available.
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
