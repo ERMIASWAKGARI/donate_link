@@ -130,7 +130,7 @@ const VerifyOtpPage = () => {
         />
 
         <button
-          className="w-full bg-green-500 text-white p-2 rounded"
+          className="w-full bg-[#008080] text-white p-3 rounded-lg font-medium transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-[#008080] focus:ring-offset-2"
           onClick={verifyOtp}
           disabled={isVerifyingOtp}
         >
@@ -139,7 +139,7 @@ const VerifyOtpPage = () => {
 
         {!otpSent && (
           <button
-            className="w-full bg-blue-500 text-white p-2 rounded mt-2"
+            className="w-full flex justify-center items-center px-4 py-2 rounded-md shadow-sm text-[#008080] hover:text-white hover:bg-[#008080] border border-[#008080]"
             onClick={resendOtp}
           >
             Resend OTP
