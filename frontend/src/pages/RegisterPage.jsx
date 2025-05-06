@@ -45,6 +45,7 @@ const EnhancedRegisterPage = () => {
     password: '',
     confirmPassword: '',
     role: '',
+    agreedToTerms: false,
   });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -332,227 +333,290 @@ const EnhancedRegisterPage = () => {
                       </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                      {currentRole?.fields.includes('name') && (
-                        <div>
-                          <label className="block text-gray-700 mb-1">
-                            Full Name
-                          </label>
-                          <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080]"
-                            required
-                          />
-                          {errors.name && (
-                            <p className="text-red-500 text-sm mt-1">
-                              {errors.name}
-                            </p>
-                          )}
-                        </div>
-                      )}
-
-                      {currentRole?.fields.includes('organizationName') && (
-                        <div>
-                          <label className="block text-gray-700 mb-1">
-                            Organization Name
-                          </label>
-                          <input
-                            type="text"
-                            name="organizationName"
-                            value={formData.organizationName}
-                            onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080]"
-                            required
-                          />
-                        </div>
-                      )}
-
-                      {currentRole?.fields.includes('ngoName') && (
-                        <div>
-                          <label className="block text-gray-700 mb-1">
-                            NGO Name
-                          </label>
-                          <input
-                            type="text"
-                            name="ngoName"
-                            value={formData.ngoName}
-                            onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080]"
-                            required
-                          />
-                        </div>
-                      )}
-
-                      {/* Login Method Toggle */}
-                      <div className="flex mb-4 border-b">
-                        <button
-                          type="button"
-                          className={`flex-1 py-2 font-medium text-sm ${
-                            loginMethod === 'email'
-                              ? 'text-[#008080] border-b-2 border-[#008080]'
-                              : 'text-gray-500 hover:text-gray-700'
-                          }`}
-                          onClick={() => setLoginMethod('email')}
-                        >
-                          Use Email
-                        </button>
-                        <button
-                          type="button"
-                          className={`flex-1 py-2 font-medium text-sm ${
-                            loginMethod === 'phone'
-                              ? 'text-[#008080] border-b-2 border-[#008080]'
-                              : 'text-gray-500 hover:text-gray-700'
-                          }`}
-                          onClick={() => setLoginMethod('phone')}
-                        >
-                          Use Phone
-                        </button>
-                      </div>
-
-                      {/* Email or Phone Input */}
-                      {loginMethod === 'email' ? (
-                        <div>
-                          <label className="block text-gray-700 mb-1">
-                            Email Address
-                          </label>
-                          <input
-                            type="email"
-                            name="email"
-                            placeholder="your@email.com"
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080]"
-                            onChange={handleChange}
-                            value={formData.email}
-                          />
-                          {errors.email && (
-                            <p className="text-red-500 text-sm mt-1">
-                              {errors.email}
-                            </p>
-                          )}
-                        </div>
-                      ) : (
-                        <div>
-                          <label className="block text-gray-700 mb-1">
-                            Phone Number
-                          </label>
-                          <div className="flex">
-                            <select
-                              name="countryCode"
-                              className="p-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-[#008080]"
-                              value={formData.countryCode}
-                              onChange={handleChange}
-                            >
-                              <option value="+251">🇪🇹 +251</option>
-                              <option value="+1">🇺🇸 +1</option>
-                              <option value="+44">🇬🇧 +44</option>
-                              <option value="+91">🇮🇳 +91</option>
-                            </select>
+                    {isRegisteringWithGoogle ? (
+                      <RegisterWithGoogle
+                        googleUser={googleUser}
+                        onCancel={() => setIsRegisteringWithGoogle(false)}
+                      />
+                    ) : (
+                      <form onSubmit={handleSubmit} className="space-y-4">
+                        {currentRole?.fields.includes('name') && (
+                          <div>
+                            <label className="block text-gray-700 mb-1">
+                              Full Name
+                            </label>
                             <input
-                              type="tel"
-                              name="phone"
-                              placeholder="1234567890"
-                              className="flex-1 p-3 border-t border-b border-r border-gray-300 rounded-r-lg focus:ring-2 focus:ring-[#008080]"
+                              type="text"
+                              name="name"
+                              value={formData.name}
                               onChange={handleChange}
-                              value={formData.phone}
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080]"
+                              required
+                            />
+                            {errors.name && (
+                              <p className="text-red-500 text-sm mt-1">
+                                {errors.name}
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        {currentRole?.fields.includes('organizationName') && (
+                          <div>
+                            <label className="block text-gray-700 mb-1">
+                              Organization Name
+                            </label>
+                            <input
+                              type="text"
+                              name="organizationName"
+                              value={formData.organizationName}
+                              onChange={handleChange}
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080]"
+                              required
                             />
                           </div>
-                          {errors.phone && (
+                        )}
+
+                        {currentRole?.fields.includes('ngoName') && (
+                          <div>
+                            <label className="block text-gray-700 mb-1">
+                              NGO Name
+                            </label>
+                            <input
+                              type="text"
+                              name="ngoName"
+                              value={formData.ngoName}
+                              onChange={handleChange}
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080]"
+                              required
+                            />
+                          </div>
+                        )}
+
+                        {/* Login Method Toggle */}
+                        <div className="flex mb-4 border-b">
+                          <button
+                            type="button"
+                            className={`flex-1 py-2 font-medium text-sm ${
+                              loginMethod === 'email'
+                                ? 'text-[#008080] border-b-2 border-[#008080]'
+                                : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                            onClick={() => setLoginMethod('email')}
+                          >
+                            Use Email
+                          </button>
+                          <button
+                            type="button"
+                            className={`flex-1 py-2 font-medium text-sm ${
+                              loginMethod === 'phone'
+                                ? 'text-[#008080] border-b-2 border-[#008080]'
+                                : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                            onClick={() => setLoginMethod('phone')}
+                          >
+                            Use Phone
+                          </button>
+                        </div>
+
+                        {/* Email or Phone Input */}
+                        {loginMethod === 'email' ? (
+                          <div>
+                            <label className="block text-gray-700 mb-1">
+                              Email Address
+                            </label>
+                            <input
+                              type="email"
+                              name="email"
+                              placeholder="your@email.com"
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080]"
+                              onChange={handleChange}
+                              value={formData.email}
+                            />
+                            {errors.email && (
+                              <p className="text-red-500 text-sm mt-1">
+                                {errors.email}
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <div>
+                            <label className="block text-gray-700 mb-1">
+                              Phone Number
+                            </label>
+                            <div className="flex">
+                              <select
+                                name="countryCode"
+                                className="p-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-[#008080]"
+                                value={formData.countryCode}
+                                onChange={handleChange}
+                              >
+                                <option value="+251">🇪🇹 +251</option>
+                                <option value="+1">🇺🇸 +1</option>
+                                <option value="+44">🇬🇧 +44</option>
+                                <option value="+91">🇮🇳 +91</option>
+                              </select>
+                              <input
+                                type="tel"
+                                name="phone"
+                                placeholder="1234567890"
+                                className="flex-1 p-3 border-t border-b border-r border-gray-300 rounded-r-lg focus:ring-2 focus:ring-[#008080]"
+                                onChange={handleChange}
+                                value={formData.phone}
+                              />
+                            </div>
+                            {errors.phone && (
+                              <p className="text-red-500 text-sm mt-1">
+                                {errors.phone}
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Password Field */}
+                        <div>
+                          <label className="block text-gray-700 mb-1">
+                            Password
+                          </label>
+                          <div className="relative">
+                            <input
+                              type={showPassword ? 'text' : 'password'}
+                              name="password"
+                              placeholder="••••••••"
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080] pr-10"
+                              onChange={handleChange}
+                              value={formData.password}
+                              required
+                            />
+                            <button
+                              type="button"
+                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                              onClick={() => setShowPassword(!showPassword)}
+                              aria-label={
+                                showPassword ? 'Hide password' : 'Show password'
+                              }
+                            >
+                              {showPassword ? (
+                                <EyeOff size={18} className="text-gray-400" />
+                              ) : (
+                                <Eye size={18} className="text-gray-400" />
+                              )}
+                            </button>
+                          </div>
+                          {errors.password && (
                             <p className="text-red-500 text-sm mt-1">
-                              {errors.phone}
+                              {errors.password}
                             </p>
                           )}
                         </div>
-                      )}
 
-                      {/* Password Field */}
-                      <div>
-                        <label className="block text-gray-700 mb-1">
-                          Password
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={showPassword ? 'text' : 'password'}
-                            name="password"
-                            placeholder="••••••••"
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080] pr-10"
-                            onChange={handleChange}
-                            value={formData.password}
-                            required
-                          />
-                          <button
-                            type="button"
-                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
-                            onClick={() => setShowPassword(!showPassword)}
-                            aria-label={
-                              showPassword ? 'Hide password' : 'Show password'
-                            }
-                          >
-                            {showPassword ? (
-                              <EyeOff size={18} className="text-gray-400" />
-                            ) : (
-                              <Eye size={18} className="text-gray-400" />
-                            )}
-                          </button>
+                        {/* Confirm Password Field */}
+                        <div>
+                          <label className="block text-gray-700 mb-1">
+                            Confirm Password
+                          </label>
+                          <div className="relative">
+                            <input
+                              type={showConfirmPassword ? 'text' : 'password'}
+                              name="confirmPassword"
+                              placeholder="••••••••"
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080] pr-10"
+                              onChange={handleChange}
+                              value={formData.confirmPassword}
+                              required
+                            />
+                            <button
+                              type="button"
+                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                              onClick={() =>
+                                setShowConfirmPassword(!showConfirmPassword)
+                              }
+                              aria-label={
+                                showConfirmPassword
+                                  ? 'Hide password'
+                                  : 'Show password'
+                              }
+                            >
+                              {showConfirmPassword ? (
+                                <EyeOff size={18} className="text-gray-400" />
+                              ) : (
+                                <Eye size={18} className="text-gray-400" />
+                              )}
+                            </button>
+                          </div>
+                          {errors.confirmPassword && (
+                            <p className="text-red-500 text-sm mt-1">
+                              {errors.confirmPassword}
+                            </p>
+                          )}
                         </div>
-                        {errors.password && (
+
+                        <div className="flex items-start mb-4">
+                          <div className="flex items-center h-5">
+                            <input
+                              id="terms"
+                              name="agreedToTerms"
+                              type="checkbox"
+                              checked={formData.agreedToTerms}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  agreedToTerms: e.target.checked,
+                                })
+                              }
+                              className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-[#008080]"
+                              required
+                            />
+                          </div>
+                          <label
+                            htmlFor="terms"
+                            className="ml-2 text-sm text-gray-600"
+                          >
+                            I agree to the{' '}
+                            <a
+                              href="/terms"
+                              className="text-[#008080] hover:underline"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Terms and Conditions
+                            </a>{' '}
+                            and{' '}
+                            <a
+                              href="/privacy"
+                              className="text-[#008080] hover:underline"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Privacy Policy
+                            </a>
+                          </label>
+                        </div>
+                        {errors.agreedToTerms && (
                           <p className="text-red-500 text-sm mt-1">
-                            {errors.password}
+                            {errors.agreedToTerms}
                           </p>
                         )}
-                      </div>
 
-                      {/* Confirm Password Field */}
-                      <div>
-                        <label className="block text-gray-700 mb-1">
-                          Confirm Password
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={showConfirmPassword ? 'text' : 'password'}
-                            name="confirmPassword"
-                            placeholder="••••••••"
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080] pr-10"
-                            onChange={handleChange}
-                            value={formData.confirmPassword}
-                            required
-                          />
-                          <button
-                            type="button"
-                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
-                            onClick={() =>
-                              setShowConfirmPassword(!showConfirmPassword)
-                            }
-                            aria-label={
-                              showConfirmPassword
-                                ? 'Hide password'
-                                : 'Show password'
-                            }
-                          >
-                            {showConfirmPassword ? (
-                              <EyeOff size={18} className="text-gray-400" />
-                            ) : (
-                              <Eye size={18} className="text-gray-400" />
-                            )}
-                          </button>
-                        </div>
-                        {errors.confirmPassword && (
-                          <p className="text-red-500 text-sm mt-1">
-                            {errors.confirmPassword}
-                          </p>
-                        )}
-                      </div>
-
-                      <motion.button
-                        type="submit"
-                        className="w-full bg-[#008080] text-white p-3 rounded-lg font-medium transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-[#008080] focus:ring-offset-2"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        Sign Up
-                      </motion.button>
-                    </form>
+                        <motion.button
+                          type="submit"
+                          className={`w-full bg-[#008080] text-white p-3 rounded-lg font-medium transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-[#008080] focus:ring-offset-2 ${
+                            !formData.agreedToTerms
+                              ? 'opacity-50 cursor-not-allowed'
+                              : ''
+                          }`}
+                          whileHover={
+                            formData.agreedToTerms ? { scale: 1.02 } : {}
+                          }
+                          whileTap={
+                            formData.agreedToTerms ? { scale: 0.98 } : {}
+                          }
+                          disabled={!formData.agreedToTerms || loading}
+                        >
+                          Sign Up
+                        </motion.button>
+                      </form>
+                    )}
 
                     <div className="mt-6 text-center">
                       <div className="relative mb-6">

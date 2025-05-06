@@ -3,6 +3,8 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "../../../src/assets/logosa.png";
+import GoogleTranslate from "../../context/GoogleTranslate";
+
 // public/;
 
 const Header = () => {
@@ -103,10 +105,7 @@ const Header = () => {
               whileHover={{ scale: 1.05 }}
               onClick={() => navigate("/")}
             >
-              <img src={logo} alt="Logo" className="h-14 w-auto" />
-              <span className="ml-2 text-yellow-400 font-bold text-xl">
-                DonatiLink
-              </span>
+              <img src={logo} alt="Logo" className="h-18 w-auto" />
             </motion.div>
 
             {/* Desktop Menu */}
@@ -164,7 +163,7 @@ const Header = () => {
                     animate={{ rotate: isOpen ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <ChevronDown size={16} className="ml-1" />
+                    {/* <ChevronDown size={16} className="ml-1" /> */}
                   </motion.div>
                 </motion.button>
 
@@ -178,7 +177,7 @@ const Header = () => {
                       className="absolute left-0 mt-2 w-56 bg-white text-black rounded-md shadow-xl z-50 overflow-hidden"
                     >
                       {[
-                        { to: "/signup", text: "Sign Up" },
+                        { to: "/register", text: "Sign Up" },
                         { to: "/donate", text: "Choose Items to Donate" },
                         { to: "/ngos", text: "Select an NGO" },
                         { to: "/impact", text: "Track Your Impact" },
@@ -208,7 +207,7 @@ const Header = () => {
               </div>
 
               {/* Donations Dropdown */}
-              <div className="relative" ref={donationsRef}>
+              {/* <div className="relative" ref={donationsRef}>
                 <motion.button
                   onClick={() => setIsDonationsOpen(!isDonationsOpen)}
                   className="flex items-center hover:text-yellow-400 transition"
@@ -259,7 +258,7 @@ const Header = () => {
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </div>
+              </div> */}
 
               {/* Contact Us */}
               <a
@@ -273,8 +272,11 @@ const Header = () => {
                   whileHover={{ scaleX: 1 }}
                 />
               </a>
+
+              <GoogleTranslate />
             </div>
 
+            {/* <GoogleTranslate /> */}
             {/* Add this right before the Register button */}
             <div className="hidden md:flex items-center space-x-4">
               <motion.button

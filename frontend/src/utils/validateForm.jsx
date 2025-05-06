@@ -42,6 +42,9 @@ const validateForm = (formData, selectedRole, setErrors) => {
   if (formData.password !== formData.confirmPassword) {
     newErrors.confirmPassword = 'Passwords do not match.';
   }
+  if (!formData.agreedToTerms) {
+    newErrors.agreedToTerms = 'You must accept the terms and conditions.';
+  }
 
   setErrors(newErrors);
   return Object.keys(newErrors).length === 0;

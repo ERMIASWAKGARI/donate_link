@@ -67,7 +67,7 @@ const Newsletter = () => {
             />
             <button
               type="submit"
-              className="bg-primary-button text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-600 transition"
+              className="bg-primary-button text-white px-6 py-3 rounded-lg font-semibold hover:bg-yellow-600 transition cursor-pointer"
               data-aos="zoom-in" // Zoom-in effect for the button
               data-aos-delay="200" // Delay for the button to appear after the input field
             >

@@ -1,5 +1,8 @@
-import { Modal, Spin } from 'antd';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import { Modal, Spin } from 'antd';
+
 import ErrorMessage from '../../components/ErrorMessage';
 import ProfileBasicInfo from '../../components/profile/ProfileBasicInfo';
 import { validateProfile } from '../../components/profile/ProfileDataValidator';
@@ -8,6 +11,7 @@ import api from '../../config/axiosConfig'; // Adjust the import path as necessa
 import AdminLayout from './AdminLayout';
 
 const ProfilePage = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
@@ -241,6 +245,27 @@ const ProfilePage = () => {
   return (
     <AdminLayout>
       <div className="relative min-h-screen">
+        <div className="container mx-auto px-4 pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center text-[#008080] hover:text-[#006666] transition-colors mb-2"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 mr-1"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Go Back
+          </button>
+        </div>
+
         {updateLoading && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-sm">
             <Spin size="large" />
