@@ -45,6 +45,7 @@ const EnhancedRegisterPage = () => {
     password: '',
     confirmPassword: '',
     role: '',
+    agreedToTerms: false,
   });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -550,11 +551,67 @@ const EnhancedRegisterPage = () => {
                           )}
                         </div>
 
+                        <div className="flex items-start mb-4">
+                          <div className="flex items-center h-5">
+                            <input
+                              id="terms"
+                              name="agreedToTerms"
+                              type="checkbox"
+                              checked={formData.agreedToTerms}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  agreedToTerms: e.target.checked,
+                                })
+                              }
+                              className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-[#008080]"
+                              required
+                            />
+                          </div>
+                          <label
+                            htmlFor="terms"
+                            className="ml-2 text-sm text-gray-600"
+                          >
+                            I agree to the{' '}
+                            <a
+                              href="/terms"
+                              className="text-[#008080] hover:underline"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Terms and Conditions
+                            </a>{' '}
+                            and{' '}
+                            <a
+                              href="/privacy"
+                              className="text-[#008080] hover:underline"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Privacy Policy
+                            </a>
+                          </label>
+                        </div>
+                        {errors.agreedToTerms && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {errors.agreedToTerms}
+                          </p>
+                        )}
+
                         <motion.button
                           type="submit"
-                          className="w-full bg-[#008080] text-white p-3 rounded-lg font-medium transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-[#008080] focus:ring-offset-2"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
+                          className={`w-full bg-[#008080] text-white p-3 rounded-lg font-medium transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-[#008080] focus:ring-offset-2 ${
+                            !formData.agreedToTerms
+                              ? 'opacity-50 cursor-not-allowed'
+                              : ''
+                          }`}
+                          whileHover={
+                            formData.agreedToTerms ? { scale: 1.02 } : {}
+                          }
+                          whileTap={
+                            formData.agreedToTerms ? { scale: 0.98 } : {}
+                          }
+                          disabled={!formData.agreedToTerms || loading}
                         >
                           Sign Up
                         </motion.button>
