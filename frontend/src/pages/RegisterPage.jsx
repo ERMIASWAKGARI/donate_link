@@ -1,54 +1,54 @@
 /* eslint-disable no-unused-vars */
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-// import { useLocation } from "react-router-dom";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import { Spin } from "antd";
-import { AnimatePresence, motion } from "framer-motion";
-import { Eye, EyeOff, X } from "lucide-react";
+import { Spin } from 'antd';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Eye, EyeOff, X } from 'lucide-react';
 import {
   FaBuilding,
   FaHandsHelping,
   FaInfoCircle,
   FaUser,
   FaUsers,
-} from "react-icons/fa";
-import GoogleAuth from "../components/GoogleAuth";
-import RegisterWithGoogle from "../components/RegisterWithGoogle";
-import Header from "../components/common/Header";
-import validateForm from "../utils/validateForm";
+} from 'react-icons/fa';
+import GoogleAuth from '../components/GoogleAuth';
+import RegisterWithGoogle from '../components/RegisterWithGoogle';
+import Header from '../components/common/Header';
+import validateForm from '../utils/validateForm';
 
-import ErrorMessage from "../components/ErrorMessage";
-import SuccessMessage from "../components/SuccessMessage";
+import ErrorMessage from '../components/ErrorMessage';
+import SuccessMessage from '../components/SuccessMessage';
 
 // Card images
 const cardImages = {
   individual_donor:
-    "https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=2071&q=80",
+    'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=2071&q=80',
   organization_donor:
-    "https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
+    'https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
   volunteer:
-    "https://images.unsplash.com/photo-1521791055366-0d553872125f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2069&q=80",
-  ngo: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
+    'https://images.unsplash.com/photo-1521791055366-0d553872125f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2069&q=80',
+  ngo: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
 };
 
 const EnhancedRegisterPage = () => {
   const navigate = useNavigate();
-  const [selectedRole, setSelectedRole] = useState("");
-  const [loginMethod, setLoginMethod] = useState("email"); // 'email' or 'phone'
+  const [selectedRole, setSelectedRole] = useState('');
+  const [loginMethod, setLoginMethod] = useState('email'); // 'email' or 'phone'
   const [formData, setFormData] = useState({
-    name: "",
-    organizationName: "",
-    ngoName: "",
-    email: "",
-    phone: "",
-    countryCode: "+251",
-    password: "",
-    confirmPassword: "",
-    role: "",
+    name: '',
+    organizationName: '',
+    ngoName: '',
+    email: '',
+    phone: '',
+    countryCode: '+251',
+    password: '',
+    confirmPassword: '',
+    role: '',
+    agreedToTerms: false,
   });
   const [errors, setErrors] = useState({});
-  const [message, setMessage] = useState({ type: "", text: "" });
+  const [message, setMessage] = useState({ type: '', text: '' });
   const [googleUser, setGoogleUser] = useState(null);
   const [isRegisteringWithGoogle, setIsRegisteringWithGoogle] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -57,46 +57,46 @@ const EnhancedRegisterPage = () => {
 
   const roles = [
     {
-      id: "individual_donor",
-      title: "Individual Donor",
+      id: 'individual_donor',
+      title: 'Individual Donor',
       icon: <FaUser className="text-xl" />,
-      color: "bg-gray-100",
-      highlight: "hover:shadow-gray-200",
-      description: "Make personal donations to causes you care about",
-      fields: ["name", "email", "phone", "password", "confirmPassword"],
+      color: 'bg-gray-100',
+      highlight: 'hover:shadow-gray-200',
+      description: 'Make personal donations to causes you care about',
+      fields: ['name', 'email', 'phone', 'password', 'confirmPassword'],
     },
     {
-      id: "organization_donor",
-      title: "Organization Donor",
+      id: 'organization_donor',
+      title: 'Organization Donor',
       icon: <FaBuilding className="text-xl" />,
-      color: "bg-gray-100",
-      highlight: "hover:shadow-gray-200",
-      description: "Corporate giving & social responsibility programs",
+      color: 'bg-gray-100',
+      highlight: 'hover:shadow-gray-200',
+      description: 'Corporate giving & social responsibility programs',
       fields: [
-        "organizationName",
-        "email",
-        "phone",
-        "password",
-        "confirmPassword",
+        'organizationName',
+        'email',
+        'phone',
+        'password',
+        'confirmPassword',
       ],
     },
     {
-      id: "volunteer",
-      title: "Volunteer",
+      id: 'volunteer',
+      title: 'Volunteer',
       icon: <FaHandsHelping className="text-xl" />,
-      color: "bg-gray-100",
-      highlight: "hover:shadow-gray-200",
-      description: "Donate your time and skills to make a difference",
-      fields: ["name", "email", "phone", "password", "confirmPassword"],
+      color: 'bg-gray-100',
+      highlight: 'hover:shadow-gray-200',
+      description: 'Donate your time and skills to make a difference',
+      fields: ['name', 'email', 'phone', 'password', 'confirmPassword'],
     },
     {
-      id: "ngo",
-      title: "NGO Partner",
+      id: 'ngo',
+      title: 'NGO Partner',
       icon: <FaUsers className="text-xl" />,
-      color: "bg-gray-100",
-      highlight: "hover:shadow-gray-200",
-      description: "Register your nonprofit to receive support",
-      fields: ["ngoName", "email", "phone", "password", "confirmPassword"],
+      color: 'bg-gray-100',
+      highlight: 'hover:shadow-gray-200',
+      description: 'Register your nonprofit to receive support',
+      fields: ['ngoName', 'email', 'phone', 'password', 'confirmPassword'],
     },
   ];
 
@@ -110,41 +110,32 @@ const EnhancedRegisterPage = () => {
   };
 
   const handleRoleChange = () => {
-    setSelectedRole("");
+    setSelectedRole('');
     setFormData({
-      name: "",
-      organizationName: "",
-      ngoName: "",
-      email: "",
-      phone: "",
-      countryCode: "+251",
-      password: "",
-      confirmPassword: "",
-      role: "",
+      name: '',
+      organizationName: '',
+      ngoName: '',
+      email: '',
+      phone: '',
+      countryCode: '+251',
+      password: '',
+      confirmPassword: '',
+      role: '',
     });
   };
-
-  // const location = useLocation();
-
-  // // Add this useEffect to auto-select volunteer role if coming from specific navigation
-  // useEffect(() => {
-  //   if (location.state?.autoSelectRole === "volunteer" && !selectedRole) {
-  //     setSelectedRole("volunteer");
-  //   }
-  // }, [location.state, selectedRole]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     // Validate that either email or phone is provided
-    if (loginMethod === "email" && !formData.email) {
-      setErrors({ ...errors, email: "Please enter your email" });
+    if (loginMethod === 'email' && !formData.email) {
+      setErrors({ ...errors, email: 'Please enter your email' });
       setLoading(false);
       return;
     }
-    if (loginMethod === "phone" && !formData.phone) {
-      setErrors({ ...errors, phone: "Please enter your phone number" });
+    if (loginMethod === 'phone' && !formData.phone) {
+      setErrors({ ...errors, phone: 'Please enter your phone number' });
       setLoading(false);
       return;
     }
@@ -160,59 +151,59 @@ const EnhancedRegisterPage = () => {
     };
 
     // Only include the selected method
-    if (loginMethod === "email") {
+    if (loginMethod === 'email') {
       filteredData.email = formData.email;
     } else {
       filteredData.phone = `${formData.countryCode}${formData.phone}`;
     }
 
-    if (selectedRole === "individual_donor" || selectedRole === "volunteer") {
+    if (selectedRole === 'individual_donor' || selectedRole === 'volunteer') {
       filteredData.name = formData.name;
-    } else if (selectedRole === "organization_donor") {
+    } else if (selectedRole === 'organization_donor') {
       filteredData.name = formData.organizationName;
-    } else if (selectedRole === "ngo") {
+    } else if (selectedRole === 'ngo') {
       filteredData.name = formData.ngoName;
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/users/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('http://localhost:5000/api/users/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(filteredData),
       });
 
       const data = await response.json();
 
-      if (data.status === "success") {
+      if (data.status === 'success') {
         setMessage({
-          type: "success",
+          type: 'success',
           text: `Registration successful! Please verify your ${data.data.verificationType}.`,
         });
 
         setLoading(false);
 
         setTimeout(() => {
-          setMessage({ type: "", text: "" });
-          if (data.data.verificationType === "email") {
+          setMessage({ type: '', text: '' });
+          if (data.data.verificationType === 'email') {
             navigate(`/verify-email?email=${data.data.email}`);
-          } else if (data.data.verificationType === "phone") {
+          } else if (data.data.verificationType === 'phone') {
             navigate(`/verify-otp?phone=${data.data.phone}`);
           }
         }, 3000);
       } else {
         setMessage({
-          type: "error",
+          type: 'error',
           text: `Registration Failed: ${data.message}`,
         });
         setLoading(false);
-        setTimeout(() => setMessage({ type: "", text: "" }), 3000);
+        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
       }
     } catch (error) {
       setMessage({
-        type: "error",
-        text: "An error occurred. Please try again.",
+        type: 'error',
+        text: 'An error occurred. Please try again.',
       });
-      setTimeout(() => setMessage({ type: "", text: "" }), 3000);
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     } finally {
       setLoading(false);
     }
@@ -330,239 +321,302 @@ const EnhancedRegisterPage = () => {
                         <Spin size="large" />
                       </div>
                     )}
-                    {message.type === "success" && (
+                    {message.type === 'success' && (
                       <SuccessMessage message={message.text} className="mb-4" />
                     )}
-                    {message.type === "error" && (
+                    {message.type === 'error' && (
                       <ErrorMessage error={message.text} className="mb-4" />
                     )}
-                    {message.type === "info" && (
+                    {message.type === 'info' && (
                       <div className="mb-4 p-3 bg-blue-50 text-blue-700 rounded-md border border-blue-100">
                         {message.text}
                       </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                      {currentRole?.fields.includes("name") && (
-                        <div>
-                          <label className="block text-gray-700 mb-1">
-                            Full Name
-                          </label>
-                          <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080]"
-                            required
-                          />
-                          {errors.name && (
-                            <p className="text-red-500 text-sm mt-1">
-                              {errors.name}
-                            </p>
-                          )}
-                        </div>
-                      )}
-
-                      {currentRole?.fields.includes("organizationName") && (
-                        <div>
-                          <label className="block text-gray-700 mb-1">
-                            Organization Name
-                          </label>
-                          <input
-                            type="text"
-                            name="organizationName"
-                            value={formData.organizationName}
-                            onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080]"
-                            required
-                          />
-                        </div>
-                      )}
-
-                      {currentRole?.fields.includes("ngoName") && (
-                        <div>
-                          <label className="block text-gray-700 mb-1">
-                            NGO Name
-                          </label>
-                          <input
-                            type="text"
-                            name="ngoName"
-                            value={formData.ngoName}
-                            onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080]"
-                            required
-                          />
-                        </div>
-                      )}
-
-                      {/* Login Method Toggle */}
-                      <div className="flex mb-4 border-b">
-                        <button
-                          type="button"
-                          className={`flex-1 py-2 font-medium text-sm ${
-                            loginMethod === "email"
-                              ? "text-[#008080] border-b-2 border-[#008080]"
-                              : "text-gray-500 hover:text-gray-700"
-                          }`}
-                          onClick={() => setLoginMethod("email")}
-                        >
-                          Use Email
-                        </button>
-                        <button
-                          type="button"
-                          className={`flex-1 py-2 font-medium text-sm ${
-                            loginMethod === "phone"
-                              ? "text-[#008080] border-b-2 border-[#008080]"
-                              : "text-gray-500 hover:text-gray-700"
-                          }`}
-                          onClick={() => setLoginMethod("phone")}
-                        >
-                          Use Phone
-                        </button>
-                      </div>
-
-                      {/* Email or Phone Input */}
-                      {loginMethod === "email" ? (
-                        <div>
-                          <label className="block text-gray-700 mb-1">
-                            Email Address
-                          </label>
-                          <input
-                            type="email"
-                            name="email"
-                            placeholder="your@email.com"
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080]"
-                            onChange={handleChange}
-                            value={formData.email}
-                          />
-                          {errors.email && (
-                            <p className="text-red-500 text-sm mt-1">
-                              {errors.email}
-                            </p>
-                          )}
-                        </div>
-                      ) : (
-                        <div>
-                          <label className="block text-gray-700 mb-1">
-                            Phone Number
-                          </label>
-                          <div className="flex">
-                            <select
-                              name="countryCode"
-                              className="p-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-[#008080]"
-                              value={formData.countryCode}
-                              onChange={handleChange}
-                            >
-                              <option value="+251">🇪🇹 +251</option>
-                              <option value="+1">🇺🇸 +1</option>
-                              <option value="+44">🇬🇧 +44</option>
-                              <option value="+91">🇮🇳 +91</option>
-                            </select>
+                    {isRegisteringWithGoogle ? (
+                      <RegisterWithGoogle
+                        googleUser={googleUser}
+                        onCancel={() => setIsRegisteringWithGoogle(false)}
+                      />
+                    ) : (
+                      <form onSubmit={handleSubmit} className="space-y-4">
+                        {currentRole?.fields.includes('name') && (
+                          <div>
+                            <label className="block text-gray-700 mb-1">
+                              Full Name
+                            </label>
                             <input
-                              type="tel"
-                              name="phone"
-                              placeholder="1234567890"
-                              className="flex-1 p-3 border-t border-b border-r border-gray-300 rounded-r-lg focus:ring-2 focus:ring-[#008080]"
+                              type="text"
+                              name="name"
+                              value={formData.name}
                               onChange={handleChange}
-                              value={formData.phone}
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080]"
+                              required
+                            />
+                            {errors.name && (
+                              <p className="text-red-500 text-sm mt-1">
+                                {errors.name}
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        {currentRole?.fields.includes('organizationName') && (
+                          <div>
+                            <label className="block text-gray-700 mb-1">
+                              Organization Name
+                            </label>
+                            <input
+                              type="text"
+                              name="organizationName"
+                              value={formData.organizationName}
+                              onChange={handleChange}
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080]"
+                              required
                             />
                           </div>
-                          {errors.phone && (
+                        )}
+
+                        {currentRole?.fields.includes('ngoName') && (
+                          <div>
+                            <label className="block text-gray-700 mb-1">
+                              NGO Name
+                            </label>
+                            <input
+                              type="text"
+                              name="ngoName"
+                              value={formData.ngoName}
+                              onChange={handleChange}
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080]"
+                              required
+                            />
+                          </div>
+                        )}
+
+                        {/* Login Method Toggle */}
+                        <div className="flex mb-4 border-b">
+                          <button
+                            type="button"
+                            className={`flex-1 py-2 font-medium text-sm ${
+                              loginMethod === 'email'
+                                ? 'text-[#008080] border-b-2 border-[#008080]'
+                                : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                            onClick={() => setLoginMethod('email')}
+                          >
+                            Use Email
+                          </button>
+                          <button
+                            type="button"
+                            className={`flex-1 py-2 font-medium text-sm ${
+                              loginMethod === 'phone'
+                                ? 'text-[#008080] border-b-2 border-[#008080]'
+                                : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                            onClick={() => setLoginMethod('phone')}
+                          >
+                            Use Phone
+                          </button>
+                        </div>
+
+                        {/* Email or Phone Input */}
+                        {loginMethod === 'email' ? (
+                          <div>
+                            <label className="block text-gray-700 mb-1">
+                              Email Address
+                            </label>
+                            <input
+                              type="email"
+                              name="email"
+                              placeholder="your@email.com"
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080]"
+                              onChange={handleChange}
+                              value={formData.email}
+                            />
+                            {errors.email && (
+                              <p className="text-red-500 text-sm mt-1">
+                                {errors.email}
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <div>
+                            <label className="block text-gray-700 mb-1">
+                              Phone Number
+                            </label>
+                            <div className="flex">
+                              <select
+                                name="countryCode"
+                                className="p-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-[#008080]"
+                                value={formData.countryCode}
+                                onChange={handleChange}
+                              >
+                                <option value="+251">🇪🇹 +251</option>
+                                <option value="+1">🇺🇸 +1</option>
+                                <option value="+44">🇬🇧 +44</option>
+                                <option value="+91">🇮🇳 +91</option>
+                              </select>
+                              <input
+                                type="tel"
+                                name="phone"
+                                placeholder="1234567890"
+                                className="flex-1 p-3 border-t border-b border-r border-gray-300 rounded-r-lg focus:ring-2 focus:ring-[#008080]"
+                                onChange={handleChange}
+                                value={formData.phone}
+                              />
+                            </div>
+                            {errors.phone && (
+                              <p className="text-red-500 text-sm mt-1">
+                                {errors.phone}
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Password Field */}
+                        <div>
+                          <label className="block text-gray-700 mb-1">
+                            Password
+                          </label>
+                          <div className="relative">
+                            <input
+                              type={showPassword ? 'text' : 'password'}
+                              name="password"
+                              placeholder="••••••••"
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080] pr-10"
+                              onChange={handleChange}
+                              value={formData.password}
+                              required
+                            />
+                            <button
+                              type="button"
+                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                              onClick={() => setShowPassword(!showPassword)}
+                              aria-label={
+                                showPassword ? 'Hide password' : 'Show password'
+                              }
+                            >
+                              {showPassword ? (
+                                <EyeOff size={18} className="text-gray-400" />
+                              ) : (
+                                <Eye size={18} className="text-gray-400" />
+                              )}
+                            </button>
+                          </div>
+                          {errors.password && (
                             <p className="text-red-500 text-sm mt-1">
-                              {errors.phone}
+                              {errors.password}
                             </p>
                           )}
                         </div>
-                      )}
 
-                      {/* Password Field */}
-                      <div>
-                        <label className="block text-gray-700 mb-1">
-                          Password
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={showPassword ? "text" : "password"}
-                            name="password"
-                            placeholder="••••••••"
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080] pr-10"
-                            onChange={handleChange}
-                            value={formData.password}
-                            required
-                          />
-                          <button
-                            type="button"
-                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
-                            onClick={() => setShowPassword(!showPassword)}
-                            aria-label={
-                              showPassword ? "Hide password" : "Show password"
-                            }
-                          >
-                            {showPassword ? (
-                              <EyeOff size={18} className="text-gray-400" />
-                            ) : (
-                              <Eye size={18} className="text-gray-400" />
-                            )}
-                          </button>
+                        {/* Confirm Password Field */}
+                        <div>
+                          <label className="block text-gray-700 mb-1">
+                            Confirm Password
+                          </label>
+                          <div className="relative">
+                            <input
+                              type={showConfirmPassword ? 'text' : 'password'}
+                              name="confirmPassword"
+                              placeholder="••••••••"
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080] pr-10"
+                              onChange={handleChange}
+                              value={formData.confirmPassword}
+                              required
+                            />
+                            <button
+                              type="button"
+                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                              onClick={() =>
+                                setShowConfirmPassword(!showConfirmPassword)
+                              }
+                              aria-label={
+                                showConfirmPassword
+                                  ? 'Hide password'
+                                  : 'Show password'
+                              }
+                            >
+                              {showConfirmPassword ? (
+                                <EyeOff size={18} className="text-gray-400" />
+                              ) : (
+                                <Eye size={18} className="text-gray-400" />
+                              )}
+                            </button>
+                          </div>
+                          {errors.confirmPassword && (
+                            <p className="text-red-500 text-sm mt-1">
+                              {errors.confirmPassword}
+                            </p>
+                          )}
                         </div>
-                        {errors.password && (
+
+                        <div className="flex items-start mb-4">
+                          <div className="flex items-center h-5">
+                            <input
+                              id="terms"
+                              name="agreedToTerms"
+                              type="checkbox"
+                              checked={formData.agreedToTerms}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  agreedToTerms: e.target.checked,
+                                })
+                              }
+                              className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-[#008080]"
+                              required
+                            />
+                          </div>
+                          <label
+                            htmlFor="terms"
+                            className="ml-2 text-sm text-gray-600"
+                          >
+                            I agree to the{' '}
+                            <a
+                              href="/terms"
+                              className="text-[#008080] hover:underline"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Terms and Conditions
+                            </a>{' '}
+                            and{' '}
+                            <a
+                              href="/privacy"
+                              className="text-[#008080] hover:underline"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Privacy Policy
+                            </a>
+                          </label>
+                        </div>
+                        {errors.agreedToTerms && (
                           <p className="text-red-500 text-sm mt-1">
-                            {errors.password}
+                            {errors.agreedToTerms}
                           </p>
                         )}
-                      </div>
 
-                      {/* Confirm Password Field */}
-                      <div>
-                        <label className="block text-gray-700 mb-1">
-                          Confirm Password
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={showConfirmPassword ? "text" : "password"}
-                            name="confirmPassword"
-                            placeholder="••••••••"
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#008080] pr-10"
-                            onChange={handleChange}
-                            value={formData.confirmPassword}
-                            required
-                          />
-                          <button
-                            type="button"
-                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
-                            onClick={() =>
-                              setShowConfirmPassword(!showConfirmPassword)
-                            }
-                            aria-label={
-                              showConfirmPassword
-                                ? "Hide password"
-                                : "Show password"
-                            }
-                          >
-                            {showConfirmPassword ? (
-                              <EyeOff size={18} className="text-gray-400" />
-                            ) : (
-                              <Eye size={18} className="text-gray-400" />
-                            )}
-                          </button>
-                        </div>
-                        {errors.confirmPassword && (
-                          <p className="text-red-500 text-sm mt-1">
-                            {errors.confirmPassword}
-                          </p>
-                        )}
-                      </div>
-
-                      <motion.button
-                        type="submit"
-                        className="w-full bg-[#008080] text-white p-3 rounded-lg font-medium transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-[#008080] focus:ring-offset-2"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        Sign Up
-                      </motion.button>
-                    </form>
+                        <motion.button
+                          type="submit"
+                          className={`w-full bg-[#008080] text-white p-3 rounded-lg font-medium transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-[#008080] focus:ring-offset-2 ${
+                            !formData.agreedToTerms
+                              ? 'opacity-50 cursor-not-allowed'
+                              : ''
+                          }`}
+                          whileHover={
+                            formData.agreedToTerms ? { scale: 1.02 } : {}
+                          }
+                          whileTap={
+                            formData.agreedToTerms ? { scale: 0.98 } : {}
+                          }
+                          disabled={!formData.agreedToTerms || loading}
+                        >
+                          Sign Up
+                        </motion.button>
+                      </form>
+                    )}
 
                     <div className="mt-6 text-center">
                       <div className="relative mb-6">
@@ -590,7 +644,7 @@ const EnhancedRegisterPage = () => {
 
                     <div className="text-center mt-6 text-gray-600">
                       <p className="text-sm">
-                        Already have an account?{" "}
+                        Already have an account?{' '}
                         <a
                           href="/login"
                           className="text-[#008080] hover:underline font-medium"

@@ -80,7 +80,9 @@ export const SuccessMessage = ({
             )}
           </div>
           <div className="mt-2 text-sm text-green-700">
-            <p>{getSuccessMessage()}</p>
+            <p className=" flex flex-col justify-start">
+              {getSuccessMessage()}
+            </p>
             {updatedFields.length > 0 && (
               <p className="mt-1 text-xs text-green-600">
                 Updated: {updatedFields.join(', ')}
