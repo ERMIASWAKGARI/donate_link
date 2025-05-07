@@ -15,6 +15,7 @@ import {
   User,
   Users,
   Award,
+  Shield,
 } from 'lucide-react';
 
 // Named export for icons
@@ -33,8 +34,9 @@ export const icons = {
   FileText: FileText,
   Users: Users,
   Star: Star,
-  MessageSquare,
+  MessageSquare: MessageSquare,
   Award: Award,
+  Shield: Shield,
 };
 
 // Named export for headerLinks
@@ -43,6 +45,8 @@ export const headerLinks = {
     { to: '/profile', text: 'My Profile', icon: 'User' },
     { to: '/history', text: 'Donation History', icon: 'History' },
     { to: '/account/settings', text: 'Account Settings', icon: 'Settings' },
+    { to: '/terms-of-service', text: 'Terms of Service', icon: 'FileText' },
+    { to: '/privacy-policy', text: 'Privacy Policy', icon: 'Shield' },
   ],
   individual_donor: [
     { to: '/certificates', text: 'My Certificates', icon: 'Award' },

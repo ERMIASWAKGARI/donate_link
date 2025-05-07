@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import NotificationBell from '../../../components/NotificationBell';
 import { useUser } from '../../../context/UserContext';
 
+import { icons } from '../../../components/header/HeaderConfig';
+
 const TopNav = () => {
   const navigate = useNavigate();
   const { user, logout } = useUser();
@@ -26,20 +28,22 @@ const TopNav = () => {
         <NotificationBell />
 
         {/* Spacer */}
-        <div className="ml-4 relative hover:bg-yellow-500 rounded-md">
+        <div className="ml-4 relative rounded-md">
           <button
             className="flex items-center space-x-2 p-2  rounded-full transition"
             onClick={toggleDropdown}
           >
-            <img
-              src={
-                user?.profilePicture
-                  ? `http://localhost:5000/uploads/${user.profilePicture}`
-                  : '/default-avatar.png'
-              }
-              alt="Admin"
-              className="w-8 h-8 rounded-full object-cover"
-            />
+            <div className="w-10 h-10 rounded-full bg-yellow-400 overflow-hidden flex items-center justify-center">
+              {user.profilePicture ? (
+                <img
+                  src={`http://localhost:5000/uploads/${user.profilePicture}`}
+                  alt="User"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <icons.User className="text-[#008080]" size={20} />
+              )}
+            </div>
             <span className="text-sm font-medium text-white   ">
               {user?.name || 'Admin'}
             </span>

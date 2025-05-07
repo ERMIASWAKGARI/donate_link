@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import PropTypes from "prop-types";
-import { useChat } from "../context/ChatContext";
-import { useUser } from "../context/UserContext";
+import { useState, useEffect, useRef, useCallback } from 'react';
+import PropTypes from 'prop-types';
+import { useChat } from '../context/ChatContext';
+import { useUser } from '../context/UserContext';
 import {
   FiSend,
   FiX,
@@ -9,9 +9,9 @@ import {
   FiSearch,
   FiMessageSquare,
   FiChevronLeft,
-} from "react-icons/fi";
-import EmojiPicker from "emoji-picker-react";
-import { motion } from "framer-motion";
+} from 'react-icons/fi';
+import EmojiPicker from 'emoji-picker-react';
+import { motion } from 'framer-motion';
 
 const ChatModal = ({ onClose, showChatModal }) => {
   const {
@@ -27,9 +27,9 @@ const ChatModal = ({ onClose, showChatModal }) => {
   } = useChat();
 
   const { user } = useUser();
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
   const [isVisible, setIsVisible] = useState(false);
   const messagesEndRef = useRef(null);
@@ -37,7 +37,7 @@ const ChatModal = ({ onClose, showChatModal }) => {
   const [isSending, setIsSending] = useState(false);
 
   const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
   const handleResize = useCallback(() => {
@@ -57,7 +57,7 @@ const ChatModal = ({ onClose, showChatModal }) => {
         if (isMounted) {
           if (loadedConversations?.length > 0 && !activeConversation) {
             console.log(
-              "Setting initial conversation:",
+              'Setting initial conversation:',
               loadedConversations[0]
             );
             setActiveConversation(loadedConversations[0]);
@@ -69,7 +69,7 @@ const ChatModal = ({ onClose, showChatModal }) => {
           }
         }
       } catch (error) {
-        console.error("Chat initialization failed:", error);
+        console.error('Chat initialization failed:', error);
       }
     };
 
@@ -91,7 +91,7 @@ const ChatModal = ({ onClose, showChatModal }) => {
         await fetchMessages(activeConversation._id);
         scrollToBottom();
       } catch (error) {
-        console.error("Failed to load messages:", error);
+        console.error('Failed to load messages:', error);
       }
     };
 
@@ -116,7 +116,7 @@ const ChatModal = ({ onClose, showChatModal }) => {
             await fetchConversations(); // Refresh conversations to update unread count
           }
         } catch (error) {
-          console.error("Error marking messages as read:", error);
+          console.error('Error marking messages as read:', error);
         }
       };
 
@@ -137,8 +137,8 @@ const ChatModal = ({ onClose, showChatModal }) => {
 
   // Window resize handler
   useEffect(() => {
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [handleResize]);
 
   // Modal visibility and outside click handler
@@ -152,10 +152,10 @@ const ChatModal = ({ onClose, showChatModal }) => {
     };
 
     if (showChatModal) {
-      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener('mousedown', handleClickOutside);
     }
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showChatModal, onClose]);
 
@@ -167,11 +167,11 @@ const ChatModal = ({ onClose, showChatModal }) => {
     try {
       const result = await sendMessage(activeConversation._id, message);
 
-      setMessage(""); // Clear the input
-      console.log("Message clearly successfully:", result);
+      setMessage(''); // Clear the input
+      console.log('Message clearly successfully:', result);
       setShowEmojiPicker(false);
     } catch (error) {
-      console.error("Send failed:", error.message);
+      console.error('Send failed:', error.message);
       // Optionally show error to user
       // toast.error(error.message);
     } finally {
@@ -179,7 +179,7 @@ const ChatModal = ({ onClose, showChatModal }) => {
     }
   };
   const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
@@ -199,14 +199,14 @@ const ChatModal = ({ onClose, showChatModal }) => {
   const handleConversationClick = (conversation) => {
     setActiveConversation(conversation);
     if (isMobileView) {
-      document.getElementById("conversation-list").classList.add("hidden");
-      document.getElementById("chat-area").classList.remove("hidden");
+      document.getElementById('conversation-list').classList.add('hidden');
+      document.getElementById('chat-area').classList.remove('hidden');
     }
   };
 
   const handleBackToConversations = () => {
-    document.getElementById("conversation-list").classList.remove("hidden");
-    document.getElementById("chat-area").classList.add("hidden");
+    document.getElementById('conversation-list').classList.remove('hidden');
+    document.getElementById('chat-area').classList.add('hidden');
   };
 
   return (
@@ -217,7 +217,7 @@ const ChatModal = ({ onClose, showChatModal }) => {
       exit={{ y: 20, opacity: 0 }}
       transition={{ duration: 0.2 }}
       className={`relative bg-white z-[100] h-[80vh] flex flex-col transition-all duration-300 ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
       }`}
     >
       <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white p-4 rounded-t-lg flex justify-between items-center">
@@ -235,7 +235,7 @@ const ChatModal = ({ onClose, showChatModal }) => {
         <div
           id="conversation-list"
           className={`w-full md:w-1/3 border-r border-gray-200 flex flex-col ${
-            isMobileView && activeConversation ? "hidden" : ""
+            isMobileView && activeConversation ? 'hidden' : ''
           }`}
         >
           <div className="p-3 border-b border-gray-200 relative">
@@ -273,19 +273,23 @@ const ChatModal = ({ onClose, showChatModal }) => {
                   <div
                     key={conv._id}
                     className={`p-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
-                      activeConversation?._id === conv._id ? "bg-teal-50" : ""
+                      activeConversation?._id === conv._id ? 'bg-teal-50' : ''
                     }`}
                     onClick={() => handleConversationClick(conv)}
                   >
                     <div className="flex items-center">
                       <div className="relative">
                         <img
-                          src={`http://localhost:5000/uploads/${otherParticipant?.profilePicture.replace(
+                          src={`http://localhost:5000/uploads/${otherParticipant?.profilePicture?.replace(
                             /\\/g,
-                            "/"
+                            '/'
                           )}`}
-                          alt={otherParticipant?.name}
+                          alt={otherParticipant?.name || 'User'}
                           className="w-10 h-10 rounded-full object-cover"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = '/path/to/default/avatar.png';
+                          }}
                         />
                         {unreadMessages && (
                           <div className="absolute top-0 right-0 w-3 h-3 bg-teal-500 rounded-full border-2 border-white"></div>
@@ -298,7 +302,7 @@ const ChatModal = ({ onClose, showChatModal }) => {
                           </h3>
                         </div>
                         <p className="text-xs text-gray-500 truncate">
-                          {conv.lastMessage?.content || "No messages yet"}
+                          {conv.lastMessage?.content || 'No messages yet'}
                         </p>
                       </div>
                     </div>
@@ -317,7 +321,7 @@ const ChatModal = ({ onClose, showChatModal }) => {
         <div
           id="chat-area"
           className={`flex-1 flex flex-col ${
-            isMobileView && !activeConversation ? "hidden" : ""
+            isMobileView && !activeConversation ? 'hidden' : ''
           }`}
         >
           {activeConversation ? (
@@ -339,8 +343,8 @@ const ChatModal = ({ onClose, showChatModal }) => {
                       )?.profilePicture
                         ? `http://localhost:5000/uploads/${activeConversation.participants
                             .find((p) => p._id !== user._id)
-                            .profilePicture.replace(/\\/g, "/")}`
-                        : "/default-avatar.png"
+                            .profilePicture.replace(/\\/g, '/')}`
+                        : '/default-avatar.png'
                     }
                     alt="Profile"
                     className="w-8 h-8 rounded-full object-cover"
@@ -357,9 +361,9 @@ const ChatModal = ({ onClose, showChatModal }) => {
                     <p className="text-xs text-gray-500">
                       {activeConversation.participants.find(
                         (p) => p._id !== user._id
-                      )?.role === "ngo"
-                        ? "NGO"
-                        : "Volunteer"}
+                      )?.role === 'ngo'
+                        ? 'NGO'
+                        : 'Volunteer'}
                     </p>
                   </div>
                 </div>
@@ -376,8 +380,8 @@ const ChatModal = ({ onClose, showChatModal }) => {
                         key={msg._id}
                         className={`mb-4 flex ${
                           msg.sender._id === user._id
-                            ? "justify-end"
-                            : "justify-start"
+                            ? 'justify-end'
+                            : 'justify-start'
                         }`}
                       >
                         <motion.div
@@ -385,8 +389,8 @@ const ChatModal = ({ onClose, showChatModal }) => {
                           animate={{ opacity: 1, y: 0 }}
                           className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
                             msg.sender._id === user._id
-                              ? "bg-teal-100 text-black"
-                              : "bg-white text-gray-800 border border-gray-200"
+                              ? 'bg-teal-100 text-black'
+                              : 'bg-white text-gray-800 border border-gray-200'
                           }`}
                         >
                           <p className="break-words">{msg.content}</p>
@@ -394,13 +398,13 @@ const ChatModal = ({ onClose, showChatModal }) => {
                             <span
                               className={`text-xs ${
                                 msg.sender._id === user._id
-                                  ? "text-teal-100"
-                                  : "text-gray-500"
+                                  ? 'text-teal-100'
+                                  : 'text-gray-500'
                               }`}
                             >
                               {new Date(msg.createdAt).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
+                                hour: '2-digit',
+                                minute: '2-digit',
                               })}
                             </span>
                             {msg.sender._id === user._id && (
