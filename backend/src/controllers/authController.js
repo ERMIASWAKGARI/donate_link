@@ -137,14 +137,16 @@ const resendVerificationEmail = asyncWrapper(async (req, res) => {
 
   console.log(req.body);
   // Check if the user exists
-  const user = await User.findOne({ email });
+  const user = await User.findOne({
+    $or: [{ email: email }, { newEmail: email }],
+  });
 
   if (!user) {
     throw new AppError('User not found. Register first.', 404);
   }
 
   // Check if the user is already verified
-  if (user.isEmailVerified) {
+  if (user.isEmailVerified && !user.newEmail) {
     throw new AppError('Email is already verified', 400);
   }
 
@@ -162,20 +164,25 @@ const resendVerificationEmail = asyncWrapper(async (req, res) => {
 
 const resendOTP = asyncWrapper(async (req, res) => {
   const { phone } = req.body;
-  // console.log(req.body);
+  console.log('Request body:', req.body);
 
   if (!phone) {
     throw new AppError('Phone number is required.', 400);
   }
 
-  // Check if the user exists
-  const user = await User.findOne({ phone });
+  // Check if the user exists in either phone or newPhone fields
+  const user = await User.findOne({
+    $or: [{ phone: phone }, { newPhone: phone }],
+  });
 
   if (!user) {
     throw new AppError('User not found. Register first.', 404);
   }
 
-  await sendOTP(phone); // ✅ Reuse sendOTP function
+  // Determine which phone field to use for sending OTP
+  const phoneToVerify = user.isPhoneVerified ? user.newPhone : user.phone;
+
+  await sendOTP(phoneToVerify); // Send to either newPhone or phone
 
   sendSuccessResponse(res, 200, 'OTP resent successfully.');
 });

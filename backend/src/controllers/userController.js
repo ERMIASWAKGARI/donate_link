@@ -105,7 +105,6 @@ const registerUser = asyncWrapper(async (req, res) => {
       throw new AppError('Invalid user role provided.', 400);
   }
 
-  // Handle Email Verification (if email is provided)
   if (email) {
     if (googleId) {
       userData.isEmailVerified = true;
@@ -332,9 +331,9 @@ const getUserById = asyncWrapper(async (req, res) => {
 });
 
 const updateUserProfile = asyncWrapper(async (req, res) => {
-  const { email, fullPhone: phone, ...updates } = req.body;
+  const { email, phone, ...updates } = req.body;
   console.log(req.body);
-  console.log(phone);
+  // console.log(phone);
 
   const user = await User.findById(req.user._id).select(
     '-password -emailVerificationToken -tokenVersion -isActive -isEmailVerified -lastLogin -__v'
@@ -393,7 +392,7 @@ const updateUserProfile = asyncWrapper(async (req, res) => {
       'address',
       'location',
     ],
-    ngo: ['name', 'ngoVerificationDocs', 'address', 'location','preferences'],
+    ngo: ['name', 'ngoVerificationDocs', 'address', 'location', 'preferences'],
     volunteer: [
       'name',
       'servicePreference',

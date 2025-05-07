@@ -1,7 +1,7 @@
 import Footer from "../components/common/Footer";
 import Header from "../components/common/Header";
 import About from "../pages/landing_component/About";
-import CTA from "../pages/landing_component/CTA";
+// import CTA from "../pages/landing_component/CTA";
 import FeaturedCauses from "../pages/landing_component/Featured";
 import Hero from "../pages/landing_component/Hero";
 import HowItWorksSection from "../pages/landing_component/HowItWorks";
@@ -21,7 +21,7 @@ function LandingPage() {
       <Testimonials />
       <Newsletter />
       <Footer />
-      <CTA />
+      {/* <CTA /> */}
     </div>
   );
 }

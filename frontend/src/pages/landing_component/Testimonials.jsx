@@ -18,7 +18,7 @@ const testimonials = [
     id: 2,
     quote:
       "The support we received through this platform helped us reach more people in need. Truly grateful!",
-    author: "Benyam Belete",
+    author: "Abinet Kebede",
     role: "NGO Representative",
     image: pic2,
   },
