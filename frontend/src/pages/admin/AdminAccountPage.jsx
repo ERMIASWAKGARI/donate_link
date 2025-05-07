@@ -183,21 +183,22 @@ const AccountPage = () => {
         <div className="container mx-auto px-4 pt-4">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center text-[#008080] hover:text-[#006666] transition-colors mb-2"
+            className="text-teal-600 hover:text-teal-700 font-medium flex items-center"
           >
             <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-1"
-              viewBox="0 0 20 20"
-              fill="currentColor"
+              className="w-5 h-5 mr-1"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
             >
               <path
-                fillRule="evenodd"
-                d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
-                clipRule="evenodd"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15 19l-7-7 7-7"
               />
             </svg>
-            Go Back
+            Back
           </button>
         </div>
         <div className="relative max-w-2xl mx-auto my-8 p-6 bg-white rounded-xl shadow-md border border-gray-100">

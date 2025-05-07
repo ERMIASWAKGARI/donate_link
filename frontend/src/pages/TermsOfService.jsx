@@ -1,13 +1,7 @@
-import { useEffect, useState } from "react";
-import {
-  FaArrowLeft,
-  FaCheckCircle,
-  FaGavel,
-  FaShieldAlt,
-  FaUsers,
-} from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
-import { Spin } from "antd";
+import { useEffect, useState } from 'react';
+import { FaCheckCircle, FaGavel, FaShieldAlt, FaUsers } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { Spin } from 'antd';
 
 const TermsOfService = () => {
   const navigate = useNavigate();
@@ -36,9 +30,21 @@ const TermsOfService = () => {
       {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center text-teal-600 hover:text-teal-700 mb-6"
+        className="text-teal-600 hover:text-teal-700 font-medium flex items-center"
       >
-        <FaArrowLeft className="mr-2" />
+        <svg
+          className="w-5 h-5 mr-1"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
         Back
       </button>
 

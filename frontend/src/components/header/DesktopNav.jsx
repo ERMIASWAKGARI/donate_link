@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, MessageSquare, ShieldAlert } from 'lucide-react';
+import { MessageSquare, ShieldAlert } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useChat } from '../../context/ChatContext';
 import { headerLinks } from './HeaderConfig';
 import ProfileDropdown from './ProfileDropdown';
@@ -29,25 +29,6 @@ const DesktopNav = ({ user, handleLogout }) => {
   const roleLinks = headerLinks[role] || [];
   const allLinks = [...headerLinks.common, ...roleLinks];
 
-  const dropdownVariants = {
-    hidden: { y: -10, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.2,
-        ease: 'easeOut',
-      },
-    },
-    exit: {
-      y: -10,
-      opacity: 0,
-      transition: {
-        duration: 0.15,
-      },
-    },
-  };
-
   // Handle click outside dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -64,10 +45,6 @@ const DesktopNav = ({ user, handleLogout }) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [activeDropdown]);
-
-  const toggleDropdown = (dropdownName) => {
-    setActiveDropdown(activeDropdown === dropdownName ? null : dropdownName);
-  };
 
   const handlePostDonationClick = () => {
     if (user?.isVerified) {
