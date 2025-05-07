@@ -11,6 +11,11 @@ const Need = require('../models/needsModel');
 const MaterialDonation = require('../models/matterialDonation');
 const Payment = require('../models/paymentModel');
 
+const {
+  sendUserVerifiedEmail,
+  sendUserVerificationRejectedEmail,
+} = require('../utils/emailService');
+
 const getAllPosts = asyncWrapper(async (req, res) => {
   try {
     console.log('Query:', req.query);
@@ -460,6 +465,13 @@ const verifyUser = asyncWrapper(async (req, res) => {
     '/profile'
   );
 
+  if (user.email) {
+    try {
+      await sendUserVerifiedEmail(user.email, user.name);
+    } catch (error) {
+      console.error('Email sending failed:', error);
+    }
+  }
   sendSuccessResponse(res, 200, 'User verified successfully.');
 });
 
@@ -508,6 +520,19 @@ const rejectUserVerification = asyncWrapper(async (req, res) => {
     'verification_status_rejected',
     '/profile'
   );
+
+  if (user.email) {
+    try {
+      await sendUserVerificationRejectedEmail(
+        user.email,
+        user.name,
+        rejectionReason
+      );
+    } catch (error) {
+      console.error('Failed to send verification rejection email:', error);
+      // Continue even if email fails
+    }
+  }
 
   sendSuccessResponse(
     res,

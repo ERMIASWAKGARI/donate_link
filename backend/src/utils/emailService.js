@@ -234,9 +234,154 @@ const sendResetPasswordEmail = async (email, token) => {
   console.log('Password reset email sent successfully to:', email);
 };
 
+const sendUserVerifiedEmail = async (email, name) => {
+  const subject = 'Account Verified - Online Donation Platform';
+
+  const html = `
+    <div style="font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; max-width: 600px; margin: auto; padding: 0; border: 1px solid #e1e1e1; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+      <!-- Header -->
+      <div style="background-color: #008080; padding: 25px; text-align: center; color: white;">
+        <h1 style="margin: 0; font-size: 24px; font-weight: 600;">Online Donation Platform</h1>
+        <p style="margin: 5px 0 0; font-size: 14px; opacity: 0.9;">Account Verification Confirmation</p>
+      </div>
+      
+      <!-- Success Alert Section -->
+      <div style="background-color: #e8f5e9; padding: 15px; text-align: center; border-bottom: 1px solid #c8e6c9;">
+        <div style="display: inline-flex; align-items: center; gap: 8px;">
+          <div style="background-color: #4CAF50; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <span style="font-size: 14px; color: white;">✓</span>
+          </div>
+          <span style="color: #2e7d32; font-size: 14px; font-weight: 500;">Account successfully verified</span>
+        </div>
+      </div>
+      
+      <!-- Main Content -->
+      <div style="padding: 30px; background-color: #ffffff;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h2 style="color: #008080; font-size: 20px; margin: 0 0 15px;">Welcome to the Platform, ${name}!</h2>
+          <p style="color: #424242; font-size: 15px; line-height: 1.5; margin: 0 0 20px;">
+            Your account has been verified by our administration team. You now have full access to all platform features.
+          </p>
+                    
+          <p style="color: #616161; font-size: 13px; line-height: 1.5; margin: 0;">
+            <strong>Note:</strong> You can now create campaigns, donate, and access all community features.
+          </p>
+        </div>
+        
+        <!-- Secondary Content -->
+        <div style="background-color: #f5f5f5; border-radius: 6px; padding: 15px; margin-top: 25px;">
+          <h3 style="color: #424242; font-size: 14px; margin: 0 0 10px; text-align: center;">Need help getting started?</h3>
+          <p style="color: #616161; font-size: 13px; line-height: 1.5; margin: 0; text-align: center;">
+            Check out our <a href="http://localhost:5173" style="color: #008080; text-decoration: none;">help center</a> or <a href="mailto:support@donationplatform.com" style="color: #008080; text-decoration: none;">contact support</a>.
+          </p>
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div style="background-color: #f5f5f5; padding: 20px; text-align: center; font-size: 12px; color: #757575; border-top: 1px solid #e0e0e0;">
+        <p style="margin: 0 0 10px;">© ${new Date().getFullYear()} Online Donation Platform. All rights reserved.</p>
+        <div style="margin-top: 10px;">
+          <a href="#" style="color: #008080; text-decoration: none; margin: 0 10px; font-size: 11px;">Security</a>
+          <a href="#" style="color: #008080; text-decoration: none; margin: 0 10px; font-size: 11px;">Privacy Policy</a>
+          <a href="#" style="color: #008080; text-decoration: none; margin: 0 10px; font-size: 11px;">Help Center</a>
+        </div>
+      </div>
+      
+      <!-- Small note -->
+      <div style="font-size: 10px; color: #9e9e9e; text-align: center; padding: 10px; background-color: #fafafa;">
+        This is an automated message. Please do not reply directly to this email.
+      </div>
+    </div>
+  `;
+
+  await sendEmail(email, subject, html);
+  console.log('User verified email sent successfully to:', email);
+};
+
+// Email for when user verification is rejected
+const sendUserVerificationRejectedEmail = async (
+  email,
+  name,
+  rejectionReason
+) => {
+  const subject = 'Account Verification Rejected - Online Donation Platform';
+  const verificationHelpUrl = 'http://localhost:5173/verification-help';
+  const supportEmail = 'support@donationplatform.com';
+
+  const html = `
+    <div style="font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; max-width: 600px; margin: auto; padding: 0; border: 1px solid #e1e1e1; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+      <!-- Header -->
+      <div style="background-color: #008080; padding: 25px; text-align: center; color: white;">
+        <h1 style="margin: 0; font-size: 24px; font-weight: 600;">Online Donation Platform</h1>
+        <p style="margin: 5px 0 0; font-size: 14px; opacity: 0.9;">Account Verification Update</p>
+      </div>
+      
+      <!-- Rejection Alert Section -->
+      <div style="background-color: #ffebee; padding: 15px; text-align: center; border-bottom: 1px solid #ffcdd2;">
+        <div style="display: inline-flex; align-items: center; gap: 8px;">
+          <div style="background-color: #f44336; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <span style="font-size: 14px; color: white;">✕</span>
+          </div>
+          <span style="color: #c62828; font-size: 14px; font-weight: 500;">Verification request rejected</span>
+        </div>
+      </div>
+      
+      <!-- Main Content -->
+      <div style="padding: 30px; background-color: #ffffff;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h2 style="color: #d32f2f; font-size: 20px; margin: 0 0 15px;">Dear, ${name}</h2>
+          <p style="color: #424242; font-size: 15px; line-height: 1.5; margin: 0 0 20px;">
+            Your account verification request has been reviewed and rejected by our administration team.
+          </p>
+          
+          <!-- Rejection Reason -->
+          <div style="background-color: #fff3e0; border-left: 4px solid #FFEB3B; padding: 12px; margin: 20px 0; text-align: left;">
+            <h3 style="color: #e65100; font-size: 15px; margin: 0 0 8px;">Reason for rejection:</h3>
+            <p style="color: #616161; font-size: 14px; line-height: 1.5; margin: 0;">
+              ${rejectionReason}
+            </p>
+          </div>
+          
+          <p style="color: #424242; font-size: 15px; line-height: 1.5; margin: 0 0 20px;">
+            Please review the reason above and submit new documents for verification.
+          </p>
+        </div>
+        
+        <!-- Secondary Content -->
+        <div style="background-color: #f5f5f5; border-radius: 6px; padding: 15px; margin-top: 25px;">
+          <h3 style="color: #424242; font-size: 14px; margin: 0 0 10px; text-align: center;">Need assistance?</h3>
+          <p style="color: #616161; font-size: 13px; line-height: 1.5; margin: 0; text-align: center;">
+            Contact our support team at <a href="mailto:${supportEmail}" style="color: #008080; text-decoration: none;">${supportEmail}</a> for help with the verification process.
+          </p>
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div style="background-color: #f5f5f5; padding: 20px; text-align: center; font-size: 12px; color: #757575; border-top: 1px solid #e0e0e0;">
+        <p style="margin: 0 0 10px;">© ${new Date().getFullYear()} Online Donation Platform. All rights reserved.</p>
+        <div style="margin-top: 10px;">
+          <a href="#" style="color: #008080; text-decoration: none; margin: 0 10px; font-size: 11px;">Verification Guidelines</a>
+          <a href="#" style="color: #008080; text-decoration: none; margin: 0 10px; font-size: 11px;">Support Center</a>
+          <a href="#" style="color: #008080; text-decoration: none; margin: 0 10px; font-size: 11px;">Contact Us</a>
+        </div>
+      </div>
+      
+      <!-- Small note -->
+      <div style="font-size: 10px; color: #9e9e9e; text-align: center; padding: 10px; background-color: #fafafa;">
+        This is an automated message. Please do not reply directly to this email.
+      </div>
+    </div>
+  `;
+
+  await sendEmail(email, subject, html);
+  console.log('Verification rejected email sent successfully to:', email);
+};
+
 module.exports = {
   sendEmail,
   sendVerificationEmail,
   sendResetPasswordEmail,
   sendEmailUpdateVerification,
+  sendUserVerifiedEmail,
+  sendUserVerificationRejectedEmail,
 };
