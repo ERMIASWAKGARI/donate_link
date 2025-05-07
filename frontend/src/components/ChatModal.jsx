@@ -55,17 +55,14 @@ const ChatModal = ({ onClose, showChatModal }) => {
         const loadedConversations = await fetchConversations();
 
         if (isMounted) {
-          if (loadedConversations?.length > 0 && !activeConversation) {
-            console.log(
-              "Setting initial conversation:",
-              loadedConversations[0]
-            );
-            setActiveConversation(loadedConversations[0]);
-          }
-
+          // If there's an active conversation but no messages, fetch them
           if (activeConversation?._id) {
             await fetchMessages(activeConversation._id);
             scrollToBottom();
+          }
+          // If no active conversation but we have conversations, set the first one
+          else if (loadedConversations?.length > 0) {
+            setActiveConversation(loadedConversations[0]);
           }
         }
       } catch (error) {
@@ -280,7 +277,7 @@ const ChatModal = ({ onClose, showChatModal }) => {
                     <div className="flex items-center">
                       <div className="relative">
                         <img
-                          src={`http://localhost:5000/uploads/${otherParticipant?.profilePicture.replace(
+                          src={`http://localhost:5000/uploads/${otherParticipant?.profilePicture?.replace(
                             /\\/g,
                             "/"
                           )}`}

@@ -7,7 +7,7 @@ import {
   User,
   MoreVertical,
 } from "lucide-react";
-
+import { useChat } from "../../context/ChatContext";
 const VolunteersList = ({
   volunteer,
   handleViewProfile,
@@ -19,6 +19,7 @@ const VolunteersList = ({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [actionType, setActionType] = useState(null);
+  const { startConversation, setActiveConversation } = useChat();
 
   const handleAction = async (newStatus, volunteerId) => {
     if (isProcessing) return;
@@ -37,6 +38,23 @@ const VolunteersList = ({
       setIsProcessing(false);
       setActionType(null);
       setIsDropdownOpen(false);
+    }
+  };
+  const handleContactClick = async (id) => {
+    try {
+      setIsDropdownOpen(false);
+      setShowChatModal(true);
+      console.log("id", id);
+      const conversation = await startConversation(id);
+
+      if (conversation) {
+        setActiveConversation(conversation);
+      } else {
+        console.error("No conversation returned.");
+      }
+    } catch (error) {
+      console.error("Failed to start conversation:", error);
+      // Optional: show an error message to the user
     }
   };
 
@@ -179,8 +197,7 @@ const VolunteersList = ({
                           </button>
                           <button
                             onClick={() => {
-                              setShowChatModal(true);
-                              setIsDropdownOpen(false);
+                              handleContactClick(volunteer?.applicant?._id);
                             }}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                           >
