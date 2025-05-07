@@ -78,31 +78,23 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, actionType }) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 overflow-y-auto"
-        >
-          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            {/* Background overlay */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 transition-opacity"
-              aria-hidden="true"
-            >
-              <div className="absolute inset-0 bg-gray-500 bg-opacity-75 backdrop-blur-sm"></div>
-            </motion.div>
+        <>
+          {/* Background overlay - now separate from the modal content */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 bg-gray-500 bg-opacity-75 backdrop-blur-sm transition-opacity"
+          />
 
-            {/* Modal panel */}
+          {/* Modal content */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
-              initial={{ opacity: 0, y: -20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
               transition={{ type: "spring", damping: 25, stiffness: 500 }}
-              className="inline-block align-bottom bg-white rounded-2xl shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+              className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg"
               role="dialog"
               aria-modal="true"
               aria-labelledby="modal-headline"
@@ -149,7 +141,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, actionType }) => {
               </div>
             </motion.div>
           </div>
-        </motion.div>
+        </>
       )}
     </AnimatePresence>
   );

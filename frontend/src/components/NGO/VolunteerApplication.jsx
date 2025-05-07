@@ -5,9 +5,8 @@ import ChatModal from "../ChatModal";
 import { motion, AnimatePresence } from "framer-motion";
 import ConfirmationModal from "./ConfirmationModal";
 import { Users, Frown, ChevronLeft, ChevronRight } from "lucide-react";
-import VolunteerCard from "./VolunteerCard";
-import { Spin } from "antd";
 import VolunteersList from "./VolunteersList";
+import { Spin } from "antd";
 
 function VolunteerApplication() {
   const [loading, setLoading] = useState(true);
@@ -15,14 +14,11 @@ function VolunteerApplication() {
   const [selectedNeed, setSelectedNeed] = useState("");
   const [volunteers, setVolunteers] = useState([]);
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const [selectedVolunteer, setSelectedVolunteer] = useState(null);
-  const [profileLoading, setProfileLoading] = useState(false);
   const [volunteerDetails, setVolunteerDetails] = useState(null);
   const [showChatModal, setShowChatModal] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [actionType, setActionType] = useState("");
   const [currentVolunteerId, setCurrentVolunteerId] = useState("");
-  const [openDropdownId, setOpenDropdownId] = useState(null);
   const [isFetchingNeeds, setIsFetchingNeeds] = useState(false);
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -30,42 +26,6 @@ function VolunteerApplication() {
     totalItems: 0,
     itemsPerPage: 5,
   });
-  const [, setStatus] = useState("");
-  const toggleDropdown = (id) => {
-    setOpenDropdownId(openDropdownId === id ? null : id);
-  };
-
-  const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= pagination.totalPages) {
-      getServiceNeeds(newPage);
-    }
-  };
-  const updateVolunteerStatus = (volunteerId, newStatus) => {
-    setVolunteers((prevVolunteers) =>
-      prevVolunteers.map((volunteer) =>
-        volunteer._id === volunteerId
-          ? { ...volunteer, status: newStatus }
-          : volunteer
-      )
-    );
-  };
-
-  const handleViewProfile = async (volunteer) => {
-    try {
-      setProfileLoading(true);
-      setSelectedVolunteer(volunteer);
-      const response = await axiosInstance.get(
-        `/users/${volunteer.applicant._id}`
-      );
-      setVolunteerDetails(response.data.data);
-      setShowProfileModal(true);
-      setOpenDropdownId(null);
-    } catch (error) {
-      console.error("Error fetching volunteer details:", error);
-    } finally {
-      setProfileLoading(false);
-    }
-  };
 
   const getServiceNeeds = async (page = 1) => {
     try {
@@ -117,11 +77,25 @@ function VolunteerApplication() {
     if (needId) getApplications(needId);
   };
 
+  const handleViewProfile = async (volunteer) => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get(
+        `/users/${volunteer.applicant._id}`
+      );
+      setVolunteerDetails(response.data.data);
+      setShowProfileModal(true);
+    } catch (error) {
+      console.error("Error fetching volunteer details:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const confirmAction = (type, volunteerId) => {
     setActionType(type);
     setCurrentVolunteerId(volunteerId);
     setShowConfirmation(true);
-    setOpenDropdownId(null);
   };
 
   const handleApplicationStatus = async (confirmed) => {
@@ -131,34 +105,25 @@ function VolunteerApplication() {
     }
 
     try {
-      // Optimistic update already done via updateVolunteerStatus
       await axiosInstance.put(`donation/service/${currentVolunteerId}`, {
         status: actionType,
       });
-
-      // Only refresh if absolutely necessary
       if (selectedNeed) {
-        setTimeout(() => getApplications(selectedNeed), 1000); // Small delay
+        getApplications(selectedNeed);
       }
     } catch (error) {
       console.error(`Error updating status:`, error);
-      // Revert optimistic update
-      updateVolunteerStatus(
-        currentVolunteerId,
-        volunteers.find((v) => v._id === currentVolunteerId).status
-      );
     } finally {
       setShowConfirmation(false);
     }
   };
 
-  const handleViewDetails = (volunteer) => {
-    setSelectedVolunteer(volunteer);
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      getServiceNeeds(newPage);
+    }
   };
 
-  const handleCloseDetails = () => {
-    setSelectedVolunteer(null);
-  };
   if (loading) {
     return (
       <div className="z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm w-full h-full">
@@ -166,6 +131,7 @@ function VolunteerApplication() {
       </div>
     );
   }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <motion.div
@@ -299,12 +265,13 @@ function VolunteerApplication() {
               </div>
             ) : volunteers.length > 0 ? (
               <div className="space-y-4">
-                {volunteers.map((volunteer, index) => (
+                {volunteers.map((volunteer) => (
                   <VolunteersList
-                    key={index}
+                    key={volunteer._id}
                     volunteer={volunteer}
-                    volunteers={volunteers}
-                    handleViewDetails={handleViewDetails}
+                    handleViewProfile={handleViewProfile}
+                    setShowChatModal={setShowChatModal}
+                    confirmAction={confirmAction}
                   />
                 ))}
               </div>
@@ -342,47 +309,6 @@ function VolunteerApplication() {
               )}
             </div>
           </div>
-        )}
-
-        {/* Volunteer Detail Modal */}
-        {selectedVolunteer && (
-          <>
-            <AnimatePresence>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-white/30 backdrop-blur-sm z-40"
-                onClick={handleCloseDetails}
-              />
-            </AnimatePresence>
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="bg-white max-w-3xl w-full rounded-xl overflow-y-auto max-h-[90vh] p-6 relative shadow-lg"
-              >
-                <button
-                  onClick={handleCloseDetails}
-                  className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition"
-                  aria-label="Close"
-                >
-                  ✕
-                </button>
-                <VolunteerCard
-                  volunteer={selectedVolunteer}
-                  handleViewProfile={handleViewProfile}
-                  toggleDropdown={toggleDropdown}
-                  openDropdownId={openDropdownId}
-                  confirmAction={confirmAction}
-                  setShowChatModal={setShowChatModal}
-                  setOpenDropdownId={setOpenDropdownId}
-                  updateVolunteerStatus={updateVolunteerStatus}
-                />
-              </motion.div>
-            </div>
-          </>
         )}
 
         {/* Profile Modal */}
@@ -436,15 +362,12 @@ function VolunteerApplication() {
                 </div>
 
                 <div className="px-6 py-4 max-h-[70vh] overflow-y-auto">
-                  {profileLoading ? (
+                  {loading ? (
                     <div className="flex justify-center items-center h-40">
                       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
                     </div>
                   ) : volunteerDetails ? (
-                    <Profile
-                      user={volunteerDetails}
-                      volunteerApplication={selectedVolunteer}
-                    />
+                    <Profile user={volunteerDetails} />
                   ) : (
                     <div className="text-center py-12 text-gray-500">
                       Failed to load profile details
