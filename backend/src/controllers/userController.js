@@ -105,7 +105,6 @@ const registerUser = asyncWrapper(async (req, res) => {
       throw new AppError('Invalid user role provided.', 400);
   }
 
-  // Handle Email Verification (if email is provided)
   if (email) {
     if (googleId) {
       userData.isEmailVerified = true;
