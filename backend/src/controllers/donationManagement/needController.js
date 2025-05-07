@@ -733,6 +733,7 @@ const generateReport = async (req, res) => {
       donations: transformedData,
       pictures,
       status: "pending",
+      beneficiariesReached:need?.beneficiaryInfo?.numberOfBeneficiaries,
       NGO: req.user._id,
       createdBy: req.user._id,
     };

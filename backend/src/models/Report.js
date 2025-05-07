@@ -60,6 +60,11 @@ const reportSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    beneficiariesReached: {
+      type: Number,
+      required: true,
+    },
+
     pictures: {
       type: [String],
       validate: {
@@ -78,13 +83,13 @@ const reportSchema = new mongoose.Schema(
       services: [serviceSchema],
       materials: [donationItemSchema],
     },
-  
+
     status: {
       type: String,
       enum: ["pending", "approved", "rejected"],
       default: "pending",
     },
-  NGO: {
+    NGO: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
