@@ -574,16 +574,16 @@ const EnhancedRegisterPage = () => {
                           >
                             I agree to the{' '}
                             <a
-                              href="/terms"
+                              href="/terms-of-service"
                               className="text-[#008080] hover:underline"
                               target="_blank"
                               rel="noopener noreferrer"
                             >
-                              Terms and Conditions
+                              Terms of Service
                             </a>{' '}
                             and{' '}
                             <a
-                              href="/privacy"
+                              href="/privacy-policy"
                               className="text-[#008080] hover:underline"
                               target="_blank"
                               rel="noopener noreferrer"

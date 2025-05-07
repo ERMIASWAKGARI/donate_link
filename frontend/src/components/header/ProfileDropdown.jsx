@@ -94,7 +94,6 @@ const ProfileDropdown = forwardRef(
                 })}
               </div>
 
-              {/* Help & Logout */}
               <div className="py-1 border-t border-gray-100">
                 <motion.div
                   whileHover={{ backgroundColor: '#fee2e2' }}
