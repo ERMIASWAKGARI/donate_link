@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
 import pic from "../../../src/assets/Background_image.jpg";
+import { useNavigate } from "react-router-dom";
 
 const Hero = () => {
+  const navigate = useNavigate();
   const containerVariants = {
     hidden: { x: "-100%", opacity: 0 },
     visible: {
@@ -153,6 +155,7 @@ const Hero = () => {
         <button
           className="px-5 py-1.5 bg-teal-500 hover:bg-teal-600 text-white 
           rounded-full shadow-lg flex items-center gap-2 transition-all text-sm"
+          onClick={() => navigate("/register")}
         >
           <span>Join Volunteers</span>
           <svg

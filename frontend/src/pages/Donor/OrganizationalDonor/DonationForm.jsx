@@ -70,7 +70,7 @@ const DonationForm = () => {
       country: "",
       region: "",
       city: "",
-      street: "", // Optional if you need more specific address
+      // Optional if you need more specific address
     },
     location: {
       type: "Point",
@@ -205,7 +205,6 @@ const DonationForm = () => {
         country: "",
         region: "",
         city: "",
-        street: "",
       },
       location: {
         type: "Point",
@@ -218,14 +217,27 @@ const DonationForm = () => {
   };
 
   const validateForm = () => {
+    // Title validation
     if (!formData.title.trim()) {
       showToast.error("Please enter a title for your donation");
       return false;
     }
+    if (formData.title.trim().length < 5) {
+      showToast.error("Title must be at least 5 characters long");
+      return false;
+    }
+
+    // Description validation
     if (!formData.description.trim()) {
       showToast.error("Please provide a description");
       return false;
     }
+    if (formData.description.trim().length < 20) {
+      showToast.error("Description must be at least 20 characters long");
+      return false;
+    }
+
+    // Category validation
     if (!formData.materialDetails.category) {
       showToast.error("Please select a category");
       return false;
@@ -237,6 +249,15 @@ const DonationForm = () => {
       showToast.error("Please specify your custom category");
       return false;
     }
+    if (
+      formData.materialDetails.category === "other" &&
+      formData.materialDetails.customCategory.trim().length < 3
+    ) {
+      showToast.error("Custom category must be at least 3 characters");
+      return false;
+    }
+
+    // Subcategory validation
     if (!formData.materialDetails.subCategory) {
       showToast.error("Please select a subcategory");
       return false;
@@ -248,28 +269,78 @@ const DonationForm = () => {
       showToast.error("Please specify your custom subcategory");
       return false;
     }
+    if (
+      formData.materialDetails.subCategory === "Other" &&
+      formData.materialDetails.customSubCategory.trim().length < 3
+    ) {
+      showToast.error("Custom subcategory must be at least 3 characters");
+      return false;
+    }
+
+    // Quantity validation
+    if (
+      isNaN(formData.materialDetails.quantity) ||
+      formData.materialDetails.quantity <= 0
+    ) {
+      showToast.error("Please enter a valid quantity (greater than 0)");
+      return false;
+    }
+
+    // Address validation
     if (!formData.address.country) {
       showToast.error("Please select a country");
       return false;
     }
-    if (!formData.address.region) {
-      showToast.error("Please enter a region/state");
+    if (!formData.address.region || formData.address.region.trim().length < 2) {
+      showToast.error(
+        "Please enter a valid region/state (at least 2 characters)"
+      );
       return false;
     }
-    if (!formData.address.city) {
-      showToast.error("Please enter a city");
+    if (!formData.address.city || formData.address.city.trim().length < 2) {
+      showToast.error("Please enter a valid city (at least 2 characters)");
       return false;
     }
 
+    // Location validation
+    if (
+      !formData.location ||
+      !formData.location.coordinates ||
+      formData.location.coordinates.length !== 2
+    ) {
+      showToast.error("Please select a valid location from the map");
+      return false;
+    }
+
+    // Files validation
     if (files.length === 0) {
       showToast.error("Please upload at least one image");
       return false;
     }
+    if (files.length > 5) {
+      showToast.error("You can upload a maximum of 5 images");
+      return false;
+    }
+
+    // Expiration date validation for perishable items
+    if (
+      (formData.materialDetails.category === "food" ||
+        formData.materialDetails.category === "medical") &&
+      !formData.materialDetails.expirationDate
+    ) {
+      showToast.error("Please provide an expiration date for this category");
+      return false;
+    }
+
     return true;
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+
+    // Validate form before submission
+    if (!validateForm()) {
+      return;
+    }
 
     setIsSubmitting(true);
     const loadingToast = showToast.loading("Submitting your donation...");
@@ -282,37 +353,59 @@ const DonationForm = () => {
         return;
       }
 
+      // Prepare form data
       const formDataToSend = new FormData();
-      files.forEach((file) => formDataToSend.append("files", file));
 
+      // Add files
+      files.forEach((file) => {
+        formDataToSend.append("files", file);
+      });
+
+      // Prepare payload with additional validation
       const payload = {
-        title: formData.title,
-        description: formData.description,
-        address: formData.address, // Now sending the full address object
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        address: {
+          country: formData.address.country.trim(),
+          region: formData.address.region.trim(),
+          city: formData.address.city.trim(),
+        },
         donorId,
         donationType: "material",
         materialDetails: {
           category:
             formData.materialDetails.category === "other"
-              ? formData.materialDetails.customCategory
+              ? formData.materialDetails.customCategory.trim()
               : formData.materialDetails.category,
           subCategory:
             formData.materialDetails.subCategory === "Other"
-              ? formData.materialDetails.customSubCategory
+              ? formData.materialDetails.customSubCategory.trim()
               : formData.materialDetails.subCategory,
-          quantity: formData.materialDetails.quantity,
+          quantity: Number(formData.materialDetails.quantity),
           unit: formData.materialDetails.unit,
           condition: formData.materialDetails.condition,
           ...(formData.materialDetails.expirationDate && {
             expirationDate: formData.materialDetails.expirationDate,
           }),
         },
-        location: formData.location,
+        location: {
+          type: "Point",
+          coordinates: [
+            Number(formData.location.coordinates[0]),
+            Number(formData.location.coordinates[1]),
+          ],
+        },
       };
 
+      // Validate coordinates are numbers
+      if (
+        isNaN(payload.location.coordinates[0]) ||
+        isNaN(payload.location.coordinates[1])
+      ) {
+        throw new Error("Invalid location coordinates");
+      }
+
       formDataToSend.append("data", JSON.stringify(payload));
-      formDataToSend.append("longitude", formData.location.coordinates[0]);
-      formDataToSend.append("latitude", formData.location.coordinates[1]);
 
       const response = await fetch(
         "http://localhost:5000/api/organization/material",
@@ -335,10 +428,7 @@ const DonationForm = () => {
       }
 
       const data = await response.json();
-      showToast.success(
-        data.message ||
-          "Donation submitted successfully! Our team will review it shortly."
-      );
+      showToast.success(data.message || "Donation submitted successfully!");
 
       // Reset form
       setFormData({
@@ -358,7 +448,6 @@ const DonationForm = () => {
           country: "",
           region: "",
           city: "",
-          street: "",
         },
         location: {
           type: "Point",
@@ -369,20 +458,11 @@ const DonationForm = () => {
       setPreviewUrls([]);
     } catch (error) {
       showToast.dismiss(loadingToast);
+      console.error(error.message);
       setIsSubmitting(false);
-
-      if (error.message.includes("network")) {
-        showToast.error(
-          "Network error. Please check your connection and try again."
-        );
-      } else {
-        showToast.error(
-          error.message || "An unexpected error occurred. Please try again."
-        );
-      }
-
-      // Clean up files
-      files.forEach((file) => URL.revokeObjectURL(file.preview));
+      showToast.error(
+        error.message || "An unexpected error occurred. Please try again."
+      );
     }
   };
 

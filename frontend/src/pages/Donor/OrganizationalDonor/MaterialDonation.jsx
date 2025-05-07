@@ -285,6 +285,7 @@ const MaterialDonation = ({
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   required
                 >
+                  <option value="">Select condition</option>
                   <option value="new">New</option>
                   <option value="used">Used</option>
                   <option value="refurbished">Refurbished</option>
@@ -409,20 +410,6 @@ const MaterialDonation = ({
               </div>
 
               {/* Street Address Field */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Street Address
-                </label>
-                <input
-                  type="text"
-                  name="address.street"
-                  value={formData.address.street}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  required
-                  placeholder="Enter full street address"
-                />
-              </div>
             </div>
 
             <label className="block text-sm font-medium text-gray-700 mb-2">

@@ -54,7 +54,7 @@ const createMaterialDonation = async (req, res) => {
        newDonation.NGO,
        `New donation made for your need  by ${req.user.name} with tracking ID ${trackingId}`,
        "report",
-       `/ngo/dasboard/#donationList`
+       `/ngo/dashboard/donations`
      );
     res.status(201).json({
       message: 'Material donation submitted successfully',

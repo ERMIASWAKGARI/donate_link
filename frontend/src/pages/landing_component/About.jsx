@@ -1,7 +1,7 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css"; // Import AOS styles
-import aboutImage from '../../assets/about.jpg'
+import aboutImage from "../../assets/about.jpg";
 const About = () => {
   useEffect(() => {
     AOS.init({ duration: 1000 }); // Initialize AOS with animation duration
@@ -12,11 +12,7 @@ const About = () => {
       <section className="bg-gray-100 py-16 px-4 md:px-8">
         <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center">
           {/* Left Side - Image */}
-          <div
-            className="relative"
-            data-aos="zoom-in"
-            data-aos-delay="200"
-          >
+          <div className="relative" data-aos="zoom-in" data-aos-delay="200">
             <img
               src={aboutImage} // Replace with your actual image path
               alt="Team helping community"
@@ -26,10 +22,7 @@ const About = () => {
           </div>
 
           {/* Right Side - Content */}
-          <div
-            data-aos="fade-up"
-            data-aos-delay="100"
-          >
+          <div data-aos="fade-up" data-aos-delay="100">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
               About <span className="text-yellow-500">Our Mission</span>
             </h2>
@@ -43,9 +36,9 @@ const About = () => {
               lives of those less fortunate. Your support empowers us to deliver
               essentials and bring hope to communities worldwide.
             </p>
-            <button className="px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-white font-semibold rounded-full transition duration-300">
+            {/* <button className="px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-white font-semibold rounded-full transition duration-300">
               Learn More
-            </button>
+            </button> */}
           </div>
         </div>
       </section>

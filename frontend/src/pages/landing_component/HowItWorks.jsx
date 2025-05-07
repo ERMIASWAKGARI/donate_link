@@ -46,33 +46,39 @@ const HowItWorksSection = () => {
   const steps = [
     {
       icon: <FaUserPlus className="text-3xl" />,
-      title: "Sign Up",
-      description: "Create your donor account and get started in minutes.",
+      title: "Create Your Account",
+      description:
+        "Sign up as a donor or volunteer in just a few steps to begin your impact journey.",
       color: "bg-green-100 text-green-600",
     },
     {
       icon: <FaGift className="text-3xl" />,
-      title: "Choose Items",
-      description: "Select from various donation options or specific items.",
+      title: "Explore Opportunities",
+      description:
+        "Browse through posts from NGOs and select where you'd like to contribute—whether it's donating goods or offering your time.",
       color: "bg-blue-100 text-blue-600",
     },
     {
       icon: <FaBuilding className="text-3xl" />,
-      title: "Select an NGO",
-      description: "Pick a trusted organization that aligns with your values.",
+      title: "Make a Difference",
+      description:
+        "Contribute directly to verified organizations by donating or volunteering your time and skills.",
       color: "bg-purple-100 text-purple-600",
     },
     {
       icon: <FaChartLine className="text-3xl" />,
-      title: "Track Impact",
+      title: "See Your Impact",
       description:
-        "Receive updates on how your contribution makes a difference.",
+        "Track the progress and results of your contributions through updates and reports from partner NGOs.",
       color: "bg-yellow-100 text-yellow-600",
     },
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-b from-white to-gray-50">
+    <section
+      className="py-10 bg-gradient-to-b from-white to-gray-50 "
+      id="howitworks"
+    >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div

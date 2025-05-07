@@ -66,7 +66,10 @@ const createMaterialDonation = asyncWrapper(async (req, res, next) => {
     console.log("4. User verified successfully");
 
     // File handling
-    const fileUrls = await handleFileUploads(req.files, "../uploads/donations");
+    const fileUrls =
+          req.files?.map((file) =>
+            path.join("donations", path.basename(file.path))
+          ) || [];
     console.log("7. Files processed successfully");
 
     // Parse the JSON data if it's sent as a string in FormData

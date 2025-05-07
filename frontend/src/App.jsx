@@ -1,49 +1,52 @@
-import { Route, Routes } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import ChatModal from './components/ChatModal';
-import ForgotPassword from './components/ForgotPassword';
-import NgoDashboard from './components/NGO/NgoDashboard';
-import PostedNeeds from './components/NGO/postedNeeds';
-import PendingDonations from './components/NGO/pendingDonations';
-import DonationsList from './components/NGO/donationsList';
-import NGOStatistics from './components/NGO/NGOStatistics';
-import VolunteerApplication from './components/NGO/VolunteerApplication';
-import Reports from './components/NGO/Reports';
-import PrivateRoute from './components/PrivateRoute';
-import RoleBasedRoute from './components/RoleBasedRoute';
-import ResetPassword from './components/ResetPassword';
-import ScrollToTop from './components/common/ScrollToTop';
-import { UserProvider } from './context/UserContext';
-import IndividualDashboard from './pages/Donor/IndividualDonor/DashboardIndividual';
-import DonationForm from './pages/Donor/OrganizationalDonor/DonationForm';
-import NeedDetail from './pages/Donor/IndividualDonor/NeedDetail';
-import LandingPage from './pages/LandingPage';
-import LoginPage from './pages/LoginPage';
-import NotFoundPage from './pages/NotFound';
-import RegisterPage from './pages/RegisterPage';
-import VerifyEmail from './pages/VerifyEmailPage';
-import VerifyOtp from './pages/VerifyOtpPage';
-import AdminDashboard from './pages/admin/Dashboard';
-import UserDetail from './pages/admin/UserDetail/UserDetail';
-import PostDetail from './pages/admin/PostDetail/PostDetail';
-import Users from './pages/admin/Users';
-import VolunteerDashboard from './pages/volunteer/VolunteerDashboard';
-import { Provider } from 'react-redux';
-import { ChatProvider } from './context/ChatContext';
-import { NotificationProvider } from './context/NotificationContext';
-import { SocketProvider } from './context/SocketContext';
-import AccountPage from './pages/profile/AccountPage';
-import UserProfilePage from './pages/profile/UserProfilePage';
-import { store } from './redux/store';
-import NGOReportViewer from './components/NGO/NGOReport';
-import PaymentSuccess from './pages/Donor/IndividualDonor/PaymentSuccess';
-import AdminAcccountPage from './pages/admin/AdminAccountPage';
-import AdminProfilePage from './pages/admin/AdminProfilePage';
-import CertificatesPage from './pages/certificates/CertificatesPage';
-import Newsletter from './pages/admin/Newsletter';
-import UnsubscribePage from './pages/admin/newsletter/UnsubscribePage';
-import Posts from './pages/admin/Posts';
+import { Route, Routes } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import ChatModal from "./components/ChatModal";
+import ForgotPassword from "./components/ForgotPassword";
+import NgoDashboard from "./components/NGO/NgoDashboard";
+import PostedNeeds from "./components/NGO/postedNeeds";
+import PendingDonations from "./components/NGO/pendingDonations";
+import DonationsList from "./components/NGO/donationsList";
+import NGOStatistics from "./components/NGO/NGOStatistics";
+import VolunteerApplication from "./components/NGO/VolunteerApplication";
+import Reports from "./components/NGO/Reports";
+import PrivateRoute from "./components/PrivateRoute";
+import RoleBasedRoute from "./components/RoleBasedRoute";
+import ResetPassword from "./components/ResetPassword";
+import ScrollToTop from "./components/common/ScrollToTop";
+import { UserProvider } from "./context/UserContext";
+import IndividualDashboard from "./pages/Donor/IndividualDonor/DashboardIndividual";
+import DonationForm from "./pages/Donor/OrganizationalDonor/DonationForm";
+import NeedDetail from "./pages/Donor/IndividualDonor/NeedDetail";
+import LandingPage from "./pages/LandingPage";
+import LoginPage from "./pages/LoginPage";
+import NotFoundPage from "./pages/NotFound";
+import RegisterPage from "./pages/RegisterPage";
+import VerifyEmail from "./pages/VerifyEmailPage";
+import VerifyOtp from "./pages/VerifyOtpPage";
+import AdminDashboard from "./pages/admin/Dashboard";
+import UserDetail from "./pages/admin/UserDetail/UserDetail";
+import PostDetail from "./pages/admin/PostDetail/PostDetail";
+import Users from "./pages/admin/Users";
+import VolunteerDashboard from "./pages/volunteer/VolunteerDashboard";
+import { Provider } from "react-redux";
+import { ChatProvider } from "./context/ChatContext";
+import { NotificationProvider } from "./context/NotificationContext";
+import { SocketProvider } from "./context/SocketContext";
+import AccountPage from "./pages/profile/AccountPage";
+import UserProfilePage from "./pages/profile/UserProfilePage";
+import { store } from "./redux/store";
+import NGOReportViewer from "./components/NGO/NGOReport";
+import PaymentSuccess from "./pages/Donor/IndividualDonor/PaymentSuccess";
+import AdminAcccountPage from "./pages/admin/AdminAccountPage";
+import AdminProfilePage from "./pages/admin/AdminProfilePage";
+import CertificatesPage from "./pages/certificates/CertificatesPage";
+import Newsletter from "./pages/admin/Newsletter";
+import UnsubscribePage from "./pages/admin/newsletter/UnsubscribePage";
+import Posts from "./pages/admin/Posts";
+import FAQ from "./pages/FAQ";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 
 function App() {
   return (
@@ -63,6 +66,12 @@ function App() {
                   <Route path="/verify-otp" element={<VerifyOtp />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/faq" element={<FAQ />} />
+                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                  <Route
+                    path="/terms-of-service"
+                    element={<TermsOfService />}
+                  />
                   <Route
                     path="/unsubscribe/:email"
                     element={<UnsubscribePage />}
@@ -77,7 +86,7 @@ function App() {
                     <Route path="/donor/NeedDetail" element={<NeedDetail />} />
                     <Route
                       element={
-                        <RoleBasedRoute allowedRoles={['organization_donor']} />
+                        <RoleBasedRoute allowedRoles={["organization_donor"]} />
                       }
                     >
                       <Route path="/post-donation" element={<DonationForm />} />
@@ -93,7 +102,7 @@ function App() {
 
                     {/* ngo routes */}
 
-                    <Route element={<RoleBasedRoute allowedRoles={['ngo']} />}>
+                    <Route element={<RoleBasedRoute allowedRoles={["ngo"]} />}>
                       <Route path="/ngo/dashboard" element={<NgoDashboard />}>
                         <Route index element={<NGOStatistics />} />
                         <Route path="needs" element={<PostedNeeds />} />
@@ -120,7 +129,7 @@ function App() {
                     {/* admin routes */}
 
                     <Route
-                      element={<RoleBasedRoute allowedRoles={['admin']} />}
+                      element={<RoleBasedRoute allowedRoles={["admin"]} />}
                     >
                       <Route
                         path="/admin/dashboard"

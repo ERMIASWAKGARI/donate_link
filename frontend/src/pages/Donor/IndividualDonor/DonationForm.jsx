@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable react/prop-types */
 import { useContext, useState } from "react";
 import {
   FaBoxOpen,
@@ -11,15 +9,18 @@ import {
 import Axios from "../../../config/axiosConfig";
 import { UserContext } from "../../../context/UserContext";
 import MaterialDonationForm from "./MatterialDonationForm";
+
 const DonationForm = ({ need, onClose, onSubmit }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const { user } = useContext(UserContext);
-  // Initialize form data based on need types
-  console.log("need", need);
+  const [selectedServiceIndex, setSelectedServiceIndex] = useState(null); // Track which service is selected
+
+  // Initialize form data
+  const initialType = need.needTypes[0];
   const [formData, setFormData] = useState({
-    type: need.needTypes.includes("money") ? "money" : need.needTypes[0],
+    type: initialType,
     currency: "ETB",
     amount: "",
     materials:
@@ -30,13 +31,14 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
         unit: item.unit,
       })) || [],
     services:
-      need?.categories?.service?.map((item) => ({
-        category: item.categoryName, // Changed from categoryName to category
-        subCategory: item.subCategoryName, // Changed from subCategoryName to subCategory
+      need?.categories?.service?.map((item, index) => ({
+        category: item.categoryName,
+        subCategory: item.subCategoryName,
         motivation: "",
         startDate: "",
-        endDate: null, // Made optional to match model
+        endDate: null,
         hoursPerWeek: "",
+        isSelected: index === 0, // Default to first service selected if type is service
       })) || [],
     message: "",
     location: {
@@ -46,6 +48,21 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
     },
     pictures: [],
   });
+
+  // Handle service selection
+  const handleServiceSelection = (index) => {
+    // Update all services to set isSelected to false except the selected one
+    const updatedServices = formData.services.map((service, i) => ({
+      ...service,
+      isSelected: i === index,
+    }));
+
+    setFormData((prev) => ({
+      ...prev,
+      services: updatedServices,
+    }));
+    setSelectedServiceIndex(index);
+  };
 
   // Handle form field changes
   const handleChange = (e) => {
@@ -90,10 +107,7 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
     }
 
     try {
-      // In a real implementation, you would upload files to your server here
-      // For demo purposes, we'll just use the file names
       const uploadedUrls = files.map((file) => URL.createObjectURL(file));
-
       setFormData((prev) => ({
         ...prev,
         pictures: [...prev.pictures, ...uploadedUrls],
@@ -103,7 +117,6 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
     }
   };
 
-  // Remove a picture
   const removePicture = (index) => {
     setFormData((prev) => ({
       ...prev,
@@ -111,15 +124,6 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
     }));
   };
 
-  // Validate date range
-  const validateDates = (startDate, endDate) => {
-    if (startDate && endDate) {
-      return new Date(startDate) < new Date(endDate);
-    }
-    return true;
-  };
-
-  // Handle form submission// Update your handleSubmit function in DonationForm.js
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -127,28 +131,71 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
     setSuccess(null);
 
     try {
-      // Validate user is logged in
       if (!user) {
         throw new Error("You must be logged in to make a donation");
       }
 
-      // Check if at least something is being donated
-      const isMoneyDonation = formData.type === "money" && formData.amount;
-      const isMaterialDonation =
-        formData.type === "material" &&
-        formData.materials.some((m) => m.quantity && m.quantity > 0);
-      const isServiceDonation =
-        formData.type === "service" &&
-        formData.services.some((s) => s.motivation);
+      // Validate based on selected donation type
+      switch (formData.type) {
+        case "money":
+          if (!formData.amount || parseFloat(formData.amount) <= 0) {
+            throw new Error("Please enter a valid donation amount");
+          }
+          break;
 
-      if (!isMoneyDonation && !isMaterialDonation && !isServiceDonation) {
-        throw new Error("Please provide at least one donation");
+        case "material":
+          if (!formData.materials.some((m) => m.quantity && m.quantity > 0)) {
+            throw new Error(
+              "Please provide quantities for at least one material"
+            );
+          }
+          if (!formData.location.address) {
+            throw new Error("Please provide a location for material donation");
+          }
+          break;
+
+        case "service": {
+          // Only validate the selected service
+          const selectedService = formData.services.find((s) => s.isSelected);
+          if (!selectedService) {
+            throw new Error("Please select a service to apply for");
+          }
+          if (
+            !selectedService.motivation ||
+            selectedService.motivation.trim() === ""
+          ) {
+            throw new Error(
+              "Please provide motivation for the selected service"
+            );
+          }
+          if (selectedService.motivation.length > 1000) {
+            throw new Error("Motivation must be less than 1000 characters");
+          }
+          if (!selectedService.startDate) {
+            throw new Error("Start date is required");
+          }
+          if (
+            selectedService.endDate &&
+            new Date(selectedService.endDate) <=
+              new Date(selectedService.startDate)
+          ) {
+            throw new Error("End date must be after start date if provided");
+          }
+          if (
+            !selectedService.hoursPerWeek ||
+            isNaN(selectedService.hoursPerWeek)
+          ) {
+            throw new Error("Hours per week must be a valid number");
+          }
+          break;
+        }
+
+        default:
+          throw new Error("Invalid donation type selected");
       }
 
-      // Submit based on donation type
       let response;
-      if (formData.type === "money" && formData.amount) {
-        // Only process money donation if amount is provided
+      if (formData.type === "money") {
         response = await Axios.post("/payment/initialize", {
           amount: parseFloat(formData.amount),
           currency: formData.currency,
@@ -161,25 +208,12 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
           message: formData.message || "",
         });
 
-        console.log("response pay", response);
         window.location.href = response.data.data.checkout_url;
         return;
       } else if (formData.type === "material") {
-        // Filter out materials with no quantity or quantity <= 0
         const validMaterials = formData.materials.filter(
           (m) => m.quantity && m.quantity > 0
         );
-
-        if (validMaterials.length === 0) {
-          throw new Error(
-            "Please provide quantities for at least one material"
-          );
-        }
-
-        // Validate location only if donating materials
-        if (!formData.location.address) {
-          throw new Error("Please provide a location for material donation");
-        }
 
         const formDataToSend = new FormData();
         formDataToSend.append("NGO", need.NGO._id);
@@ -206,7 +240,6 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
           })
         );
 
-        // Handle file uploads
         if (formData.pictures.length > 0) {
           const pictureFiles = await Promise.all(
             formData.pictures.map(async (pic) => {
@@ -232,44 +265,18 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
           },
         });
       } else if (formData.type === "service") {
-        // Filter out services with no motivation
-        const validServices = formData.services.filter(
-          (s) => s.motivation && s.motivation.trim() !== ""
-        );
+        // Only submit the selected service
+        const selectedService = formData.services.find((s) => s.isSelected);
 
-        if (validServices.length === 0) {
-          throw new Error("Please provide motivation for at least one service");
-        }
-
-        // Validate service dates only for services being donated
-        for (const service of validServices) {
-          if (service.motivation.length > 1000) {
-            throw new Error("Motivation must be less than 1000 characters");
-          }
-          if (!service.startDate) {
-            throw new Error("Start date is required for each service");
-          }
-          if (
-            service.endDate &&
-            new Date(service.endDate) <= new Date(service.startDate)
-          ) {
-            throw new Error("End date must be after start date if provided");
-          }
-          if (!service.hoursPerWeek || isNaN(service.hoursPerWeek)) {
-            throw new Error("Hours per week must be a valid number");
-          }
-        }
-
-        // Process each valid service (assuming one service per donation for now)
         response = await Axios.post("/donation/service", {
           applicant: user?._id,
           need: need?._id,
-          category: validServices[0].category,
-          subCategory: validServices[0].subCategory,
-          motivation: validServices[0].motivation,
-          startDate: validServices[0].startDate,
-          endDate: validServices[0].endDate || null,
-          hoursPerWeek: parseInt(validServices[0].hoursPerWeek),
+          category: selectedService.category,
+          subCategory: selectedService.subCategory,
+          motivation: selectedService.motivation,
+          startDate: selectedService.startDate,
+          endDate: selectedService.endDate || null,
+          hoursPerWeek: parseInt(selectedService.hoursPerWeek),
           status: "Submitted",
           message: formData.message || "",
         });
@@ -278,13 +285,7 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
       setSuccess(response?.data?.message || "Donation submitted successfully!");
       if (onSubmit) onSubmit(response?.data?.donation || formData);
 
-      // Reset form
       setTimeout(() => {
-        setFormData({
-          // ... reset form data ...
-        });
-        setSuccess(null);
-        window.scrollTo(0, 0);
         onClose();
       }, 3000);
     } catch (err) {
@@ -296,6 +297,7 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
       setIsSubmitting(false);
     }
   };
+
   return (
     <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
       <div className="bg-primary p-4 text-white">
@@ -341,82 +343,83 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
         )}
 
         <form onSubmit={handleSubmit}>
-          {/* Donation Type Selection */}
-          <div className="mb-6">
-            <label className="block text-gray-700 font-medium mb-3">
-              Donation Type
-            </label>
-            <div className="space-y-3">
-              {need.needTypes.includes("money") && (
-                <label className="flex items-center p-3 border rounded-lg hover:bg-primary/10 cursor-pointer transition-colors">
-                  <input
-                    type="radio"
-                    name="type"
-                    value="money"
-                    checked={formData.type === "money"}
-                    onChange={handleChange}
-                    className="mr-3 h-5 w-5 text-primary"
-                  />
-                  <div>
-                    <div className="flex items-center font-medium">
-                      <FaMoneyBillWave className="mr-2 text-primary" />
-                      Monetary Donation
+          {/* Donation Type Selection - Only show if multiple options available */}
+          {need.needTypes.length > 1 && (
+            <div className="mb-6">
+              <label className="block text-gray-700 font-medium mb-3">
+                Donation Type
+              </label>
+              <div className="space-y-3">
+                {need.needTypes.includes("money") && (
+                  <label className="flex items-center p-3 border rounded-lg hover:bg-primary/10 cursor-pointer transition-colors">
+                    <input
+                      type="radio"
+                      name="type"
+                      value="money"
+                      checked={formData.type === "money"}
+                      onChange={handleChange}
+                      className="mr-3 h-5 w-5 text-primary"
+                    />
+                    <div>
+                      <div className="flex items-center font-medium">
+                        <FaMoneyBillWave className="mr-2 text-primary" />
+                        Monetary Donation
+                      </div>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Contribute financially to this cause
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Contribute financially to this cause
-                    </p>
-                  </div>
-                </label>
-              )}
-              {need?.needTypes.includes("material") && (
-                <label className="flex items-center p-3 border rounded-lg hover:bg-primary/10 cursor-pointer transition-colors">
-                  <input
-                    type="radio"
-                    name="type"
-                    value="material"
-                    checked={formData.type === "material"}
-                    onChange={handleChange}
-                    className="mr-3 h-5 w-5 text-primary"
-                  />
-                  <div>
-                    <div className="flex items-center font-medium">
-                      <FaBoxOpen className="mr-2 text-primary" />
-                      Material Donation
+                  </label>
+                )}
+                {need.needTypes.includes("material") && (
+                  <label className="flex items-center p-3 border rounded-lg hover:bg-primary/10 cursor-pointer transition-colors">
+                    <input
+                      type="radio"
+                      name="type"
+                      value="material"
+                      checked={formData.type === "material"}
+                      onChange={handleChange}
+                      className="mr-3 h-5 w-5 text-primary"
+                    />
+                    <div>
+                      <div className="flex items-center font-medium">
+                        <FaBoxOpen className="mr-2 text-primary" />
+                        Material Donation
+                      </div>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Donate physical items needed
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Donate physical items needed
-                    </p>
-                  </div>
-                </label>
-              )}
-              {need.needTypes.includes("service") && (
-                <label className="flex items-center p-3 border rounded-lg hover:bg-primary/10 cursor-pointer transition-colors">
-                  <input
-                    type="radio"
-                    name="type"
-                    value="service"
-                    checked={formData.type === "service"}
-                    onChange={handleChange}
-                    className="mr-3 h-5 w-5 text-primary"
-                  />
-                  <div>
-                    <div className="flex items-center font-medium">
-                      <FaClock className="mr-2 text-primary" />
-                      Service Donation
+                  </label>
+                )}
+                {need.needTypes.includes("service") && (
+                  <label className="flex items-center p-3 border rounded-lg hover:bg-primary/10 cursor-pointer transition-colors">
+                    <input
+                      type="radio"
+                      name="type"
+                      value="service"
+                      checked={formData.type === "service"}
+                      onChange={handleChange}
+                      className="mr-3 h-5 w-5 text-primary"
+                    />
+                    <div>
+                      <div className="flex items-center font-medium">
+                        <FaClock className="mr-2 text-primary" />
+                        Service Donation
+                      </div>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Volunteer your time and skills
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Volunteer your time and skills
-                    </p>
-                  </div>
-                </label>
-              )}
+                  </label>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Money Donation Form */}
           {formData.type === "money" && (
             <div className="mb-6 bg-primary/10 p-4 rounded-lg">
-              {/* Currency Selection */}
               <div className="mb-4">
                 <label className="block text-gray-700 font-medium mb-2">
                   Currency
@@ -432,7 +435,6 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
                 </select>
               </div>
 
-              {/* Amount Input */}
               <label className="block text-gray-700 font-medium mb-2">
                 Amount
               </label>
@@ -446,7 +448,7 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
                   value={formData.amount}
                   onChange={handleChange}
                   min="1"
-                  step="0.01"
+                  step="1"
                   className="w-full pl-8 p-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                   required
                   placeholder={`Enter amount in ${formData.currency}`}
@@ -464,7 +466,7 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
           )}
 
           {/* Material Donation Form */}
-          {formData.type === "material" && formData?.materials?.length > 0 && (
+          {formData.type === "material" && formData.materials?.length > 0 && (
             <MaterialDonationForm
               materials={formData.materials}
               location={formData.location}
@@ -482,84 +484,121 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
               <h4 className="font-medium text-gray-700 mb-2">
                 Service Application
               </h4>
-              {formData.services.map((item, index) => (
-                <div
-                  key={index}
-                  className="bg-gray-50 p-4 rounded-lg border border-gray-200"
-                >
-                  <p className="font-medium text-primary">
-                    {item.category} - {item.subCategory}
+              {formData.type === "service" && formData.services?.length > 0 && (
+                <div className="mb-6 space-y-4">
+                  <h4 className="font-medium text-gray-700 mb-2">
+                    Service Opportunities
+                  </h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Please select one service opportunity to apply for:
                   </p>
-                  <div className="mt-3 space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Motivation (Max 1000 characters)
-                      </label>
-                      <textarea
-                        name="motivation"
-                        value={item.motivation}
-                        onChange={(e) => handleServiceChange(index, e)}
-                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                        rows="3"
-                        maxLength="1000"
-                        placeholder="Why do you want to provide this service?"
-                        required
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                          <FaCalendarAlt className="mr-2 text-gray-500" />
-                          Start Date*
-                        </label>
+
+                  {formData.services.map((item, index) => (
+                    <div
+                      key={index}
+                      className={`bg-gray-50 p-4 rounded-lg border ${
+                        item.isSelected
+                          ? "border-primary border-2"
+                          : "border-gray-200"
+                      }`}
+                    >
+                      <div className="flex items-start">
                         <input
-                          type="date"
-                          name="startDate"
-                          value={item.startDate}
-                          onChange={(e) => handleServiceChange(index, e)}
-                          className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                          required
-                          min={new Date().toISOString().split("T")[0]}
+                          type="radio"
+                          name="selectedService"
+                          checked={item.isSelected}
+                          onChange={() => handleServiceSelection(index)}
+                          className="mt-1 mr-3 h-4 w-4 text-primary"
                         />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                          <FaCalendarAlt className="mr-2 text-gray-500" />
-                          End Date (Optional)
-                        </label>
-                        <input
-                          type="date"
-                          name="endDate"
-                          value={item.endDate || ""}
-                          onChange={(e) => handleServiceChange(index, e)}
-                          className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                          min={
-                            item.startDate ||
-                            new Date().toISOString().split("T")[0]
-                          }
-                        />
+                        <div className="flex-1">
+                          <p className="font-medium text-primary">
+                            {item.category} - {item.subCategory}
+                          </p>
+
+                          {item.isSelected && (
+                            <div className="mt-3 space-y-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                  Motivation (Max 1000 characters)*
+                                </label>
+                                <textarea
+                                  name="motivation"
+                                  value={item.motivation}
+                                  onChange={(e) =>
+                                    handleServiceChange(index, e)
+                                  }
+                                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                                  rows="3"
+                                  maxLength="1000"
+                                  placeholder="Why do you want to provide this service?"
+                                  required
+                                />
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                                    <FaCalendarAlt className="mr-2 text-gray-500" />
+                                    Start Date*
+                                  </label>
+                                  <input
+                                    type="date"
+                                    name="startDate"
+                                    value={item.startDate}
+                                    onChange={(e) =>
+                                      handleServiceChange(index, e)
+                                    }
+                                    className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                                    required
+                                    min={new Date().toISOString().split("T")[0]}
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                                    <FaCalendarAlt className="mr-2 text-gray-500" />
+                                    End Date (Optional)
+                                  </label>
+                                  <input
+                                    type="date"
+                                    name="endDate"
+                                    value={item.endDate || ""}
+                                    onChange={(e) =>
+                                      handleServiceChange(index, e)
+                                    }
+                                    className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                                    min={
+                                      item.startDate ||
+                                      new Date().toISOString().split("T")[0]
+                                    }
+                                  />
+                                </div>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                                  <FaClock className="mr-2 text-gray-500" />
+                                  Hours Per Week*
+                                </label>
+                                <input
+                                  type="number"
+                                  name="hoursPerWeek"
+                                  value={item.hoursPerWeek}
+                                  onChange={(e) =>
+                                    handleServiceChange(index, e)
+                                  }
+                                  className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                                  min="1"
+                                  max="168"
+                                  placeholder="Enter hours per week"
+                                  required
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                        <FaClock className="mr-2 text-gray-500" />
-                        Hours Per Week*
-                      </label>
-                      <input
-                        type="number"
-                        name="hoursPerWeek"
-                        value={item.hoursPerWeek}
-                        onChange={(e) => handleServiceChange(index, e)}
-                        className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                        min="1"
-                        max="168"
-                        placeholder="Enter hours per week"
-                        required
-                      />
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           )}
 

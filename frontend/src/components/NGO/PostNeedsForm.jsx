@@ -17,6 +17,7 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
     description: "",
     endDate: "",
     targetMoney: "",
+    currency: "ETB",
     beneficiaryInfo: {
       numberOfBeneficiaries: "",
       pictures: [],
@@ -29,6 +30,7 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
   const [showMap, setShowMap] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef(null);
+  const [Error, setError] = useState("");
 
   // Add "Other" option to all category lists
   const enhancedMaterialCategories = [...materialCategories, { name: "Other" }];
@@ -150,7 +152,10 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
       setIsSubmitting(false);
       return;
     }
-
+    if (formData.beneficiaryInfo.pictures.length === 0) {
+      setError("please select images");
+      window.scroll(0, 0);
+    }
     if (new Set(formData.needTypes).size !== formData.needTypes.length) {
       alert("Need types must be unique");
       setIsSubmitting(false);
@@ -198,6 +203,7 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
       formDataToSend.append("description", formData.description);
       formDataToSend.append("endDate", formData.endDate);
       formDataToSend.append("targetMoney", formData.targetMoney || "0");
+      formDataToSend.append("currency", formData.currency || "0");
 
       // Append beneficiary info
       formDataToSend.append(
@@ -222,12 +228,20 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
         formDataToSend.append(
           "materialCategories",
           JSON.stringify(
-            formData.categories.material.map((cat) => ({
-              categoryName: cat.categoryName?.slice(0, 50),
-              subCategoryName: cat.subCategoryName?.slice(0, 50),
-              targetAmountNeeded: cat.targetAmountNeeded,
-              unit: cat.unit,
-            }))
+            formData.categories.material.map((cat) => {
+              // Use custom category name if "Other" was selected
+              const finalCategoryName =
+                cat.categoryName === "Other"
+                  ? cat.customCategoryName
+                  : cat.categoryName;
+
+              return {
+                categoryName: finalCategoryName?.slice(0, 50) || "",
+                subCategoryName: cat.subCategoryName?.slice(0, 50) || "",
+                targetAmountNeeded: cat.targetAmountNeeded,
+                unit: cat.unit,
+              };
+            })
           )
         );
       }
@@ -236,11 +250,20 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
         formDataToSend.append(
           "serviceCategories",
           JSON.stringify(
-            formData.categories.service.map((cat) => ({
-              categoryName: cat.categoryName?.slice(0, 50),
-              subCategoryName: cat.subCategoryName?.slice(0, 50),
-              vacancy: cat.vacancy,
-            }))
+            formData.categories.service.map((cat) => {
+              // Use custom category name if "Other" was selected
+              const finalCategoryName =
+                cat.categoryName === "Other"
+                  ? cat.customCategoryName
+                  : cat.categoryName;
+
+              return {
+                categoryName: finalCategoryName?.slice(0, 50) || "",
+                subCategoryName: cat.subCategoryName?.slice(0, 50) || "",
+                vacancy: cat.vacancy,
+                //unit:cat.unit
+              };
+            })
           )
         );
       }
@@ -276,6 +299,7 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
   };
   return (
     <div className="bg-white rounded-lg shadow-md p-6 max-w-4xl mx-auto my-6">
+      {Error && <p>{Error}</p>}
       <p className="text-sm text-yellow-700">
         <strong>⚠️ Warning:</strong>
         Posts cannot be edited after submission. Please verify all details
@@ -367,18 +391,31 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
           </div>
 
           {formData.needTypes.includes("money") && (
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Target Money*</label>
-              <input
-                type="number"
-                name="targetMoney"
-                value={formData.targetMoney}
+            <div className="mb-4 flex">
+              <label className=" text-gray-700 mb-2">
+                Target Money*
+                <input
+                  type="number"
+                  name="targetMoney"
+                  placeholder="enter money amount (min 10)"
+                  value={formData.targetMoney}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  min="10"
+                  required
+                />
+              </label>
+              <select
+                name="currency"
+                value={formData.currency}
                 onChange={handleChange}
                 className="w-full p-2 border border-gray-300 rounded"
-                min="0"
-                step="0.01"
                 required
-              />
+                id=""
+              >
+                <option value="ETB">ETB</option>
+                <option value="ETB">USD</option>
+              </select>
             </div>
           )}
         </div>
@@ -514,6 +551,7 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
                   className="hidden"
                   ref={fileInputRef}
                   disabled={previewImages.length >= 10}
+                  required
                 />
               </label>
               <span className="text-sm text-gray-500 ml-2">
@@ -564,15 +602,20 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
           </div>
         )}
 
+        {/* Service Categories Section */}
         {formData.needTypes.includes("service") && (
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">
               Service Needs
             </h3>
+
             {formData.categories.service.map((category, index) => (
-              <div key={index} className="mb-4 p-4 border rounded-lg">
+              <div
+                key={`service-category-${index}`}
+                className="mb-4 p-4 border rounded-lg"
+              >
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
-                  {/* Service Category Selection */}
+                  {/* Category Selection */}
                   <div>
                     <label className="block text-gray-700 text-sm mb-1">
                       Category Name*
@@ -580,32 +623,68 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
                     <select
                       value={category.categoryName}
                       onChange={(e) => {
+                        const selected = e.target.value;
                         handleCategoryChange(
                           "service",
                           index,
                           "categoryName",
-                          e.target.value
+                          selected
                         );
-                        handleCategoryChange(
-                          "service",
-                          index,
-                          "subCategoryName",
-                          ""
-                        );
+                        // Clear custom name & subcategory if switching from 'Other'
+                        if (selected !== "Other") {
+                          handleCategoryChange(
+                            "service",
+                            index,
+                            "customCategoryName",
+                            ""
+                          );
+                          handleCategoryChange(
+                            "service",
+                            index,
+                            "subCategoryName",
+                            ""
+                          );
+                        } else {
+                          handleCategoryChange(
+                            "service",
+                            index,
+                            "subCategoryName",
+                            ""
+                          );
+                        }
                       }}
                       className="w-full p-2 border border-gray-300 rounded text-sm"
                       required
                     >
                       <option value="">Select Category</option>
                       {enhancedServiceCategories.map((cat) => (
-                        <option key={cat.name} value={cat.name}>
+                        <option key={`cat-${cat.name}`} value={cat.name}>
                           {cat.name}
                         </option>
                       ))}
                     </select>
+
+                    {/* Show custom input when "Other" is selected */}
+                    {category.categoryName === "Other" && (
+                      <input
+                        type="text"
+                        value={category.customCategoryName || ""}
+                        onChange={(e) =>
+                          handleCategoryChange(
+                            "service",
+                            index,
+                            "customCategoryName",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter custom category"
+                        className="w-full p-2 border border-gray-300 rounded text-sm mt-1"
+                        required
+                      />
+                    )}
                   </div>
 
-                  {/* Service Subcategory */}
+                  {/* Subcategory */}
                   <div>
                     <label className="block text-gray-700 text-sm mb-1">
                       Sub-Category*
@@ -613,7 +692,7 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
                     {category.categoryName === "Other" ? (
                       <input
                         type="text"
-                        value={category.subCategoryName}
+                        value={category.subCategoryName || ""}
                         onChange={(e) =>
                           handleCategoryChange(
                             "service",
@@ -622,9 +701,8 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
                             e.target.value
                           )
                         }
-                        className="w-full p-2 border border-gray-300 rounded text-sm"
                         placeholder="Enter custom subcategory"
-                        maxLength="50"
+                        className="w-full p-2 border border-gray-300 rounded text-sm"
                         required
                       />
                     ) : (
@@ -646,12 +724,11 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
                         {category.categoryName &&
                           getServiceSubCategories(category.categoryName).map(
                             (subCat) => (
-                              <option key={subCat} value={subCat}>
+                              <option key={`subcat-${subCat}`} value={subCat}>
                                 {subCat}
                               </option>
                             )
                           )}
-                        <option value="Other">Other</option>
                       </select>
                     )}
                   </div>
@@ -679,147 +756,7 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    const updated = [...formData.categories.service];
-                    updated.splice(index, 1);
-                    setFormData((prev) => ({
-                      ...prev,
-                      categories: { ...prev.categories, service: updated },
-                    }));
-                  }}
-                  className="text-red-500 text-sm hover:text-red-700"
-                >
-                  Remove Category
-                </button>
-              </div>
-            ))}
-
-            <button
-              type="button"
-              onClick={() => addCategory("service")}
-              className="flex items-center text-blue-500 hover:text-blue-700"
-            >
-              <FaPlus className="mr-1" /> Add Service Category
-            </button>
-          </div>
-        )}
-
-        {/* Service Categories Section */}
-        {formData.needTypes.includes("service") && (
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">
-              Service Needs
-            </h3>
-            {formData.categories.service.map((category, index) => (
-              <div key={index} className="mb-4 p-4 border rounded-lg">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
-                  {/* Service Category Dropdown */}
-                  <div>
-                    <label className="block text-gray-700 text-sm mb-1">
-                      Category Name*
-                    </label>
-                    <select
-                      value={category.categoryName}
-                      onChange={(e) => {
-                        handleCategoryChange(
-                          "service",
-                          index,
-                          "categoryName",
-                          e.target.value
-                        );
-                        // Reset subcategory when category changes
-                        handleCategoryChange(
-                          "service",
-                          index,
-                          "subCategoryName",
-                          ""
-                        );
-                      }}
-                      className="w-full p-2 border border-gray-300 rounded text-sm"
-                      required
-                    >
-                      <option value="">Select Category</option>
-                      {serviceCategories.map((cat) => (
-                        <option key={cat.name} value={cat.name}>
-                          {cat.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Service Subcategory - Dynamic dropdown or input */}
-                  <div>
-                    <label className="block text-gray-700 text-sm mb-1">
-                      Sub-Category*
-                    </label>
-                    {category.categoryName === "Other" ? (
-                      <input
-                        type="text"
-                        value={category.subCategoryName}
-                        onChange={(e) =>
-                          handleCategoryChange(
-                            "service",
-                            index,
-                            "subCategoryName",
-                            e.target.value
-                          )
-                        }
-                        className="w-full p-2 border border-gray-300 rounded text-sm"
-                        maxLength="50"
-                        required
-                      />
-                    ) : (
-                      <select
-                        value={category.subCategoryName}
-                        onChange={(e) =>
-                          handleCategoryChange(
-                            "service",
-                            index,
-                            "subCategoryName",
-                            e.target.value
-                          )
-                        }
-                        className="w-full p-2 border border-gray-300 rounded text-sm"
-                        disabled={!category.categoryName}
-                        required
-                      >
-                        <option value="">Select Subcategory</option>
-                        {category.categoryName &&
-                          getServiceSubCategories(category.categoryName).map(
-                            (subCat) => (
-                              <option key={subCat} value={subCat}>
-                                {subCat}
-                              </option>
-                            )
-                          )}
-                      </select>
-                    )}
-                  </div>
-
-                  {/* Vacancy Input */}
-                  <div>
-                    <label className="block text-gray-700 text-sm mb-1">
-                      Vacancy*
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={category.vacancy}
-                      onChange={(e) =>
-                        handleCategoryChange(
-                          "service",
-                          index,
-                          "vacancy",
-                          e.target.value
-                        )
-                      }
-                      className="w-full p-2 border border-gray-300 rounded text-sm"
-                      required
-                    />
-                  </div>
-                </div>
+                {/* Remove button */}
                 <button
                   type="button"
                   onClick={() => {
@@ -839,15 +776,17 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
                 </button>
               </div>
             ))}
+
             <button
               type="button"
               onClick={() => addCategory("service")}
-              className="flex items-center px-3 py-1 bg-primary text-white rounded hover:bg-blue-600 text-sm"
+              className="flex items-center text-blue-500 hover:text-blue-700"
             >
               <FaPlus className="mr-1" /> Add Service Category
             </button>
           </div>
         )}
+
         {/* Form Actions */}
         <div className="flex justify-end space-x-4 pt-4 border-t">
           <button
