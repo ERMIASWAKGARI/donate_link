@@ -18,10 +18,9 @@ const MaterialCategoryFields = ({ category, index, handleCategoryChange }) => {
             const value = e.target.value;
             handleCategoryChange("material", index, "categoryName", value);
             // Reset dependent fields when category changes
-            if (value !== "Other") {
-              handleCategoryChange("material", index, "subCategoryName", "");
-              handleCategoryChange("material", index, "unit", "");
-            }
+            handleCategoryChange("material", index, "subCategoryName", "");
+            handleCategoryChange("material", index, "unit", "");
+            handleCategoryChange("material", index, "customCategoryName", "");
           }}
           className="w-full p-2 border border-gray-300 rounded text-sm"
           required
@@ -39,12 +38,12 @@ const MaterialCategoryFields = ({ category, index, handleCategoryChange }) => {
         {category.categoryName === "Other" && (
           <input
             type="text"
-            value={category.customCategory || ""}
+            value={category.customCategoryName || ""}
             onChange={(e) =>
               handleCategoryChange(
                 "material",
                 index,
-                "customCategory",
+                "customCategoryName",
                 e.target.value
               )
             }
@@ -63,7 +62,7 @@ const MaterialCategoryFields = ({ category, index, handleCategoryChange }) => {
         {category.categoryName === "Other" ? (
           <input
             type="text"
-            value={category.subCategoryName}
+            value={category.subCategoryName || ""}
             onChange={(e) =>
               handleCategoryChange(
                 "material",
@@ -88,9 +87,8 @@ const MaterialCategoryFields = ({ category, index, handleCategoryChange }) => {
                   "subCategoryName",
                   value
                 );
-                if (value !== "Other") {
-                  handleCategoryChange("material", index, "unit", "");
-                }
+                // Reset unit when subcategory changes
+                handleCategoryChange("material", index, "unit", "");
               }}
               className="w-full p-2 border border-gray-300 rounded text-sm"
               disabled={!category.categoryName}
@@ -110,12 +108,12 @@ const MaterialCategoryFields = ({ category, index, handleCategoryChange }) => {
             {category.subCategoryName === "Other" && (
               <input
                 type="text"
-                value={category.customSubCategory || ""}
+                value={category.customSubCategoryName || ""}
                 onChange={(e) =>
                   handleCategoryChange(
                     "material",
                     index,
-                    "customSubCategory",
+                    "customSubCategoryName",
                     e.target.value
                   )
                 }
@@ -135,7 +133,7 @@ const MaterialCategoryFields = ({ category, index, handleCategoryChange }) => {
         category.subCategoryName === "Other" ? (
           <input
             type="text"
-            value={category.unit}
+            value={category.unit || ""}
             onChange={(e) =>
               handleCategoryChange("material", index, "unit", e.target.value)
             }
@@ -150,16 +148,18 @@ const MaterialCategoryFields = ({ category, index, handleCategoryChange }) => {
               handleCategoryChange("material", index, "unit", e.target.value)
             }
             className="w-full p-2 border border-gray-300 rounded text-sm"
-            disabled={!category.categoryName}
+            disabled={!category.subCategoryName}
             required
           >
             <option value="">Select Unit</option>
-            {category.categoryName &&
-              getUnits(category.categoryName).map((unit) => (
-                <option key={unit} value={unit}>
-                  {unit}
-                </option>
-              ))}
+            {category.subCategoryName &&
+              getUnits(category.categoryName, category.subCategoryName).map(
+                (unit) => (
+                  <option key={unit} value={unit}>
+                    {unit}
+                  </option>
+                )
+              )}
             <option value="Other">Other</option>
           </select>
         )}
@@ -173,7 +173,7 @@ const MaterialCategoryFields = ({ category, index, handleCategoryChange }) => {
         <input
           type="number"
           min="1"
-          value={category.targetAmountNeeded}
+          value={category.targetAmountNeeded || ""}
           onChange={(e) =>
             handleCategoryChange(
               "material",

@@ -12,6 +12,7 @@ import { FiLoader } from "react-icons/fi";
 import { UserContext } from "../../context/UserContext";
 import Modal from "react-modal";
 import Map from "./Map";
+import { formatDistanceToNow } from "date-fns";
 Modal.setAppElement("#root");
 
 const NGODonationRequests = () => {
@@ -20,8 +21,6 @@ const NGODonationRequests = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedDonation, setExpandedDonation] = useState(null);
-  const [trackingId, setTrackingId] = useState("");
-  const [currentLocation, setCurrentLocation] = useState(null);
 
   useEffect(() => {
     const fetchDonations = async () => {
@@ -42,68 +41,12 @@ const NGODonationRequests = () => {
     fetchDonations();
   }, [user._id]);
 
-  const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setCurrentLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-          alert(
-            "Could not get your location. Please enable location services."
-          );
-        }
-      );
-    } else {
-      alert("Geolocation is not supported by this browser.");
-    }
-  };
-
-  const openGoogleMaps = (destinationCoords) => {
-    if (!destinationCoords || !currentLocation) return;
-
-    const [destLng, destLat] = destinationCoords;
-    const url = `https://www.google.com/maps/dir/?api=1&origin=${currentLocation.lat},${currentLocation.lng}&destination=${destLat},${destLng}&travelmode=driving`;
-    window.open(url, "_blank");
-  };
-
-  const handleMarkAsCompleted = async (donationId) => {
-    if (!trackingId.trim()) {
-      alert("Please enter a tracking ID");
-      return;
-    }
-
-    try {
-      await axios.patch(`/donation/${donationId}/status`, {
-        status: "completed",
-        trackingId: trackingId.trim(),
-      });
-
-      setDonations(
-        donations.map((donation) =>
-          donation._id === donationId
-            ? { ...donation, status: "completed" }
-            : donation
-        )
-      );
-      setTrackingId("");
-      alert("Donation marked as completed successfully");
-    } catch (err) {
-      console.error("Error updating donation status:", err);
-      alert("Failed to update donation status");
-    }
-  };
-
   const handleDonationClick = (donationId) => {
     // If clicking the already expanded donation, collapse it
     if (expandedDonation === donationId) {
       setExpandedDonation(null);
     }
-    // Otherwise, expand the clicked donation
+    // Otherwise, expand the clicked donation and collapse any others
     else {
       setExpandedDonation(donationId);
     }
@@ -146,7 +89,7 @@ const NGODonationRequests = () => {
         >
           <div
             className="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50"
-            onClick={() => handleDonationClick(donation._id)}
+            onClick={() => handleDonationClick(donation.id)}
           >
             <div className="flex items-center space-x-4">
               {donation.donationType === "money" ? (
@@ -161,7 +104,9 @@ const NGODonationRequests = () => {
                   {donation.title || `Donation #${donation.trackingId}`}
                 </h3>
                 <p className="text-sm text-gray-500">
-                  {new Date(donation.createdAt).toLocaleDateString()}
+                  {formatDistanceToNow(new Date(donation.createdAt), {
+                    addSuffix: true,
+                  })}
                 </p>
               </div>
             </div>
@@ -177,41 +122,57 @@ const NGODonationRequests = () => {
               >
                 {donation.status}
               </span>
-              {expandedDonation === donation._id ? (
+              {expandedDonation === donation.id ? (
                 <FaChevronUp className="text-gray-400" />
               ) : (
                 <FaChevronDown className="text-gray-400" />
               )}
             </div>
           </div>
-
-          {expandedDonation === donation._id && (
-            <div className="p-4 border-t border-gray-200">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {expandedDonation === donation.id && (
+            <div className="p-6 bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Description */}
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500">
+                  <h4 className="text-sm font-semibold text-gray-600 uppercase">
                     Description
                   </h4>
-                  <p className="mt-1 text-sm text-gray-900">
+                  <p className="mt-2 text-gray-800">
                     {donation.description || "No description provided"}
                   </p>
                 </div>
+
+                {/* Donor Info */}
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500">Donor</h4>
-                  <p className="mt-1 text-sm text-gray-900">
-                    {donation.donor?.name || "Anonymous"}
+                  <h4 className="text-sm font-semibold text-gray-600 uppercase">
+                    Donor
+                  </h4>
+                  <p className="mt-2 text-gray-800">
+                    Donated by{" "}
+                    <strong>{donation.donor?.name || "Anonymous"}</strong>
                   </p>
                   {donation.donor?.email && (
                     <p className="text-sm text-gray-500">
                       {donation.donor.email}
                     </p>
                   )}
+                  <p className="text-sm text-[#008080] mt-3 bg-blue-50 border-l-4 border-blue-400 px-4 py-2 rounded">
+                    <span className="font-medium">Note:</span> Please use
+                    Tracking ID:{" "}
+                    <strong className="text-yellow-500">
+                      {donation.trackingId}
+                    </strong>{" "}
+                    to track materials given to you 🙏
+                  </p>
                 </div>
 
+                {/* Need Info */}
                 {donation.need && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-500">Need</h4>
-                    <p className="mt-1 text-sm font-medium text-gray-900">
+                    <h4 className="text-sm font-semibold text-gray-600 uppercase">
+                      Need
+                    </h4>
+                    <p className="mt-2 text-gray-800 font-medium">
                       {donation.need.title}
                     </p>
                     <p className="text-sm text-gray-500">
@@ -220,36 +181,51 @@ const NGODonationRequests = () => {
                   </div>
                 )}
 
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Details</h4>
-                  {donation.donationType === "money" && (
-                    <p className="mt-1 text-sm text-gray-900">
-                      {donation.amount} {donation.currency}
-                    </p>
-                  )}
-                  {donation.donationType === "material" && (
-                    <>
-                      <p className="mt-1 text-sm text-gray-900">
-                        {donation.materialDetails?.quantity}{" "}
-                        {donation.materialDetails?.unit} of{" "}
-                        {donation.materialDetails?.category}
-                      </p>
-                      {donation.location?.coordinates && (
-                        <p className="mt-1 text-sm text-gray-500 flex items-center">
-                          <FaMapMarkerAlt className="mr-1" />
-                          Location available
-                        </p>
-                      )}
-                    </>
-                  )}
-                  {donation.donationType === "service" && (
-                    <p className="mt-1 text-sm text-gray-900">
-                      {donation.serviceDetails}
-                    </p>
-                  )}
-                </div>
+                {/* Materials */}
+                {donation.materials?.length > 0 && (
+                  <div className="md:col-span-2">
+                    <h4 className="text-sm font-semibold text-gray-600 uppercase mb-3">
+                      Donated Materials
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {donation.materials.map((material, idx) => (
+                        <div
+                          key={idx}
+                          className="p-4 bg-gray-50 border border-gray-200 rounded-lg shadow-sm"
+                        >
+                          <p className="text-sm text-gray-500">
+                            <span className="font-semibold text-gray-700">
+                              Category:
+                            </span>{" "}
+                            {material.categoryName}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            <span className="font-semibold text-gray-700">
+                              Subcategory:
+                            </span>{" "}
+                            {material.subCategoryName}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            <span className="font-semibold text-gray-700">
+                              Quantity:
+                            </span>{" "}
+                            {material.quantity} {material.unit}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="mt-4 flex justify-end gap-3">
+
+              {/* Location */}
+              <div className="mt-6 flex flex-col gap-3">
+                {donation.location?.coordinates && (
+                  <p className="text-sm text-gray-600 flex items-center">
+                    <FaMapMarkerAlt className="mr-2 text-red-500" />
+                    Location available
+                  </p>
+                )}
                 <Map
                   latitude={donation?.location?.coordinates[1]}
                   longitude={donation?.location?.coordinates[0]}
@@ -262,4 +238,5 @@ const NGODonationRequests = () => {
     </div>
   );
 };
+
 export default NGODonationRequests;

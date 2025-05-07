@@ -25,6 +25,7 @@ router.get("/statistics", authMiddleware("ngo"), needsController.getNGOStatistic
 router.get("/report/:id", needsController.getReportById);
 router.get("/getAllNeeds", needsController.getAllNeeds);
 router.get("/ngo/:ngoId", needsController.getNeedsByNgo);
+router.get("/needsReports/:ngoId",needsController.getNeedsReportShouldGeneratedFor)
 router.get("/:id", needsController.getNeedById);
 // Material Donation Routes
 router.post(

@@ -31,7 +31,7 @@ const Reports = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await Axios.get(`/donation/ngo/${user._id}`, {
+      const response = await Axios.get(`/donation/needsReports/${user._id}`, {
         params: {
           page: currentPage,
           limit: itemsPerPage,
@@ -131,7 +131,8 @@ const Reports = () => {
                         .filter(
                           (need) =>
                             need.isReportGenerated === false &&
-                            need.status === "Closed"
+                            // need.status === "Closed" &&
+                            need.hasDonations === true
                         )
                         .map((need) => (
                           <label

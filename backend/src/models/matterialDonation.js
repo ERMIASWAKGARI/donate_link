@@ -28,7 +28,7 @@ const matteriaDonationSchema = new mongoose.Schema(
     },
     donationType: {
       type: String,
-      enum: ["money", "material", "service", "other"],
+      enum: ["money", "material", "service", "other" ],
       default: "material",
       required: true,
     },

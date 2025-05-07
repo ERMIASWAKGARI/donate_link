@@ -1,5 +1,6 @@
 const Need = require("../../models/needsModel");
 const path = require("path");
+const mongoose=require("mongoose")
 const uploadNeedPictures = require("../../middleware/uploadNeedPictures");
 const AppError = require("../../utils/appError");
 const APIFeatures = require("../../utils/apiFeatures"); // Adjust path as needed
@@ -139,7 +140,7 @@ const postNgosNeed = async (req, res, next) => {
         donor._id,
         `New need posted by ${req.user.name}`,
         "need",
-        `/admin/users/${req.user._id}`
+        `/donor/dashboard`
       );
     });
 
@@ -360,6 +361,54 @@ const getNeedsByNgo = async (req, res) => {
     const { status, page = 1, limit = 10 } = req.query;
 
     const filter = { NGO: ngoId, isReportGenerated: false };
+
+    if (status) {
+      filter.status = status;
+    }
+
+    // Convert page and limit to numbers
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    // Get total count of documents
+    const total = await Need.countDocuments(filter);
+
+    const needs = await Need.find(filter)
+      .sort({ createdAt: -1 }) // Sort by newest first
+      .skip(skip)
+      .limit(limitNumber);
+    // .populate("application", "status donor") // Uncomment if you need to populate
+
+    if (!needs || needs.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "No needs found for this NGO",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      count: needs.length,
+      total,
+      page: pageNumber,
+      pages: Math.ceil(total / limitNumber),
+      data: needs,
+    });
+  } catch (error) {
+    console.error("Error fetching NGO needs:", error);
+    res.status(500).json({
+      success: false,
+      error: "Server error",
+    });
+  }
+};
+const getNeedsReportShouldGeneratedFor = async (req, res) => {
+  try {
+    const ngoId = req.params.ngoId;
+    const { status, page = 1, limit = 10 } = req.query;
+
+    const filter = { NGO: ngoId, isReportGenerated: false,hasDonations:true };
 
     if (status) {
       filter.status = status;
@@ -913,10 +962,84 @@ console.log("ngo is:",ngoId)
         quantity: entry.totalQuantity,
       };
     });
+const monetaryDonationsByCurrency = await Payment.aggregate([
+  {
+    $match: {
+      NGOId: new mongoose.Types.ObjectId(ngoId),
+      // status: "Completed", // Only count completed payments
+    },
+  },
+  {
+    $group: {
+      _id: "$currency",
+      total: { $sum: "$amount" },
+      count: { $sum: 1 },
+      avgAmount: { $avg: "$amount" },
+    },
+  },
+  {
+    $project: {
+      currency: "$_id",
+      total: 1,
+      count: 1,
+      avgAmount: 1,
+      _id: 0,
+    },
+  },
+  { $sort: { total: -1 } },
+]);
 
+// Enhanced Service Applications Query
+console.log("ngoId",ngoId)
+const serviceApplicationsByStatus = await Application.aggregate([
+  {
+    $match: {
+      NGO: ngoId,
+    },
+  },
+  {
+    $group: {
+      _id: "$status",
+      count: { $sum: 1 },
+      avgHours: { $avg: "$hoursPerWeek" },
+    },
+  },
+  {
+    $addFields: {
+      statusOrder: {
+        $switch: {
+          branches: [
+            { case: { $eq: ["$_id", "Submitted"] }, then: 1 },
+            { case: { $eq: ["$_id", "Under Review"] }, then: 2 },
+            { case: { $eq: ["$_id", "Interview Scheduled"] }, then: 3 },
+            { case: { $eq: ["$_id", "Approved"] }, then: 4 },
+            { case: { $eq: ["$_id", "Accepted"] }, then: 5 },
+            { case: { $eq: ["$_id", "Completed"] }, then: 6 },
+            { case: { $eq: ["$_id", "On Hold"] }, then: 7 },
+            { case: { $eq: ["$_id", "Rejected"] }, then: 8 },
+            { case: { $eq: ["$_id", "Withdrawn"] }, then: 9 },
+          ],
+          default: 10,
+        },
+      },
+    },
+  },
+  { $sort: { statusOrder: 1 } },
+  {
+    $project: {
+      status: "$_id",
+      count: 1,
+      avgHours: 1,
+      _id: 0,
+    },
+  },
+]);
+console.log("service application", serviceApplicationsByStatus);
     const result = {
       monetaryDonations: monetaryDonations[0]?.total || 0, // Still placeholder
       materialDonations: totalMaterialItems,
+      monetaryDonationsByCurrency,
+      serviceApplicationsByStatus,
       volunteerServiceHours: volunteerHours[0]?.total || 0,
       beneficiariesReached: beneficiariesReached[0]?.total || 0,
       totalNeedsPosted,
@@ -931,6 +1054,7 @@ console.log("ngo is:",ngoId)
 };
 
 module.exports = {
+  getNeedsReportShouldGeneratedFor,
   getNeedById,
   deleteNeed,
   getNGOStatistics,
