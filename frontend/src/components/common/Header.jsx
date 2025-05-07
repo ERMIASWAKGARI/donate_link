@@ -152,59 +152,17 @@ const Header = () => {
               </a>
 
               {/* How It Works Dropdown */}
-              <div className="relative" ref={howItWorksRef}>
-                <motion.button
-                  onClick={() => setIsOpen(!isOpen)}
-                  className="flex items-center gap-1 hover:text-yellow-400 transition"
-                  whileHover={{ scale: 1.05 }}
-                >
-                  How It Works
-                  <motion.div
-                    animate={{ rotate: isOpen ? 180 : 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    {/* <ChevronDown size={16} className="ml-1" /> */}
-                  </motion.div>
-                </motion.button>
-
-                <AnimatePresence>
-                  {isOpen && (
-                    <motion.div
-                      variants={dropdownVariants}
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                      className="absolute left-0 mt-2 w-56 bg-white text-black rounded-md shadow-xl z-50 overflow-hidden"
-                    >
-                      {[
-                        { to: "/register", text: "Sign Up" },
-                        { to: "/donate", text: "Choose Items to Donate" },
-                        { to: "/ngos", text: "Select an NGO" },
-                        { to: "/impact", text: "Track Your Impact" },
-                        { to: "/faq", text: "FAQs" },
-                        { to: "/contact", text: "Contact Support" },
-                      ].map((item, index) => (
-                        <motion.div
-                          key={index}
-                          whileHover={{ x: 5 }}
-                          transition={{ type: "spring", stiffness: 300 }}
-                        >
-                          <NavLink
-                            to={item.to}
-                            className={({ isActive }) =>
-                              `block px-4 py-3 hover:bg-gray-100 transition ${
-                                isActive ? "bg-gray-100 font-medium" : ""
-                              }`
-                            }
-                          >
-                            {item.text}
-                          </NavLink>
-                        </motion.div>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+              <a
+                href="#howitworks"
+                className="flex flex-col items-center gap-1 group transition duration-300"
+              >
+                <p className="hover:text-yellow-400">How it Works</p>
+                <motion.div
+                  className="w-2/4 h-[2px] bg-yellow-400"
+                  initial={{ scaleX: 0 }}
+                  whileHover={{ scaleX: 1 }}
+                />
+              </a>
 
               {/* Donations Dropdown */}
               {/* <div className="relative" ref={donationsRef}>
