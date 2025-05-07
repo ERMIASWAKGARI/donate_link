@@ -18,9 +18,27 @@ const ProfilePage = () => {
   const [validationErrors, setValidationErrors] = useState({});
   const [verificationModal, setVerificationModal] = useState({
     visible: false,
-    type: null, // 'email' or 'phone'
+    type: null,
     message: '',
+    phone: '',
+    email: '',
+    showOtpInput: false,
+    error: null,
+    success: null,
   });
+  const [otp, setOtp] = useState('');
+
+  useEffect(() => {
+    if (verificationModal.success) {
+      const timer = setTimeout(() => {
+        setVerificationModal((prev) => ({
+          ...prev,
+          success: null,
+        }));
+      }, 5000); // Dismiss after 5 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [verificationModal.success]);
 
   const formatFieldName = (field) => {
     // Handle known special cases
@@ -76,6 +94,8 @@ const ProfilePage = () => {
     const errors = validateProfile(user, updateData);
     setValidationErrors(errors);
 
+    console.log('updatedata: ', updateData);
+
     if (Object.keys(errors).length > 0) {
       setError({
         message: `Validation failed: ${Object.values(errors).join(', ')}.`,
@@ -103,6 +123,9 @@ const ProfilePage = () => {
           visible: true,
           type: 'email',
           message: data.message,
+          email: updateData.email,
+          error: null,
+          success: null,
         });
       } else if (data.message.updatedFields.includes('phone')) {
         // Handle phone verification flow
@@ -110,6 +133,8 @@ const ProfilePage = () => {
           visible: true,
           type: 'phone',
           message: data.message,
+          phone: updateData.phone,
+          showOtpInput: false,
         });
       } else {
         // Regular success case
@@ -127,6 +152,103 @@ const ProfilePage = () => {
         details: err.response?.data?.errors,
         status: err.response?.status,
       });
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    try {
+      setUpdateLoading(true);
+      setVerificationModal((prev) => ({ ...prev, error: null }));
+
+      const response = await api.post('/auth/verify-otp', {
+        phone: verificationModal.phone,
+        otp,
+      });
+
+      setVerificationModal({
+        visible: false,
+        type: null,
+        message: '',
+        phone: '',
+        showOtpInput: false,
+        error: null,
+      });
+      setSuccess({
+        message: response.data.message || 'Phone verified successfully!',
+      });
+      await fetchUserProfile();
+    } catch (error) {
+      setVerificationModal((prev) => ({
+        ...prev,
+        error: {
+          message: error.response?.data?.message || 'Failed to verify OTP',
+        },
+      }));
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    try {
+      setUpdateLoading(true);
+      // Clear any previous messages
+      setVerificationModal((prev) => ({
+        ...prev,
+        error: null,
+        success: null,
+      }));
+
+      await api.post('/auth/resend-otp', { phone: verificationModal.phone });
+
+      setVerificationModal((prev) => ({
+        ...prev,
+        success: {
+          message: 'New verification code sent!',
+        },
+      }));
+    } catch (error) {
+      setVerificationModal((prev) => ({
+        ...prev,
+        error: {
+          message: error.response?.data?.message || 'Failed to resend OTP',
+        },
+      }));
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
+
+  const handleResendVerificationEmail = async () => {
+    try {
+      setUpdateLoading(true);
+      setVerificationModal((prev) => ({
+        ...prev,
+        error: null,
+        success: null,
+      }));
+
+      await api.post('/auth/resend-verification-email', {
+        email: verificationModal.email,
+      });
+
+      setVerificationModal((prev) => ({
+        ...prev,
+        success: {
+          message: 'Verification email resent successfully!',
+        },
+      }));
+    } catch (error) {
+      setVerificationModal((prev) => ({
+        ...prev,
+        error: {
+          message:
+            error.response?.data?.message ||
+            'Failed to resend verification email',
+        },
+      }));
     } finally {
       setUpdateLoading(false);
     }
@@ -217,7 +339,12 @@ const ProfilePage = () => {
       visible: false,
       type: null,
       message: '',
+      phone: '',
+      showOtpInput: false,
+      error: null,
+      success: null, // Clear success message
     });
+    setOtp('');
   };
 
   if (loading) {
@@ -253,24 +380,95 @@ const ProfilePage = () => {
         title={
           verificationModal.type === 'email'
             ? 'Email Verification Required'
+            : verificationModal.showOtpInput
+            ? 'Enter Verification Code'
             : 'Phone Verification Required'
         }
         visible={verificationModal.visible}
-        onOk={handleVerificationModalClose}
+        onOk={
+          verificationModal.type === 'email'
+            ? handleVerificationModalClose // Close modal directly for email
+            : verificationModal.showOtpInput
+            ? handleVerifyOtp
+            : () =>
+                setVerificationModal((prev) => ({
+                  ...prev,
+                  showOtpInput: true,
+                }))
+        }
         onCancel={handleVerificationModalClose}
+        confirmLoading={updateLoading}
         footer={[
           <button
-            key="submit"
+            key="back"
             onClick={handleVerificationModalClose}
-            className="px-4 py-2 bg-yellow-400 text-white rounded hover:bg-yellow-600"
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
           >
-            OK
+            Cancel
+          </button>,
+          verificationModal.type === 'phone' &&
+            verificationModal.showOtpInput && (
+              <button
+                key="resend-otp"
+                onClick={handleResendOtp}
+                className="px-4 py-2 bg-gray-100 text-gray-800 rounded hover:bg-gray-200 mr-2"
+                disabled={updateLoading}
+              >
+                Resend Code
+              </button>
+            ),
+          verificationModal.type === 'email' && (
+            <button
+              key="resend-email"
+              onClick={handleResendVerificationEmail}
+              className="px-4 py-2 bg-gray-100 text-gray-800 rounded hover:bg-gray-200 mr-2"
+              disabled={updateLoading}
+            >
+              Resend Email
+            </button>
+          ),
+          <button
+            key="submit"
+            onClick={
+              verificationModal.type === 'email'
+                ? handleVerificationModalClose
+                : verificationModal.showOtpInput
+                ? handleVerifyOtp
+                : () =>
+                    setVerificationModal((prev) => ({
+                      ...prev,
+                      showOtpInput: true,
+                    }))
+            }
+            className="px-4 py-2 bg-[#008080] text-white rounded hover:bg-[#006666]"
+            disabled={
+              (verificationModal.type === 'phone' &&
+                verificationModal.showOtpInput &&
+                !otp) ||
+              updateLoading
+            }
+          >
+            {verificationModal.type === 'email'
+              ? 'OK'
+              : verificationModal.showOtpInput
+              ? 'Verify'
+              : 'OK'}
           </button>,
         ]}
       >
         <div className="space-y-4">
           {verificationModal.type === 'email' ? (
             <>
+              {verificationModal.success && (
+                <div className="mb-4 p-2 bg-green-50 text-green-700 rounded-md">
+                  {verificationModal.success.message}
+                </div>
+              )}
+              {verificationModal.error && (
+                <div className="mb-4 p-2 bg-red-50 text-red-700 rounded-md">
+                  {verificationModal.error.message}
+                </div>
+              )}
               <p className="bg-blue-50 px-2 py-1 font-medium rounded-md">
                 Email Update Successful!
               </p>
@@ -292,10 +490,38 @@ const ProfilePage = () => {
                 </ul>
               </div>
             </>
+          ) : verificationModal.showOtpInput ? (
+            <>
+              {verificationModal.success && (
+                <div className="mb-4 p-2 bg-green-50 text-green-700 rounded-md">
+                  {verificationModal.success.message}
+                </div>
+              )}
+              {verificationModal.error && (
+                <div className="mb-4">
+                  <div className="text-red-500 text-sm">
+                    {verificationModal.error.message}
+                  </div>
+                </div>
+              )}
+              <p>We&apos;ve sent a verification code to your phone.</p>
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Verification Code
+                </label>
+                <input
+                  type="text"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#008080] focus:border-[#008080]"
+                  placeholder="Enter 6-digit code"
+                />
+              </div>
+            </>
           ) : (
             <>
               <p className="text-lg font-medium">Phone Update Successful!</p>
-              <p>We&apos;ve sent an OTP to your new phone number.</p>
+              <p>We&apos;ve sent an OTP to your phone number.</p>
               <p className="text-sm text-gray-600">
                 Please enter the verification code when prompted to complete the
                 update.
@@ -310,21 +536,22 @@ const ProfilePage = () => {
       <div className="container mx-auto px-4 pt-4">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center text-[#008080] hover:text-[#006666] transition-colors mb-2"
+          className="text-teal-600 hover:text-teal-700 font-medium flex items-center"
         >
           <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 mr-1"
-            viewBox="0 0 20 20"
-            fill="currentColor"
+            className="w-5 h-5 mr-1"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
           >
             <path
-              fillRule="evenodd"
-              d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
-              clipRule="evenodd"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15 19l-7-7 7-7"
             />
           </svg>
-          Go Back
+          Back
         </button>
       </div>
 

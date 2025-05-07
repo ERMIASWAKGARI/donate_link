@@ -37,7 +37,7 @@ export const basicProfileFields = [
   {
     fieldName: 'phone',
     label: 'Phone Number',
-    type: 'phone', // New type for phone with country code
+    type: 'phone',
     placeholder: 'Enter your phone number',
     icon: <PhoneOutlined />,
     roles: [
@@ -46,12 +46,6 @@ export const basicProfileFields = [
       'volunteer',
       'individual_donor',
       'organization_donor',
-    ],
-    countryCodes: [
-      { code: '+251', name: 'Ethiopia (+251)' },
-      { code: '+1', name: 'USA/Canada (+1)' },
-      { code: '+44', name: 'UK (+44)' },
-      // Add more country codes as needed
     ],
   },
   {

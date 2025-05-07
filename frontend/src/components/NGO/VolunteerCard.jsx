@@ -1,400 +1,400 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+// import { motion, AnimatePresence } from "framer-motion";
+// import { useState } from "react";
 
-const VolunteerCard = ({
-  volunteer,
-  handleViewProfile,
-  setShowChatModal,
-  confirmAction,
-  updateVolunteerStatus,
-}) => {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [actionType, setActionType] = useState(null);
+// const VolunteerCard = ({
+//   volunteer,
+//   handleViewProfile,
+//   setShowChatModal,
+//   confirmAction,
+//   updateVolunteerStatus,
+// }) => {
+//   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+//   const [isProcessing, setIsProcessing] = useState(false);
+//   const [actionType, setActionType] = useState(null);
 
-  // VolunteerCard.js (updated parts only)
-  const handleAction = async (newStatus, volunteerId) => {
-    if (isProcessing) return;
+//   // VolunteerCard.js (updated parts only)
+//   const handleAction = async (newStatus, volunteerId) => {
+//     if (isProcessing) return;
 
-    setIsProcessing(true);
-    setActionType(newStatus);
+//     setIsProcessing(true);
+//     setActionType(newStatus);
 
-    try {
-      // Only optimistic update - parent handles API call
-      if (updateVolunteerStatus) {
-        updateVolunteerStatus(volunteerId, newStatus);
-      }
+//     try {
+//       // Only optimistic update - parent handles API call
+//       if (updateVolunteerStatus) {
+//         updateVolunteerStatus(volunteerId, newStatus);
+//       }
 
-      // Trigger confirmation in parent
-      await confirmAction(newStatus, volunteerId);
-    } catch (error) {
-      console.error("Status update failed:", error);
-    } finally {
-      setIsProcessing(false);
-      setActionType(null);
-      setIsDropdownOpen(false);
-    }
-  };
-  // Status display logic
-  const getStatusStyles = (status) => {
-    switch (status) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "accepted":
-        return "bg-green-100 text-green-800";
-      case "rejected":
-        return "bg-red-100 text-red-800";
-      case "completed":
-        return "bg-purple-100 text-purple-800";
-      case "incomplete":
-        return "bg-orange-100 text-orange-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
+//       // Trigger confirmation in parent
+//       await confirmAction(newStatus, volunteerId);
+//     } catch (error) {
+//       console.error("Status update failed:", error);
+//     } finally {
+//       setIsProcessing(false);
+//       setActionType(null);
+//       setIsDropdownOpen(false);
+//     }
+//   };
+//   // Status display logic
+//   const getStatusStyles = (status) => {
+//     switch (status) {
+//       case "pending":
+//         return "bg-yellow-100 text-yellow-800";
+//       case "accepted":
+//         return "bg-green-100 text-green-800";
+//       case "rejected":
+//         return "bg-red-100 text-red-800";
+//       case "completed":
+//         return "bg-purple-100 text-purple-800";
+//       case "incomplete":
+//         return "bg-orange-100 text-orange-800";
+//       default:
+//         return "bg-gray-100 text-gray-800";
+//     }
+//   };
 
-  return (
-    <div className="space-y-6 relative">
-      <motion.div
-        key={volunteer._id}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className={`border border-gray-200 rounded-xl p-6 hover:shadow-md transition-all duration-300 relative ${
-          isProcessing ? "opacity-70" : ""
-        }`}
-      >
-        {isProcessing && (
-          <div className="absolute inset-0 bg-white bg-opacity-70 z-10 rounded-xl flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-          </div>
-        )}
+//   return (
+//     <div className="space-y-6 relative">
+//       <motion.div
+//         key={volunteer._id}
+//         initial={{ opacity: 0, y: 10 }}
+//         animate={{ opacity: 1, y: 0 }}
+//         transition={{ duration: 0.3 }}
+//         className={`border border-gray-200 rounded-xl p-6 hover:shadow-md transition-all duration-300 relative ${
+//           isProcessing ? "opacity-70" : ""
+//         }`}
+//       >
+//         {isProcessing && (
+//           <div className="absolute inset-0 bg-white bg-opacity-70 z-10 rounded-xl flex items-center justify-center">
+//             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+//           </div>
+//         )}
 
-        {/* Always show action dropdown */}
-        <div className="absolute top-4 right-4 z-20">
-          <button
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="p-1 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-            disabled={isProcessing}
-          >
-            <svg
-              className="h-5 w-5 text-gray-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-              />
-            </svg>
-          </button>
+//         {/* Always show action dropdown */}
+//         <div className="absolute top-4 right-4 z-20">
+//           <button
+//             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+//             className="p-1 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+//             disabled={isProcessing}
+//           >
+//             <svg
+//               className="h-5 w-5 text-gray-500"
+//               fill="none"
+//               stroke="currentColor"
+//               viewBox="0 0 24 24"
+//             >
+//               <path
+//                 strokeLinecap="round"
+//                 strokeLinejoin="round"
+//                 strokeWidth="2"
+//                 d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+//               />
+//             </svg>
+//           </button>
 
-          <AnimatePresence>
-            {isDropdownOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-                className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-30"
-              >
-                <button
-                  onClick={() => {
-                    handleViewProfile(volunteer);
-                    setIsDropdownOpen(false);
-                  }}
-                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                >
-                  View Profile
-                </button>
-                <button
-                  onClick={() => {
-                    setShowChatModal(true);
-                    setIsDropdownOpen(false);
-                  }}
-                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors z-1000"
-                >
-                  Contact
-                </button>
-                {/* Always show status change options */}
-                <button
-                  onClick={() => handleAction("Accepted", volunteer._id)}
-                  disabled={
-                    volunteer.status === "Accepted" ||
-                    volunteer.status === "Completed" ||
-                    volunteer.status === "Incomplete" ||
-                    isProcessing
-                  }
-                  className={`block w-full text-left px-4 py-2 text-sm ${
-                    volunteer.status === "Accepted" ||
-                    volunteer.status === "Completed" ||
-                    volunteer.status === "Incomplete"
-                      ? "text-green-400 cursor-not-allowed"
-                      : actionType === "Accepted" && isProcessing
-                      ? "text-green-400"
-                      : "text-green-600 hover:bg-green-50"
-                  } transition-colors`}
-                >
-                  {actionType === "Accepted" && isProcessing ? (
-                    <span className="flex items-center">
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      {volunteer.status === "Accepted"
-                        ? "Accepted"
-                        : "Accepting..."}
-                    </span>
-                  ) : volunteer.status === "Accepted" ? (
-                    "Accepted"
-                  ) : (
-                    "Accept"
-                  )}
-                </button>
+//           <AnimatePresence>
+//             {isDropdownOpen && (
+//               <motion.div
+//                 initial={{ opacity: 0, y: -10 }}
+//                 animate={{ opacity: 1, y: 0 }}
+//                 exit={{ opacity: 0, y: -10 }}
+//                 transition={{ duration: 0.2 }}
+//                 className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-30"
+//               >
+//                 <button
+//                   onClick={() => {
+//                     handleViewProfile(volunteer);
+//                     setIsDropdownOpen(false);
+//                   }}
+//                   className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+//                 >
+//                   View Profile
+//                 </button>
+//                 <button
+//                   onClick={() => {
+//                     setShowChatModal(true);
+//                     setIsDropdownOpen(false);
+//                   }}
+//                   className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors z-1000"
+//                 >
+//                   Contact
+//                 </button>
+//                 {/* Always show status change options */}
+//                 <button
+//                   onClick={() => handleAction("Accepted", volunteer._id)}
+//                   disabled={
+//                     volunteer.status === "Accepted" ||
+//                     volunteer.status === "Completed" ||
+//                     volunteer.status === "Incomplete" ||
+//                     isProcessing
+//                   }
+//                   className={`block w-full text-left px-4 py-2 text-sm ${
+//                     volunteer.status === "Accepted" ||
+//                     volunteer.status === "Completed" ||
+//                     volunteer.status === "Incomplete"
+//                       ? "text-green-400 cursor-not-allowed"
+//                       : actionType === "Accepted" && isProcessing
+//                       ? "text-green-400"
+//                       : "text-green-600 hover:bg-green-50"
+//                   } transition-colors`}
+//                 >
+//                   {actionType === "Accepted" && isProcessing ? (
+//                     <span className="flex items-center">
+//                       <svg
+//                         className="animate-spin -ml-1 mr-2 h-4 w-4"
+//                         xmlns="http://www.w3.org/2000/svg"
+//                         fill="none"
+//                         viewBox="0 0 24 24"
+//                       >
+//                         <circle
+//                           className="opacity-25"
+//                           cx="12"
+//                           cy="12"
+//                           r="10"
+//                           stroke="currentColor"
+//                           strokeWidth="4"
+//                         ></circle>
+//                         <path
+//                           className="opacity-75"
+//                           fill="currentColor"
+//                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+//                         ></path>
+//                       </svg>
+//                       {volunteer.status === "Accepted"
+//                         ? "Accepted"
+//                         : "Accepting..."}
+//                     </span>
+//                   ) : volunteer.status === "Accepted" ? (
+//                     "Accepted"
+//                   ) : (
+//                     "Accept"
+//                   )}
+//                 </button>
 
-                <button
-                  onClick={() => handleAction("Rejected", volunteer._id)}
-                  disabled={
-                    volunteer.status === "Rejected" ||
-                    volunteer.status === "Accepted" ||
-                    volunteer.status === "Completed" ||
-                    volunteer.status === "Incomplete" ||
-                    isProcessing
-                  }
-                  className={`block w-full text-left px-4 py-2 text-sm ${
-                    volunteer.status === "Rejected" ||
-                    volunteer.status === "Accepted" ||
-                    volunteer.status === "Completed" ||
-                    volunteer.status === "Incomplete"
-                      ? "text-red-400 cursor-not-allowed"
-                      : actionType === "Rejected" && isProcessing
-                      ? "text-red-400"
-                      : "text-red-600 hover:bg-red-50"
-                  } transition-colors`}
-                >
-                  {actionType === "Rejected" && isProcessing ? (
-                    <span className="flex items-center">
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      {volunteer.status === "Rejected"
-                        ? "Rejected"
-                        : "Rejecting..."}
-                    </span>
-                  ) : volunteer.status === "Rejected" ? (
-                    "Rejected"
-                  ) : (
-                    "Reject"
-                  )}
-                </button>
-                <button
-                  onClick={() => handleAction("Completed", volunteer._id)}
-                  disabled={
-                    (volunteer.status !== "Accepted" &&
-                      volunteer.status !== "Incomplete") ||
-                    isProcessing
-                  }
-                  className={`block w-full text-left px-4 py-2 text-sm ${
-                    volunteer.status === "Completed"
-                      ? "text-purple-400 cursor-not-allowed"
-                      : actionType === "Completed" && isProcessing
-                      ? "text-purple-400"
-                      : volunteer.status !== "Accepted" &&
-                        volunteer.status !== "Incomplete"
-                      ? "text-purple-300 cursor-not-allowed"
-                      : "text-purple-600 hover:bg-purple-50"
-                  } transition-colors`}
-                >
-                  {actionType === "Completed" && isProcessing ? (
-                    <span className="flex items-center">
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      {volunteer.status === "Completed"
-                        ? "Completed"
-                        : "Completing..."}
-                    </span>
-                  ) : volunteer.status === "Completed" ? (
-                    "Completed"
-                  ) : (
-                    "Mark as Complete"
-                  )}
-                </button>
+//                 <button
+//                   onClick={() => handleAction("Rejected", volunteer._id)}
+//                   disabled={
+//                     volunteer.status === "Rejected" ||
+//                     volunteer.status === "Accepted" ||
+//                     volunteer.status === "Completed" ||
+//                     volunteer.status === "Incomplete" ||
+//                     isProcessing
+//                   }
+//                   className={`block w-full text-left px-4 py-2 text-sm ${
+//                     volunteer.status === "Rejected" ||
+//                     volunteer.status === "Accepted" ||
+//                     volunteer.status === "Completed" ||
+//                     volunteer.status === "Incomplete"
+//                       ? "text-red-400 cursor-not-allowed"
+//                       : actionType === "Rejected" && isProcessing
+//                       ? "text-red-400"
+//                       : "text-red-600 hover:bg-red-50"
+//                   } transition-colors`}
+//                 >
+//                   {actionType === "Rejected" && isProcessing ? (
+//                     <span className="flex items-center">
+//                       <svg
+//                         className="animate-spin -ml-1 mr-2 h-4 w-4"
+//                         xmlns="http://www.w3.org/2000/svg"
+//                         fill="none"
+//                         viewBox="0 0 24 24"
+//                       >
+//                         <circle
+//                           className="opacity-25"
+//                           cx="12"
+//                           cy="12"
+//                           r="10"
+//                           stroke="currentColor"
+//                           strokeWidth="4"
+//                         ></circle>
+//                         <path
+//                           className="opacity-75"
+//                           fill="currentColor"
+//                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+//                         ></path>
+//                       </svg>
+//                       {volunteer.status === "Rejected"
+//                         ? "Rejected"
+//                         : "Rejecting..."}
+//                     </span>
+//                   ) : volunteer.status === "Rejected" ? (
+//                     "Rejected"
+//                   ) : (
+//                     "Reject"
+//                   )}
+//                 </button>
+//                 <button
+//                   onClick={() => handleAction("Completed", volunteer._id)}
+//                   disabled={
+//                     (volunteer.status !== "Accepted" &&
+//                       volunteer.status !== "Incomplete") ||
+//                     isProcessing
+//                   }
+//                   className={`block w-full text-left px-4 py-2 text-sm ${
+//                     volunteer.status === "Completed"
+//                       ? "text-purple-400 cursor-not-allowed"
+//                       : actionType === "Completed" && isProcessing
+//                       ? "text-purple-400"
+//                       : volunteer.status !== "Accepted" &&
+//                         volunteer.status !== "Incomplete"
+//                       ? "text-purple-300 cursor-not-allowed"
+//                       : "text-purple-600 hover:bg-purple-50"
+//                   } transition-colors`}
+//                 >
+//                   {actionType === "Completed" && isProcessing ? (
+//                     <span className="flex items-center">
+//                       <svg
+//                         className="animate-spin -ml-1 mr-2 h-4 w-4"
+//                         xmlns="http://www.w3.org/2000/svg"
+//                         fill="none"
+//                         viewBox="0 0 24 24"
+//                       >
+//                         <circle
+//                           className="opacity-25"
+//                           cx="12"
+//                           cy="12"
+//                           r="10"
+//                           stroke="currentColor"
+//                           strokeWidth="4"
+//                         ></circle>
+//                         <path
+//                           className="opacity-75"
+//                           fill="currentColor"
+//                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+//                         ></path>
+//                       </svg>
+//                       {volunteer.status === "Completed"
+//                         ? "Completed"
+//                         : "Completing..."}
+//                     </span>
+//                   ) : volunteer.status === "Completed" ? (
+//                     "Completed"
+//                   ) : (
+//                     "Mark as Complete"
+//                   )}
+//                 </button>
 
-                <button
-                  onClick={() => handleAction("Incomplete", volunteer._id)}
-                  disabled={volunteer.status !== "Accepted" || isProcessing}
-                  className={`block w-full text-left px-4 py-2 text-sm ${
-                    volunteer.status === "Incomplete"
-                      ? "text-orange-400 cursor-not-allowed"
-                      : actionType === "Incomplete" && isProcessing
-                      ? "text-orange-400"
-                      : volunteer.status !== "Accepted"
-                      ? "text-orange-300 cursor-not-allowed"
-                      : "text-orange-600 hover:bg-orange-50"
-                  } transition-colors`}
-                >
-                  {actionType === "Incomplete" && isProcessing ? (
-                    <span className="flex items-center">
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      {volunteer.status === "Incomplete"
-                        ? "Incomplete"
-                        : "Marking incomplete..."}
-                    </span>
-                  ) : volunteer.status === "Incomplete" ? (
-                    "Incomplete"
-                  ) : (
-                    "Mark as Incomplete"
-                  )}
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+//                 <button
+//                   onClick={() => handleAction("Incomplete", volunteer._id)}
+//                   disabled={volunteer.status !== "Accepted" || isProcessing}
+//                   className={`block w-full text-left px-4 py-2 text-sm ${
+//                     volunteer.status === "Incomplete"
+//                       ? "text-orange-400 cursor-not-allowed"
+//                       : actionType === "Incomplete" && isProcessing
+//                       ? "text-orange-400"
+//                       : volunteer.status !== "Accepted"
+//                       ? "text-orange-300 cursor-not-allowed"
+//                       : "text-orange-600 hover:bg-orange-50"
+//                   } transition-colors`}
+//                 >
+//                   {actionType === "Incomplete" && isProcessing ? (
+//                     <span className="flex items-center">
+//                       <svg
+//                         className="animate-spin -ml-1 mr-2 h-4 w-4"
+//                         xmlns="http://www.w3.org/2000/svg"
+//                         fill="none"
+//                         viewBox="0 0 24 24"
+//                       >
+//                         <circle
+//                           className="opacity-25"
+//                           cx="12"
+//                           cy="12"
+//                           r="10"
+//                           stroke="currentColor"
+//                           strokeWidth="4"
+//                         ></circle>
+//                         <path
+//                           className="opacity-75"
+//                           fill="currentColor"
+//                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+//                         ></path>
+//                       </svg>
+//                       {volunteer.status === "Incomplete"
+//                         ? "Incomplete"
+//                         : "Marking incomplete..."}
+//                     </span>
+//                   ) : volunteer.status === "Incomplete" ? (
+//                     "Incomplete"
+//                   ) : (
+//                     "Mark as Incomplete"
+//                   )}
+//                 </button>
+//               </motion.div>
+//             )}
+//           </AnimatePresence>
+//         </div>
 
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div className="flex-1">
-            <div className="flex items-center space-x-4 mb-4">
-              <div className="flex-shrink-0">
-                {volunteer?.applicant?.profilePicture ? (
-                  <img
-                    className="h-12 w-12 rounded-full object-cover"
-                    src={volunteer.applicant.profilePicture}
-                    alt={volunteer.applicant.name}
-                  />
-                ) : (
-                  <div className="h-12 w-12 rounded-full bg-[#008080] flex items-center justify-center text-white font-bold text-lg">
-                    {volunteer?.applicant?.name.charAt(0)}
-                  </div>
-                )}
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-gray-900">
-                  {volunteer.applicant.name}
-                </h3>
-                <p
-                  className={`text-sm px-2 py-0.5 rounded-full inline-block ${getStatusStyles(
-                    volunteer.status
-                  )} capitalize`}
-                >
-                  {volunteer.status}
-                </p>
-              </div>
-            </div>
+//         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+//           <div className="flex-1">
+//             <div className="flex items-center space-x-4 mb-4">
+//               <div className="flex-shrink-0">
+//                 {volunteer?.applicant?.profilePicture ? (
+//                   <img
+//                     className="h-12 w-12 rounded-full object-cover"
+//                     src={volunteer.applicant.profilePicture}
+//                     alt={volunteer.applicant.name}
+//                   />
+//                 ) : (
+//                   <div className="h-12 w-12 rounded-full bg-[#008080] flex items-center justify-center text-white font-bold text-lg">
+//                     {volunteer?.applicant?.name.charAt(0)}
+//                   </div>
+//                 )}
+//               </div>
+//               <div>
+//                 <h3 className="text-lg font-bold text-gray-900">
+//                   {volunteer.applicant.name}
+//                 </h3>
+//                 <p
+//                   className={`text-sm px-2 py-0.5 rounded-full inline-block ${getStatusStyles(
+//                     volunteer.status
+//                   )} capitalize`}
+//                 >
+//                   {volunteer.status}
+//                 </p>
+//               </div>
+//             </div>
 
-            <div className="space-y-3">
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <h3 className="font-medium text-gray-700">Motivation</h3>
-                <p className="text-gray-600 italic">
-                  {volunteer.motivation || "No message provided"}
-                </p>
-              </div>
+//             <div className="space-y-3">
+//               <div className="bg-gray-50 p-3 rounded-lg">
+//                 <h3 className="font-medium text-gray-700">Motivation</h3>
+//                 <p className="text-gray-600 italic">
+//                   {volunteer.motivation || "No message provided"}
+//                 </p>
+//               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Service
-                  </h4>
-                  <p className="mt-1 font-medium">
-                    {volunteer.category} • {volunteer.subCategory}
-                  </p>
-                </div>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Duration
-                  </h4>
-                  <p className="mt-1 font-medium">
-                    {new Date(volunteer.startDate).toLocaleDateString()} -{" "}
-                    {new Date(volunteer.endDate).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Commitment
-                  </h4>
-                  <p className="mt-1 font-medium">
-                    {volunteer.hoursPerWeek} hours/week
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
-};
+//               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//                 <div className="bg-gray-50 p-3 rounded-lg">
+//                   <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+//                     Service
+//                   </h4>
+//                   <p className="mt-1 font-medium">
+//                     {volunteer.category} • {volunteer.subCategory}
+//                   </p>
+//                 </div>
+//                 <div className="bg-gray-50 p-3 rounded-lg">
+//                   <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+//                     Duration
+//                   </h4>
+//                   <p className="mt-1 font-medium">
+//                     {new Date(volunteer.startDate).toLocaleDateString()} -{" "}
+//                     {new Date(volunteer.endDate).toLocaleDateString()}
+//                   </p>
+//                 </div>
+//                 <div className="bg-gray-50 p-3 rounded-lg">
+//                   <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+//                     Commitment
+//                   </h4>
+//                   <p className="mt-1 font-medium">
+//                     {volunteer.hoursPerWeek} hours/week
+//                   </p>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </motion.div>
+//     </div>
+//   );
+// };
 
-export default VolunteerCard;
+// export default VolunteerCard;

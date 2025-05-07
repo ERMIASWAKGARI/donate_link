@@ -23,6 +23,18 @@ const MaterialDonation = ({
   const [showCustomCategory, setShowCustomCategory] = useState(false);
   const [showCustomSubCategory, setShowCustomSubCategory] = useState(false);
 
+  // Dedicated handler for address changes
+  const handleAddressChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      address: {
+        ...prev.address,
+        [name]: value,
+      },
+    }));
+  };
+
   const handleCategoryChange = (e) => {
     const { value } = e.target;
     setFormData((prev) => ({
@@ -55,7 +67,9 @@ const MaterialDonation = ({
   };
 
   const handleCustomCategorySubmit = () => {
-    if (!formData.materialDetails.customCategory.trim()) return;
+    if (!formData.materialDetails.customCategory.trim()) {
+      return;
+    }
     setShowCustomCategory(false);
   };
 
@@ -351,28 +365,28 @@ const MaterialDonation = ({
             <h2 className="text-lg font-semibold text-gray-700 mb-4">
               Location Details
             </h2>
-            {/* Address Section */}
-            <div className="p-6 rounded-lg">
-              <h2 className="text-lg font-semibold text-gray-700 mb-4">
-                Address Details
-              </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            {/* Address Section */}
+            <div className="mb-6">
+              <h3 className="text-md font-semibold text-gray-700 mb-3">
+                Address Details
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 {/* Country Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Country
                   </label>
                   <select
-                    name="address.country"
-                    value={formData.address.country}
-                    onChange={handleInputChange}
+                    name="country"
+                    value={formData.address.country || ""}
+                    onChange={handleAddressChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     required
                   >
                     <option value="">Select Country</option>
                     <option value="Ethiopia">Ethiopia</option>
-                    {/* Add more countries as needed */}
                   </select>
                 </div>
 
@@ -383,15 +397,17 @@ const MaterialDonation = ({
                   </label>
                   <input
                     type="text"
-                    name="address.region"
-                    value={formData.address.region}
-                    onChange={handleInputChange}
+                    name="region"
+                    value={formData.address.region || ""}
+                    onChange={handleAddressChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     required
                     placeholder="Enter region/state"
                   />
                 </div>
+              </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 {/* City Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -399,23 +415,51 @@ const MaterialDonation = ({
                   </label>
                   <input
                     type="text"
-                    name="address.city"
-                    value={formData.address.city}
-                    onChange={handleInputChange}
+                    name="city"
+                    value={formData.address.city || ""}
+                    onChange={handleAddressChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     required
                     placeholder="Enter city"
                   />
                 </div>
+
+                {/* Street Field */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Street Address
+                  </label>
+                  <input
+                    type="text"
+                    name="street"
+                    value={formData.address.street || ""}
+                    onChange={handleAddressChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter street address"
+                  />
+                </div>
               </div>
 
-              {/* Street Address Field */}
+              {/* Postal Code Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Postal Code
+                </label>
+                <input
+                  type="text"
+                  name="postalCode"
+                  value={formData.address.postalCode || ""}
+                  onChange={handleAddressChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter postal code"
+                />
+              </div>
             </div>
 
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Select Location from Map
             </label>
-            <div className="h-[500px] rounded-md overflow-hidden border border-gray-300">
+            <div className="h-[400px] rounded-md overflow-hidden border border-gray-300">
               <LocationMap
                 mapCenter={mapCenter}
                 setFormData={setFormData}
@@ -431,7 +475,7 @@ const MaterialDonation = ({
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 py-3  text-gray-700 font-medium rounded-md border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200"
+          className="px-6 py-3 text-gray-700 font-medium rounded-md border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200"
           disabled={isSubmitting}
         >
           Cancel
@@ -456,7 +500,32 @@ const MaterialDonation = ({
 };
 
 MaterialDonation.propTypes = {
-  formData: PropTypes.object.isRequired,
+  formData: PropTypes.shape({
+    title: PropTypes.string.isRequired,
+    description: PropTypes.string.isRequired,
+    materialDetails: PropTypes.shape({
+      category: PropTypes.string.isRequired,
+      subCategory: PropTypes.string.isRequired,
+      customCategory: PropTypes.string,
+      customSubCategory: PropTypes.string,
+      quantity: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+        .isRequired,
+      unit: PropTypes.string.isRequired,
+      condition: PropTypes.string.isRequired,
+      expirationDate: PropTypes.string,
+    }).isRequired,
+    address: PropTypes.shape({
+      country: PropTypes.string.isRequired,
+      region: PropTypes.string.isRequired,
+      city: PropTypes.string.isRequired,
+      street: PropTypes.string,
+      postalCode: PropTypes.string,
+    }).isRequired,
+    location: PropTypes.shape({
+      type: PropTypes.string.isRequired,
+      coordinates: PropTypes.arrayOf(PropTypes.number).isRequired,
+    }).isRequired,
+  }).isRequired,
   handleInputChange: PropTypes.func.isRequired,
   handleSubmit: PropTypes.func.isRequired,
   files: PropTypes.array.isRequired,
