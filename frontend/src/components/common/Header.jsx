@@ -164,60 +164,6 @@ const Header = () => {
                 />
               </a>
 
-              {/* Donations Dropdown */}
-              {/* <div className="relative" ref={donationsRef}>
-                <motion.button
-                  onClick={() => setIsDonationsOpen(!isDonationsOpen)}
-                  className="flex items-center hover:text-yellow-400 transition"
-                  whileHover={{ scale: 1.05 }}
-                >
-                  Donations
-                  <motion.div
-                    animate={{ rotate: isDonationsOpen ? 180 : 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <ChevronDown size={16} className="ml-1" />
-                  </motion.div>
-                </motion.button>
-
-                <AnimatePresence>
-                  {isDonationsOpen && (
-                    <motion.div
-                      variants={dropdownVariants}
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                      className="absolute left-0 mt-2 w-56 bg-white text-black rounded-md shadow-xl z-50 overflow-hidden"
-                    >
-                      {[
-                        { to: "/donate", text: "Make a Donation" },
-                        { to: "/causes", text: "View Causes" },
-                        { to: "/recurring", text: "Recurring Donations" },
-                        { to: "/history", text: "Donation History" },
-                        { to: "/top-ngos", text: "Top NGOs" },
-                      ].map((item, index) => (
-                        <motion.div
-                          key={index}
-                          whileHover={{ x: 5 }}
-                          transition={{ type: "spring", stiffness: 300 }}
-                        >
-                          <NavLink
-                            to={item.to}
-                            className={({ isActive }) =>
-                              `block px-4 py-3 hover:bg-gray-100 transition ${
-                                isActive ? "bg-gray-100 font-medium" : ""
-                              }`
-                            }
-                          >
-                            {item.text}
-                          </NavLink>
-                        </motion.div>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div> */}
-
               {/* Contact Us */}
               <a
                 href="#contact"

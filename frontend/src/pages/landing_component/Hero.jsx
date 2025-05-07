@@ -128,20 +128,24 @@ const Hero = () => {
             text-white font-semibold rounded-full shadow-lg 
             transition-all duration-300 ease-in-out 
             font-sans tracking-wide text-sm md:text-base"
+            onClick={() => navigate("/register")}
           >
             Donate Now
           </motion.button>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-6 py-2 bg-transparent border-2 border-teal-500 
+          <a href="#featured">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-6 py-2 bg-transparent border-2 border-teal-500 
             text-teal-600 hover:bg-teal-50 font-semibold rounded-full 
             transition-all duration-300 ease-in-out 
             font-sans tracking-wide text-sm md:text-base"
-          >
-            Learn More
-          </motion.button>
+              id="featured"
+            >
+              Learn More
+            </motion.button>
+          </a>
         </motion.div>
       </motion.div>
 
