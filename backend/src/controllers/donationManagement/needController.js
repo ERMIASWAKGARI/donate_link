@@ -1099,8 +1099,282 @@ const getNGOStatistics = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch statistics" });
   }
 };
+const getAmountDonated = async (req, res) => {
+  try {
+    const { need } = req.params;
+
+    // Validate the need ID
+    if (!mongoose.Types.ObjectId.isValid(need)) {
+      return res.status(400).json({ message: "Invalid need ID" });
+    }
+
+    // Find the need to get its target amounts and categories
+    const needDoc = await mongoose
+      .model("Needs")
+      .findById(need)
+      .select("needTypes targetMoney categories.material categories.service");
+
+    if (!needDoc) {
+      return res.status(404).json({ message: "Need not found" });
+    }
+
+    // Prepare response object
+    const response = {
+      success: true,
+      needId: need,
+      needTypes: needDoc.needTypes,
+      donations: {},
+    };
+
+    // 1. Calculate for money need type
+    if (needDoc.needTypes.includes("money")) {
+      const moneyData = await calculateMoneyDonations(
+        need,
+        needDoc.targetMoney
+      );
+      response.donations.money = moneyData;
+    }
+
+    // 2. Calculate for material need type
+    if (needDoc.needTypes.includes("material")) {
+      const materialData = await calculateMaterialDonations(
+        need,
+        needDoc.categories.material
+      );
+      response.donations.material = materialData;
+    }
+
+    // 3. Calculate for service need type
+    if (needDoc.needTypes.includes("service")) {
+      const serviceData = await calculateServiceDonations(
+        need,
+        needDoc.categories.service
+      );
+      response.donations.service = serviceData;
+    }
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("Error getting donated amount:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching donated amount",
+      error: error.message,
+    });
+  }
+};
+
+// Helper function to calculate money donations
+async function calculateMoneyDonations(needId, targetMoney) {
+  const result = await mongoose.model("Payment").aggregate([
+    {
+      $match: {
+        needId: new mongoose.Types.ObjectId(needId),
+        status: "Completed",
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalDonated: { $sum: "$amount" },
+      },
+    },
+  ]);
+
+  const totalDonated = result.length > 0 ? result[0].totalDonated : 0;
+  const target = targetMoney || 0;
+  let percentage = 0;
+
+  if (target > 0) {
+    percentage = (totalDonated / target) * 100;
+    percentage = Math.round(percentage * 100) / 100;
+  }
+
+  return {
+    donated: totalDonated,
+    target: target,
+    percentage: percentage,
+    currency: "ETB", // Default currency, you can modify this based on your payment records
+  };
+}
+
+// Helper function to calculate material donations
+async function calculateMaterialDonations(needId, materialCategories) {
+  const result = {};
+
+  if (!materialCategories || materialCategories.length === 0) {
+    return result;
+  }
+
+  // Get all completed material donations for this need
+  const donations = await mongoose
+    .model("MaterialDonation")
+    .find({
+      needId: needId,
+      status: "completed",
+    })
+    .select("materials");
+
+  // Initialize result structure with all categories
+  materialCategories.forEach((item) => {
+    const key = `${item.categoryName}-${item.subCategoryName}`;
+    result[key] = {
+      donated: 0,
+      target: parseInt(item.targetAmountNeeded) || 0,
+      percentage: 0,
+      unit: item.unit || "",
+    };
+  });
+
+  // Sum up all donated quantities
+  donations.forEach((donation) => {
+    donation.materials.forEach((item) => {
+      const key = `${item.categoryName}-${item.subCategoryName}`;
+      if (result[key]) {
+        result[key].donated += item.quantity;
+      }
+    });
+  });
+
+  // Calculate percentages
+  for (const key in result) {
+    if (result[key].target > 0) {
+      result[key].percentage =
+        Math.round((result[key].donated / result[key].target) * 100 * 100) /
+        100;
+    }
+  }
+
+  return result;
+}
+
+// Helper function to calculate service donations
+async function calculateServiceDonations(needId, serviceCategories) {
+  const result = {
+    totalApplications: 0,
+    categories: {},
+  };
+
+  if (!serviceCategories || serviceCategories.length === 0) {
+    return result;
+  }
+
+  // Get count of all applications for this need (regardless of status)
+  const applications = await mongoose
+    .model("Application")
+    .find({ need: needId })
+    .select("category subCategory");
+
+  // Initialize result structure with all categories
+  serviceCategories.forEach((item) => {
+    const key = `${item.categoryName}-${item.subCategoryName}`;
+    result.categories[key] = {
+      target: parseInt(item.vacancy) || 0,
+      applications: 0,
+      percentageFilled: 0,
+      remaining: parseInt(item.vacancy) || 0,
+    };
+  });
+
+  // Count applications per category
+  applications.forEach((app) => {
+    const key = `${app.category}-${app.subCategory}`;
+    if (result.categories[key]) {
+      result.categories[key].applications += 1;
+      result.totalApplications += 1;
+    }
+  });
+
+  // Calculate percentages and remaining spots
+  for (const key in result.categories) {
+    const category = result.categories[key];
+
+    // Calculate percentage filled (applications vs target)
+    if (category.target > 0) {
+      category.percentageFilled = Math.min(
+        Math.round((category.applications / category.target) * 100 * 100) / 100,
+        100
+      );
+      category.remaining = Math.max(0, category.target - category.applications);
+    }
+  }
+
+  return result;
+}
+
+
+
+
+// Helper function to calculate material donations
+// async function calculateMaterialDonations(needId, materialCategories) {
+//   const result = {};
+
+//   if (!materialCategories || materialCategories.length === 0) {
+//     return result;
+//   }
+
+//   // Get all completed material donations for this need
+//   const donations = await mongoose.model("MaterialDonation").aggregate([
+//     {
+//       $match: {
+//         needId: new mongoose.Types.ObjectId(needId),
+//         status: "completed",
+//       },
+//     },
+//     {
+//       $unwind: "$materials", // Split each material item into separate documents
+//     },
+//     {
+//       $group: {
+//         _id: {
+//           categoryName: "$materials.categoryName",
+//           subCategoryName: "$materials.subCategoryName",
+//         },
+//         totalDonated: { $sum: "$materials.quantity" },
+//         // Get the unit from the first donation (assuming it's consistent)
+//         unit: { $first: "$materials.unit" },
+//       },
+//     },
+//   ]);
+
+//   // Initialize result structure with all categories from the Need
+//   materialCategories.forEach((item) => {
+//     const key = `${item.categoryName}-${item.subCategoryName}`;
+//     result[key] = {
+//       donated: 0, // Initialize to 0, will be updated if donations exist
+//       target: parseInt(item.targetAmountNeeded) || 0,
+//       percentage: 0,
+//       unit: item.unit || "",
+//     };
+//   });
+
+//   // Update with actual donated quantities
+//   donations.forEach((donation) => {
+//     const key = `${donation._id.categoryName}-${donation._id.subCategoryName}`;
+//     if (result[key]) {
+//       result[key].donated = donation.totalDonated;
+//       // Use the unit from donations if available, otherwise keep the one from Need
+//       result[key].unit = donation.unit || result[key].unit;
+
+//       // Calculate percentage
+//       if (result[key].target > 0) {
+//         result[key].percentage =
+//           Math.round((result[key].donated / result[key].target) * 100 * 100) /
+//           100;
+//       }
+//     }
+//   });
+
+//   return result;
+// }
+
+// Helper function to calculate service donations
+
+
+
 
 module.exports = {
+  getAmountDonated,
   getNeedsReportShouldGeneratedFor,
   getNeedById,
   deleteNeed,
