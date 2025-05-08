@@ -26,7 +26,7 @@ router.post(
 router.post(
   "/material",
  authMiddleware(["organization_donor"]),
- uploadNeedPictures,
+//  uploadNeedPictures,
   donationController.createMaterialDonation
 );
 //route for updating the requests for material donations
