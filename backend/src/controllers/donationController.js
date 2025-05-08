@@ -249,9 +249,9 @@ const createOtherDonation = asyncWrapper(async (req, res, next) => {
       return next(new AppError("Title is required", 400));
     }
 
-    if (!donationData.address) {
-      return next(new AppError("Address is required", 400));
-    }
+    // if (!donationData.address) {
+    //   return next(new AppError("Address is required", 400));
+    // }
 
     // Location validation
     if (!donationData.location || !donationData.location.coordinates) {
@@ -271,7 +271,7 @@ const createOtherDonation = asyncWrapper(async (req, res, next) => {
       donationType: "other",
       title: donationData.title,
       description: donationData.description || "",
-      address: donationData.address,
+      // address: donationData.address,
       images: fileUrls,
       location: {
         type: "Point",

@@ -10,7 +10,7 @@ const OtherDonationPage = () => {
     title: "",
     donationType: "other",
     description: "",
-    address: "",
+    // address: "",
     location: {
       type: "Point",
       coordinates: [38.7636, 8.9806], // Default coordinates
@@ -69,7 +69,7 @@ const OtherDonationPage = () => {
       title: "",
       donationType: "other",
       description: "",
-      address: "",
+      // address: "",
       location: {
         type: "Point",
         coordinates: [38.7636, 8.9806],
@@ -93,10 +93,10 @@ const OtherDonationPage = () => {
       showToast.error("Please provide a description");
       return false;
     }
-    if (!formData.address.trim()) {
-      showToast.error("Please enter an address");
-      return false;
-    }
+    // if (!formData.address.trim()) {
+    //   showToast.error("Please enter an address");
+    //   return false;
+    // }
     if (files.length === 0) {
       showToast.error("Please upload at least one image");
       return false;
@@ -120,17 +120,21 @@ const OtherDonationPage = () => {
       }
 
       const formDataToSend = new FormData();
-      files.forEach((file) => formDataToSend.append("files", file));
+
+      // Change "files" to "images" to match Multer configuration
+      files.forEach((file) => formDataToSend.append("images", file));
 
       const payload = {
-        ...formData,
-        donorId,
-        status: "pending",
+        title: formData.title,
+        description: formData.description || "",
+        location: {
+          type: "Point",
+          coordinates: formData.location.coordinates,
+        },
+        status: "posted", // Match backend default
       };
 
       formDataToSend.append("data", JSON.stringify(payload));
-      formDataToSend.append("longitude", formData.location.coordinates[0]);
-      formDataToSend.append("latitude", formData.location.coordinates[1]);
 
       const response = await fetch(
         "http://localhost:5000/api/organization/non-material",
@@ -152,15 +156,13 @@ const OtherDonationPage = () => {
         throw new Error(errorData.message || "Failed to process your donation");
       }
 
-      //   const data = await response.json();
       showToast.success("Donation submitted successfully!");
 
       // Reset form
       setFormData({
         title: "",
-        donationType: "",
+        donationType: "other",
         description: "",
-        address: "",
         location: {
           type: "Point",
           coordinates: [38.7636, 8.9806],
