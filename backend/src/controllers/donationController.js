@@ -8,7 +8,7 @@ const { generateTrackingId } = require("../utils/helpers");
 const asyncWrapper = require("../middleware/asyncWrapper");
 const AppError = require("../utils/appError");
 const sendSuccessResponse = require("../utils/responseHelper");
-const  {sendNotification}=require( "../utils/notificationService");
+const { sendNotification } = require("../utils/notificationService");
 
 // @desc    Create a new material donation post
 // @route   POST /api/donations/material
@@ -67,10 +67,13 @@ const createMaterialDonation = asyncWrapper(async (req, res, next) => {
 
     // File handling
     const fileUrls =
-          req.files?.map((file) =>
-            path.join("donations", path.basename(file.path))
-          ) || [];
+      req.files?.map((file) =>
+        path.join("donations", path.basename(file.path))
+      ) || [];
     console.log("7. Files processed successfully");
+
+    console.log("req.body:", req.body);
+    console.log("req.files:", req.files);
 
     // Parse the JSON data if it's sent as a string in FormData
     let donationData = {};
@@ -111,6 +114,33 @@ const createMaterialDonation = asyncWrapper(async (req, res, next) => {
     };
 
     console.log("7.7 Formatted location:", location);
+
+    // Address validation and formatting
+    const addressSource = req.body.address || donationData.address;
+    if (!addressSource) {
+      return next(new AppError("Address is required", 400));
+    }
+
+    const requiredAddressFields = ["country", "region", "city"];
+    const missingFields = requiredAddressFields.filter(
+      (field) => !addressSource[field]
+    );
+
+    if (missingFields.length > 0) {
+      return next(
+        new AppError(
+          `Missing required address fields: ${missingFields.join(", ")}`,
+          400
+        )
+      );
+    }
+
+    const formattedAddress = {
+      country: addressSource.country,
+      region: addressSource.region,
+      city: addressSource.city,
+      street: addressSource.street || "", // street is optional
+    };
 
     // Prepare the donation data with proper category handling
     const { materialDetails, description, title, ...otherData } = donationData;
@@ -176,6 +206,7 @@ const createMaterialDonation = asyncWrapper(async (req, res, next) => {
       description,
       title,
       materialDetails: dbMaterialDetails,
+      address: formattedAddress,
       location,
       images: fileUrls,
       trackingId: await generateTrackingId(),
@@ -272,7 +303,7 @@ const getAllMaterialDonations = asyncWrapper(async (req, res, next) => {
   console.log("1. Getting all material donations");
   const donations = await Donations.find({
     donationType: "material",
-   status: "posted",
+    status: "posted",
   }).populate("donor", "name email phone");
 
   sendSuccessResponse(res, 200, {
@@ -322,12 +353,12 @@ const requestMaterialDonation = asyncWrapper(async (req, res, next) => {
       actionRequired: true,
     },
   });
-    sendNotification(
-      donation.donor,
-      `New request comes for the donation by ${req.user.name}`,
-      "donation-request",
-      `/admin/users/${req.user._id}`
-    );
+  sendNotification(
+    donation.donor,
+    `New request comes for the donation by ${req.user.name}`,
+    "donation-request",
+    `/admin/users/${req.user._id}`
+  );
 
   sendSuccessResponse(res, 200, {
     message: "Request submitted successfully",
@@ -369,12 +400,12 @@ const cancelMaterialDonationRequest = asyncWrapper(async (req, res, next) => {
       trackingId: donation.trackingId,
     },
   });
-    sendNotification(
-      donation.donor,
-      `New request comes for the donation by ${req.user.name}`,
-      "donation-request",
-      `/admin/users/${req.user._id}`
-    );
+  sendNotification(
+    donation.donor,
+    `New request comes for the donation by ${req.user.name}`,
+    "donation-request",
+    `/admin/users/${req.user._id}`
+  );
 
   sendSuccessResponse(res, 200, {
     message: "Request cancelled successfully",
@@ -496,7 +527,6 @@ const completeDonation = asyncWrapper(async (req, res, next) => {
     },
   });
 
-
   sendSuccessResponse(res, 200, {
     donation,
     notifications: [donorNotification, ngoNotification],
@@ -572,10 +602,10 @@ const getDonationAcceptedForNGO = asyncWrapper(async (req, res, next) => {
       description: donation.description,
       status: donation.status,
       createdAt: donation.createdAt,
-      updatedAt:donation.updatedAt,
+      updatedAt: donation.updatedAt,
       donor: donation.donor,
       need: donation.need,
-      location:donation.location,
+      location: donation.location,
       details: {
         ...(donation.donationType === "money" && {
           amount: donation.amount,
