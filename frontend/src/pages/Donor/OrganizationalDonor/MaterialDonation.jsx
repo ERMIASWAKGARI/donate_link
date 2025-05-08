@@ -65,16 +65,6 @@ const MaterialDonation = ({
     }));
     setShowCustomSubCategory(value === "Other");
   };
-  const handleLocationSelect = (coordinates) => {
-    setFormData((prev) => ({
-      ...prev,
-      location: {
-        type: "Point",
-        coordinates: coordinates, // Already in GeoJSON format [lng, lat]
-      },
-    }));
-    setMapCenter(coordinates);
-  };
 
   const handleCustomCategorySubmit = () => {
     if (!formData.materialDetails.customCategory.trim()) {
@@ -471,8 +461,9 @@ const MaterialDonation = ({
             </label>
             <div className="h-[400px] rounded-md overflow-hidden border border-gray-300">
               <LocationMap
-                onLocationSelect={handleLocationSelect}
-                initialCoordinates={formData.location.coordinates}
+                mapCenter={mapCenter}
+                setFormData={setFormData}
+                setMapCenter={setMapCenter}
               />
             </div>
           </div>

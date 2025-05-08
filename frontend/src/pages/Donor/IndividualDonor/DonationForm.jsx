@@ -9,9 +9,11 @@ import {
 import Axios from "../../../config/axiosConfig";
 import { UserContext } from "../../../context/UserContext";
 import MaterialDonationForm from "./MatterialDonationForm";
-
+import { fetchDonationsByNeed } from "../../../redux/donationsSlice";
+import { useDispatch, useSelector } from "react-redux";
 const DonationForm = ({ need, onClose, onSubmit }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const dispatch = useDispatch();
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const { user } = useContext(UserContext);
@@ -283,6 +285,7 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
       }
 
       setSuccess(response?.data?.message || "Donation submitted successfully!");
+      dispatch(fetchDonationsByNeed(need._id));
       if (onSubmit) onSubmit(response?.data?.donation || formData);
 
       setTimeout(() => {

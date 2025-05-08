@@ -72,10 +72,6 @@ const DonationsPage = () => {
           {pagination.totalItems}{" "}
           {pagination.totalItems === 1 ? "Result" : "Results"} Found
         </h2>
-        <div className="text-sm text-gray-500">
-          Sorted by:{" "}
-          <span className="font-medium text-green-700">Most Urgent</span>
-        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

@@ -1101,6 +1101,7 @@ const getNGOStatistics = async (req, res) => {
 };
 const getAmountDonated = async (req, res) => {
   try {
+    console.log("here the amount donated")
     const { need } = req.params;
 
     // Validate the need ID
@@ -1170,7 +1171,7 @@ async function calculateMoneyDonations(needId, targetMoney) {
     {
       $match: {
         needId: new mongoose.Types.ObjectId(needId),
-        status: "Completed",
+        // status: "Completed",
       },
     },
     {
