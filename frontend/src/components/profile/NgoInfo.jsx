@@ -16,12 +16,7 @@ export const NgoInfo = ({
 }) => {
   console.log('has changes', hasChanges);
 
-  const horizontalFields = [
-    'organizationName',
-    'missionStatement',
-    'registrationNumber',
-    'preferences',
-  ];
+  const horizontalFields = ['preferences'];
   const otherFields = ngoFields.filter(
     (field) => !horizontalFields.includes(field.fieldName)
   );

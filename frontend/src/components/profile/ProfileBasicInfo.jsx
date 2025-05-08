@@ -1,6 +1,4 @@
 /* eslint-disable react/prop-types */
-import { AdminInfo } from './AdminInfo';
-import { DonorInfo } from './DonorInfo';
 import { FieldRenderer } from './FieldRenderer';
 import { NgoInfo } from './NgoInfo';
 import { basicProfileFields } from './profileFields';
@@ -55,33 +53,7 @@ export const ProfileBasicInfo = ({
             hasChanges={hasChanges}
           />
         );
-      case 'individual_donor':
-      case 'organization_donor':
-        return (
-          <DonorInfo
-            user={user}
-            editingField={editingField}
-            loading={loading}
-            onEdit={setEditingField}
-            onCancel={handleCancelEdit}
-            onSave={handleSaveField}
-            handleFieldChange={handleFieldChange}
-            hasChanges={hasChanges}
-          />
-        );
-      case 'admin':
-        return (
-          <AdminInfo
-            user={user}
-            editingField={editingField}
-            loading={loading}
-            onEdit={setEditingField}
-            onCancel={handleCancelEdit}
-            onSave={handleSaveField}
-            handleFieldChange={handleFieldChange}
-            hasChanges={hasChanges}
-          />
-        );
+
       default:
         return null;
     }
