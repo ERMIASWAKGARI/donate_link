@@ -788,7 +788,7 @@ const generateReport = async (req, res) => {
     need.isReportGenerated = true;
     need.save();
     const donors = await User.find({
-      role: "individual_donor" || "organization_donor",
+      role: {$in:["individual_donor" , "organization_donor"]},
     });
     donors.forEach((donor) => {
       sendNotification(
