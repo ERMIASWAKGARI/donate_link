@@ -16,7 +16,7 @@ import {
   Users,
   Award,
   Shield,
-} from "lucide-react";
+} from 'lucide-react';
 
 // Named export for icons
 export const icons = {
@@ -42,23 +42,28 @@ export const icons = {
 // Named export for headerLinks
 export const headerLinks = {
   common: [
-    { to: "/profile", text: "My Profile", icon: "User" },
-    { to: "/history", text: "Donation History", icon: "History" },
-    { to: "/account/settings", text: "Account Settings", icon: "Settings" },
-    { to: "/terms-of-service", text: "Terms of Service", icon: "FileText" },
-    { to: "/privacy-policy", text: "Privacy Policy", icon: "Shield" },
+    { to: '/profile', text: 'My Profile', icon: 'User' },
+    { to: '/account/settings', text: 'Account Settings', icon: 'Settings' },
+    { to: '/terms-of-service', text: 'Terms of Service', icon: 'FileText' },
+    { to: '/privacy-policy', text: 'Privacy Policy', icon: 'Shield' },
   ],
   individual_donor: [
-    { to: "/certificates", text: "My Certificates", icon: "Award" },
+    { to: '/history', text: 'Donation History', icon: 'History' },
+    { to: '/certificates', text: 'My Certificates', icon: 'Award' },
   ],
   organization_donor: [
     // { to: '/post-donation', text: 'Post Donation', icon: 'PlusCircle' },
-    { to: "/certificates", text: "My Certificates", icon: "Award" },
+    { to: '/certificates', text: 'My Certificates', icon: 'Award' },
+    { to: '/history', text: 'Donation History', icon: 'History' },
+    { to: '/certificates', text: 'My Certificates', icon: 'Award' },
   ],
-  volunteer: [{ to: "/certificates", text: "My Certificates", icon: "Award" }],
+  volunteer: [
+    { to: '/history', text: 'Donation History', icon: 'History' },
+    { to: '/certificates', text: 'My Certificates', icon: 'Award' },
+  ],
   ngo: [
-    { to: "/reports", text: "Reports", icon: "FileText" },
-    { to: "/volunteers", text: "Volunteers", icon: "Users" },
+    { to: '/reports', text: 'Reports', icon: 'FileText' },
+    { to: '/volunteers', text: 'Volunteers', icon: 'Users' },
   ],
 };
 

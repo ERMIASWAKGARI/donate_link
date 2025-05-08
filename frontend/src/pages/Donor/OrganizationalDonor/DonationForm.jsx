@@ -212,38 +212,53 @@ const DonationForm = () => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+
+    if (!validateForm()) {
+      return;
+    }
 
     setIsSubmitting(true);
-    const loadingToast = showToast.loading("Submitting donation...");
+    const loadingToast = showToast.loading("Submitting your donation...");
 
     try {
       const donorId = getDonorIdFromToken();
-      if (!donorId) return;
+      if (!donorId) {
+        showToast.dismiss(loadingToast);
+        setIsSubmitting(false);
+        return;
+      }
 
+      // Create FormData for file upload
       const formDataToSend = new FormData();
-      files.forEach((file) => formDataToSend.append("files", file));
 
+      // Add files
+      files.forEach((file) => {
+        formDataToSend.append("images", file);
+      });
+
+      // Prepare the donation payload
       const payload = {
-        title: formData.title.trim(),
-        description: formData.description.trim(),
-        donorId,
-        donationType: "material",
         materialDetails: {
-          category:
-            formData.materialDetails.category === "other"
-              ? formData.materialDetails.customCategory
-              : formData.materialDetails.category,
-          subCategory:
-            formData.materialDetails.subCategory === "Other"
-              ? formData.materialDetails.customSubCategory
-              : formData.materialDetails.subCategory,
+          category: formData.materialDetails.category,
+          ...(formData.materialDetails.category === "other" && {
+            customCategory: formData.materialDetails.customCategory,
+          }),
+          subCategory: formData.materialDetails.subCategory,
+          ...(formData.materialDetails.subCategory === "Other" && {
+            customSubCategory: formData.materialDetails.customSubCategory,
+          }),
           quantity: Number(formData.materialDetails.quantity),
           unit: formData.materialDetails.unit,
           condition: formData.materialDetails.condition,
           ...(formData.materialDetails.expirationDate && {
-            expirationDate: new Date(formData.materialDetails.expirationDate),
+            expirationDate: formData.materialDetails.expirationDate,
           }),
+        },
+        address: {
+          country: formData.address.country,
+          region: formData.address.region,
+          city: formData.address.city,
+          ...(formData.address.street && { street: formData.address.street }),
         },
         address: {
           country: formData.address.country,
@@ -253,68 +268,76 @@ const DonationForm = () => {
         },
         location: {
           type: "Point",
-          coordinates: formData.location.coordinates.map(Number),
+          coordinates: [
+            Number(formData.location.coordinates[0]),
+            Number(formData.location.coordinates[1]),
+          ],
         },
+        title: formData.title,
+        description: formData.description,
       };
 
       formDataToSend.append("data", JSON.stringify(payload));
 
-      const response = await axios.post(
-        "/organization/material",
-        formDataToSend,
+      const response = await fetch(
+        "http://localhost:5000/api/organization/material",
         {
           headers: {
-            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
           },
         }
       );
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to process your donation");
+      }
+
+      // Show success message and clear form
+      showToast.dismiss(loadingToast);
       showToast.success("Donation submitted successfully!");
-      resetForm();
+
+      // Reset form state
+      setFormData({
+        title: "",
+        description: "",
+        materialDetails: {
+          category: "",
+          customCategory: "",
+          subCategory: "",
+          customSubCategory: "",
+          quantity: 1,
+          unit: "pieces",
+          condition: "new",
+          expirationDate: "",
+        },
+        address: {
+          country: "",
+          region: "",
+          city: "",
+          street: "",
+        },
+        location: {
+          type: "Point",
+          coordinates: [38.7636, 8.9806],
+        },
+      });
+      setFiles([]);
+      setPreviewUrls([]);
+      setIsSubmitting(false);
+
+      // Wait 2 seconds before navigating
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       navigate("/donor/dashboard");
     } catch (error) {
-      console.error("Submission error:", error);
-      showToast.error(
-        error.response?.data?.message ||
-          "Failed to submit donation. Please try again."
-      );
-    } finally {
       showToast.dismiss(loadingToast);
       setIsSubmitting(false);
+      showToast.error(
+        error.message || "An unexpected error occurred. Please try again."
+      );
     }
   };
 
-  // Reset form
-  const resetForm = () => {
-    setFormData({
-      title: "",
-      description: "",
-      materialDetails: {
-        category: "",
-        customCategory: "",
-        subCategory: "",
-        customSubCategory: "",
-        quantity: 1,
-        unit: "pieces",
-        condition: "new",
-        expirationDate: "",
-      },
-      address: {
-        country: "",
-        region: "",
-        city: "",
-      },
-      location: {
-        type: "Point",
-        coordinates: [38.7636, 8.9806],
-      },
-    });
-    setFiles([]);
-    setPreviewUrls([]);
-  };
-
-  // Clean up object URLs
   useEffect(() => {
     return () => previewUrls.forEach(URL.revokeObjectURL);
   }, [previewUrls]);

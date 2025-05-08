@@ -25,8 +25,9 @@ router.post(
 );
 router.post(
   "/material",
- authMiddleware(["organization_donor"]),
-//  uploadNeedPictures,
+  authMiddleware(["organization_donor"]),
+  upload,
+  // uploadNeedPictures,
   donationController.createMaterialDonation
 );
 //route for updating the requests for material donations
@@ -41,10 +42,13 @@ router.get(
 router.post(
   "/material/:id/request",
 
-
   donationController.requestMaterialDonation
 );
-router.delete("/material/:id/request",authMiddleware("ngo") ,donationController.cancelMaterialDonationRequest);
+router.delete(
+  "/material/:id/request",
+  authMiddleware("ngo"),
+  donationController.cancelMaterialDonationRequest
+);
 router.patch(
   "/material/:id/respond",
 
@@ -62,7 +66,11 @@ router.get(
 
   donationController.getDonationByTrackingId
 );
-router.get("/requestAccepted/:NGO",authMiddleware(["ngo"]),donationController.getDonationAcceptedForNGO);
+router.get(
+  "/requestAccepted/:NGO",
+  authMiddleware(["ngo"]),
+  donationController.getDonationAcceptedForNGO
+);
 router.delete(
   "/delete-all-test", // Changed endpoint to make it clear this is for testing
   // Only requires authentication
