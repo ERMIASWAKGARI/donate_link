@@ -3,6 +3,10 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
 const User = require('../models/User');
+const Payment = require('../models/paymentModel');
+const MaterialDonation = require('../models/matterialDonation');
+const Application = require('../models/applicationModel');
+
 const asyncWrapper = require('../middleware/asyncWrapper');
 const AppError = require('../utils/appError');
 const sendSuccessResponse = require('../utils/responseHelper');
@@ -567,6 +571,81 @@ const softDeleteUserAccount = asyncWrapper(async (req, res) => {
   sendSuccessResponse(res, 200, 'Your account has been deleted (soft delete).');
 });
 
+const getUserPaymentHistory = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    console.log('req params: ', req.params);
+
+    const payments = await Payment.find({ donorId: userId })
+      .populate('needId', 'title description')
+      .populate('NGOId', 'name')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      status: 'success',
+      results: payments.length,
+      data: {
+        payments,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+
+const getUserMaterialHistory = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const donations = await MaterialDonation.find({ donorId: userId })
+      .populate('needId', 'title description')
+      .populate('NGO', 'name')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      status: 'success',
+      results: donations.length,
+      data: {
+        donations,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+
+const getUserServiceHistory = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const services = await Application.find({
+      applicant: userId,
+    })
+      .populate('need', 'title description')
+      .populate('NGO', 'name')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      status: 'success',
+      results: services.length,
+      data: {
+        services,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+
 module.exports = {
   registerUser,
   getUserProfile,
@@ -579,4 +658,7 @@ module.exports = {
   deleteUserAccount,
   uploadVerificationDocs,
   uploadProfilePicture,
+  getUserPaymentHistory,
+  getUserMaterialHistory,
+  getUserServiceHistory,
 };
