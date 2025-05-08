@@ -1,9 +1,9 @@
-const axios = require("axios");
-const { v4: uuidv4 } = require("uuid");
-const asyncWrapper = require("../middleware/asyncWrapper");
-const AppError = require("../utils/appError");
-const Payment = require("../models/paymentModel");
-const Need = require("../models/needsModel");
+const axios = require('axios');
+const { v4: uuidv4 } = require('uuid');
+const asyncWrapper = require('../middleware/asyncWrapper');
+const AppError = require('../utils/appError');
+const Payment = require('../models/paymentModel');
+const Need = require('../models/needsModel');
 
 const initializePayment = asyncWrapper(async (req, res) => {
   const {
@@ -60,7 +60,7 @@ const initializePayment = asyncWrapper(async (req, res) => {
       timeout: 10000,
     }
   );
-const needBeingApplied= await Need.findById(needId);
+  const needBeingApplied = await Need.findById(needId);
   if (needBeingApplied) {
     needBeingApplied.hasDonations = true;
     await needBeingApplied.save();

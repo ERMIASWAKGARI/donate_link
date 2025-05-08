@@ -1,4 +1,5 @@
 const express = require('express');
+const axios = require('axios');
 
 const {
   registerUser,
@@ -12,6 +13,9 @@ const {
   reactivateAccount,
   recoverAccount,
   getUserById,
+  getUserPaymentHistory,
+  getUserMaterialHistory,
+  getUserServiceHistory,
 } = require('../controllers/userController');
 const uploadVerificationDocsMiddleware = require('../middleware/fileUpload');
 const uploadProfilePictureMiddleware = require('../middleware/uploadProfilePicture');
@@ -40,5 +44,28 @@ router.patch(
   uploadVerificationDocs
 );
 router.get('/:id', protect, getUserById);
+
+router.get('/payment/:userId', getUserPaymentHistory);
+router.get('/material/:userId', getUserMaterialHistory);
+router.get('/service/:userId', getUserServiceHistory);
+router.get('/receipt/:receiptUrl', async (req, res) => {
+  try {
+    const encodedUrl = req.params.receiptUrl;
+    const receiptUrl = Buffer.from(encodedUrl, 'base64').toString('utf-8');
+    console.lo('receipt url: ', receiptUrl);
+
+    const response = await axios.get(receiptUrl, {
+      headers: {
+        Authorization: 'Bearer CHASECK_TEST-cLqzZzLeB34CvWJyfaYBqr8EvYlw2ztA',
+      },
+      responseType: 'stream',
+    });
+
+    res.setHeader('Content-Type', response.headers['content-type']);
+    response.data.pipe(res);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch receipt' });
+  }
+});
 
 module.exports = router;
