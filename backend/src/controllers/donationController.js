@@ -357,7 +357,7 @@ const requestMaterialDonation = asyncWrapper(async (req, res, next) => {
     donation.donor,
     `New request comes for the donation by ${req.user.name}`,
     "donation-request",
-    `/admin/users/${req.user._id}`
+  
   );
 
   sendSuccessResponse(res, 200, {
@@ -587,7 +587,7 @@ const getDonationAcceptedForNGO = asyncWrapper(async (req, res, next) => {
     // Get all donations where this NGO is the matched NGO
     const donations = await Donations.find({
       NGO: NGO,
-      status: "accepted",
+      status: { $in: ["accepted", "completed", "Completed"] },
     })
       .populate("donor", "name email phone")
       .populate("need", "title description")

@@ -188,7 +188,10 @@ const PendingDonations = () => {
                   {donation.images?.length > 0 && (
                     <div className="h-48 overflow-hidden">
                       <img
-                        src={`http://localhost:5000${donation.images[0]}`}
+                        src={`http://localhost:5000/uploads/${donation.images[0].replace(
+                          /\\/g,
+                          "/"
+                        )}`}
                         alt="Donation"
                         className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                       />

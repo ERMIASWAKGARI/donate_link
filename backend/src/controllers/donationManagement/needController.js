@@ -140,7 +140,7 @@ const postNgosNeed = async (req, res, next) => {
         donor._id,
         `New need posted by ${req.user.name}`,
         "need",
-        `/donor/dashboard`
+      
       );
     });
 
