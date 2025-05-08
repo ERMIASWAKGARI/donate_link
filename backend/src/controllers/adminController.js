@@ -192,28 +192,40 @@ const deleteNeedPost = async (req, res) => {
 const getAllDonations = asyncWrapper(async (req, res) => {
   const { page = 1, limit, sortBy = '-createdAt', search = '' } = req.query;
 
-  // Build match conditions for search
-  const searchCondition = search
-    ? {
+  // Build match conditions for search and status
+  const baseCondition = {
+    $and: [
+      search
+        ? {
+            $or: [
+              { 'donor.name': { $regex: search, $options: 'i' } },
+              { 'ngo.name': { $regex: search, $options: 'i' } },
+              { trackingId: { $regex: search, $options: 'i' } },
+              { reference: { $regex: search, $options: 'i' } },
+            ],
+          }
+        : {},
+      // Add status filter for completed donations only
+      {
         $or: [
-          { 'donor.name': { $regex: search, $options: 'i' } },
-          { 'ngo.name': { $regex: search, $options: 'i' } },
-          { trackingId: { $regex: search, $options: 'i' } },
-          { reference: { $regex: search, $options: 'i' } },
+          { status: 'Completed' }, // For payments
+          { status: 'completed' }, // For material donations
+          { status: { $exists: false } }, // For material donations without status
         ],
-      }
-    : {};
+      },
+    ],
+  };
 
-  // Fetch material donations with proper population
-  const materialDonations = await MaterialDonation.find(searchCondition)
+  // Fetch material donations with proper population and status filtering
+  const materialDonations = await MaterialDonation.find(baseCondition)
     .sort(sortBy)
     .populate('donorId', 'name email')
     .populate('NGO', 'name email')
     .populate('needId', 'title')
     .lean();
 
-  // Fetch monetary donations with proper population
-  const payments = await Payment.find(searchCondition)
+  // Fetch monetary donations with proper population and status filtering
+  const payments = await Payment.find(baseCondition)
     .sort(sortBy)
     .populate('donorId', 'name email')
     .populate('NGOId', 'name email')
