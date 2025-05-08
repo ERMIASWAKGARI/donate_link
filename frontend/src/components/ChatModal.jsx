@@ -55,7 +55,14 @@ const ChatModal = ({ onClose, showChatModal }) => {
         const loadedConversations = await fetchConversations();
 
         if (isMounted) {
-          // If there's an active conversation but no messages, fetch them
+          if (loadedConversations?.length > 0 && !activeConversation) {
+            console.log(
+              "Setting initial conversation:",
+              loadedConversations[0]
+            );
+            setActiveConversation(loadedConversations[0]);
+          }
+
           if (activeConversation?._id) {
             await fetchMessages(activeConversation._id);
             scrollToBottom();
@@ -281,8 +288,12 @@ const ChatModal = ({ onClose, showChatModal }) => {
                             /\\/g,
                             "/"
                           )}`}
-                          alt={otherParticipant?.name}
+                          alt={otherParticipant?.name || "User"}
                           className="w-10 h-10 rounded-full object-cover"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "/path/to/default/avatar.png";
+                          }}
                         />
                         {unreadMessages && (
                           <div className="absolute top-0 right-0 w-3 h-3 bg-teal-500 rounded-full border-2 border-white"></div>
