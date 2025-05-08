@@ -29,6 +29,7 @@ const ImpactSection = () => {
       const response = await axios.get(
         'http://localhost:5000/api/impact/get-impact'
       );
+      console.log(response.data.data);
       setStats(response.data.data);
     } catch (err) {
       setError(err.message || 'Failed to fetch impact statistics');

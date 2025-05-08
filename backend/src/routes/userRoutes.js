@@ -13,8 +13,10 @@ const {
   recoverAccount,
   getUserById,
   getUserPaymentHistory,
-  getUserMaterialHistory,
+  getMaterialDonations,
+  getPostedMaterialDonations,
   getUserServiceHistory,
+  completeMaterialDonation,
 } = require('../controllers/userController');
 const uploadVerificationDocsMiddleware = require('../middleware/fileUpload');
 const uploadProfilePictureMiddleware = require('../middleware/uploadProfilePicture');
@@ -45,7 +47,10 @@ router.patch(
 router.get('/:id', protect, getUserById);
 
 router.get('/payment/:userId', getUserPaymentHistory);
-router.get('/material/:userId', getUserMaterialHistory);
 router.get('/service/:userId', getUserServiceHistory);
+// routes/donationRoutes.js
+router.get('/material/:userId', getMaterialDonations);
 
+router.get('/posted-material/:userId', getPostedMaterialDonations);
+router.patch('/material-complete/:donationId', completeMaterialDonation);
 module.exports = router;

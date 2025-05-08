@@ -6,6 +6,7 @@ const User = require('../models/User');
 const Payment = require('../models/paymentModel');
 const MaterialDonation = require('../models/matterialDonation');
 const Application = require('../models/applicationModel');
+const Donations = require('../models/donationsModel');
 
 const asyncWrapper = require('../middleware/asyncWrapper');
 const AppError = require('../utils/appError');
@@ -596,10 +597,13 @@ const getUserPaymentHistory = async (req, res) => {
   }
 };
 
-const getUserMaterialHistory = async (req, res) => {
+// controllers/donationController.js
+// controllers/donationController.js
+
+// Get donations from MaterialDonation collection only
+const getMaterialDonations = async (req, res) => {
   try {
     const userId = req.params.userId;
-
     const donations = await MaterialDonation.find({ donorId: userId })
       .populate('needId', 'title description')
       .populate('NGO', 'name')
@@ -616,6 +620,70 @@ const getUserMaterialHistory = async (req, res) => {
     res.status(400).json({
       status: 'fail',
       message: err.message,
+    });
+  }
+};
+
+// Get donations from Donations collection only (material type)
+const getPostedMaterialDonations = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const donations = await Donations.find({
+      donor: userId,
+      donationType: 'material',
+    })
+      .populate('need', 'title description')
+      .populate('NGO', 'name')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      status: 'success',
+      results: donations.length,
+      data: {
+        donations,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+
+// controllers/donationController.js
+const completeMaterialDonation = async (req, res) => {
+  try {
+    const donationId = req.params.donationId;
+
+    console.log('donation id: ', donationId);
+
+    const donation = await Donations.findOneAndUpdate(
+      { _id: donationId },
+      { status: 'completed' },
+      { new: true }
+    );
+
+    console.log(donation);
+
+    if (!donation) {
+      console.log();
+      return res.status(404).json({
+        status: 'fail',
+        message: 'No active donation found for this user.',
+      });
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        donation,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: 'fail',
+      message: err.message || 'Something went wrong.',
     });
   }
 };
@@ -659,6 +727,8 @@ module.exports = {
   uploadVerificationDocs,
   uploadProfilePicture,
   getUserPaymentHistory,
-  getUserMaterialHistory,
+  getMaterialDonations,
+  getPostedMaterialDonations,
   getUserServiceHistory,
+  completeMaterialDonation,
 };
