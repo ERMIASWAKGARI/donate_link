@@ -81,7 +81,7 @@ const OtherDonationForm = ({
             <h2 className="text-lg font-semibold text-gray-700 mb-2">
               Location Details
             </h2>
-            <div className="mb-4">
+            {/* <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Address*
               </label>
@@ -94,7 +94,7 @@ const OtherDonationForm = ({
                 required
                 placeholder="Enter full address"
               />
-            </div>
+            </div> */}
 
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Select Location from Map
@@ -144,7 +144,7 @@ OtherDonationForm.propTypes = {
     title: PropTypes.string.isRequired,
     donationType: PropTypes.string.isRequired,
     description: PropTypes.string.isRequired,
-    address: PropTypes.string.isRequired,
+    // address: PropTypes.string.isRequired,
     location: PropTypes.shape({
       type: PropTypes.string,
       coordinates: PropTypes.arrayOf(PropTypes.number),

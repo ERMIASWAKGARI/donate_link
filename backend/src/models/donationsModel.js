@@ -129,11 +129,29 @@ const donationsSchema = new mongoose.Schema(
       },
     },
     address: {
-      country: { type: String, required: true },
-      region: { type: String, required: true },
-      city: { type: String, required: true },
-      street: { type: String },
+      country: {
+        type: String,
+        required: function () {
+          return this.donationType === "material";
+        },
+      },
+      region: {
+        type: String,
+        required: function () {
+          return this.donationType === "material";
+        },
+      },
+      city: {
+        type: String,
+        required: function () {
+          return this.donationType === "material";
+        },
+      },
+      street: {
+        type: String,
+      },
     },
+
     location: {
       type: {
         type: String,

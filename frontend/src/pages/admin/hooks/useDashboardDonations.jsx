@@ -15,7 +15,7 @@ const useDashboardDonations = (fetchAll = false) => {
         '-createdAt',
         fetchAll ? null : 10
       );
-      console.log('donations response: ', response);
+      console.log('donations response: ', response.donations);
       setDonations(response.donations || []);
     } catch (err) {
       setError(err.message);
