@@ -336,15 +336,14 @@ const DonationForm = () => {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validate form before submission
+  
     if (!validateForm()) {
       return;
     }
-
+  
     setIsSubmitting(true);
     const loadingToast = showToast.loading("Submitting your donation...");
-
+  
     try {
       const donorId = getDonorIdFromToken();
       if (!donorId) {
@@ -352,61 +351,52 @@ const DonationForm = () => {
         setIsSubmitting(false);
         return;
       }
-
-      // Prepare form data
+  
+      // Create FormData for file upload
       const formDataToSend = new FormData();
-
+  
       // Add files
       files.forEach((file) => {
-        formDataToSend.append("files", file);
+        formDataToSend.append("images", file);
       });
-
-      // Prepare payload with additional validation
+  
+      // Prepare the donation payload
       const payload = {
-        title: formData.title.trim(),
-        description: formData.description.trim(),
-        address: {
-          country: formData.address.country.trim(),
-          region: formData.address.region.trim(),
-          city: formData.address.city.trim(),
-        },
-        donorId,
-        donationType: "material",
         materialDetails: {
-          category:
-            formData.materialDetails.category === "other"
-              ? formData.materialDetails.customCategory.trim()
-              : formData.materialDetails.category,
-          subCategory:
-            formData.materialDetails.subCategory === "Other"
-              ? formData.materialDetails.customSubCategory.trim()
-              : formData.materialDetails.subCategory,
+          category: formData.materialDetails.category,
+          ...(formData.materialDetails.category === "other" && {
+            customCategory: formData.materialDetails.customCategory
+          }),
+          subCategory: formData.materialDetails.subCategory,
+          ...(formData.materialDetails.subCategory === "Other" && {
+            customSubCategory: formData.materialDetails.customSubCategory
+          }),
           quantity: Number(formData.materialDetails.quantity),
           unit: formData.materialDetails.unit,
           condition: formData.materialDetails.condition,
           ...(formData.materialDetails.expirationDate && {
-            expirationDate: formData.materialDetails.expirationDate,
-          }),
+            expirationDate: formData.materialDetails.expirationDate
+          })
+        },
+        address: {
+          country: formData.address.country,
+          region: formData.address.region,
+          city: formData.address.city,
+          ...(formData.address.street && { street: formData.address.street })
         },
         location: {
           type: "Point",
           coordinates: [
             Number(formData.location.coordinates[0]),
-            Number(formData.location.coordinates[1]),
-          ],
+            Number(formData.location.coordinates[1])
+          ]
         },
+        title: formData.title,
+        description: formData.description
       };
-
-      // Validate coordinates are numbers
-      if (
-        isNaN(payload.location.coordinates[0]) ||
-        isNaN(payload.location.coordinates[1])
-      ) {
-        throw new Error("Invalid location coordinates");
-      }
-
+  
       formDataToSend.append("data", JSON.stringify(payload));
-
+  
       const response = await fetch(
         "http://localhost:5000/api/organization/material",
         {
@@ -414,23 +404,21 @@ const DonationForm = () => {
           body: formDataToSend,
           credentials: "include",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`
+          }
         }
       );
-
-      showToast.dismiss(loadingToast);
-      setIsSubmitting(false);
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to process your donation");
       }
-
-      const data = await response.json();
-      showToast.success(data.message || "Donation submitted successfully!");
-
-      // Reset form
+  
+      // Show success message and clear form
+      showToast.dismiss(loadingToast);
+      showToast.success("Donation submitted successfully!");
+      
+      // Reset form state
       setFormData({
         title: "",
         description: "",
@@ -448,17 +436,23 @@ const DonationForm = () => {
           country: "",
           region: "",
           city: "",
+          street: ""
         },
         location: {
           type: "Point",
-          coordinates: [38.7636, 8.9806],
-        },
+          coordinates: [38.7636, 8.9806]
+        }
       });
       setFiles([]);
       setPreviewUrls([]);
+      setIsSubmitting(false);
+  
+      // Wait 2 seconds before navigating
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      navigate("/donor/dashboard");
+  
     } catch (error) {
       showToast.dismiss(loadingToast);
-      console.error(error.message);
       setIsSubmitting(false);
       showToast.error(
         error.message || "An unexpected error occurred. Please try again."

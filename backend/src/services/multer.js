@@ -33,7 +33,7 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024, // 5MB
     files: 5, // Max 5 files
   },
-}).array("files"); // Changed from "images" to "files" to match frontend
+}).array("images"); // Changed from "images" to "files" to match frontend
 
 // Simplified move function (no longer needed since we upload directly)
 const getFileUrls = (files) => {
