@@ -52,6 +52,8 @@ export const headerLinks = {
     { to: '/certificates', text: 'My Certificates', icon: 'Award' },
   ],
   organization_donor: [
+    // { to: '/post-donation', text: 'Post Donation', icon: 'PlusCircle' },
+    { to: '/certificates', text: 'My Certificates', icon: 'Award' },
     { to: '/history', text: 'Donation History', icon: 'History' },
     { to: '/post-donation', text: 'Post Donation', icon: 'PlusCircle' },
     { to: '/certificates', text: 'My Certificates', icon: 'Award' },
