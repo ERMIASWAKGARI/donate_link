@@ -236,19 +236,21 @@ const PendingDonations = () => {
                     </div>
 
                     <div className="flex justify-between items-center pt-3 border-t">
-                      <button
-                        onClick={() => handleRequest(donation._id)}
-                        disabled={donation.requests.includes(user._id)}
-                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                          !donation.requests.includes(user._id)
-                            ? "border border[#008080] text-[#008080] hover:text-white hover:bg-[#008080]"
-                            : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                        }`}
-                      >
-                        {donation.requests.includes(user._id)
-                          ? "Requested"
-                          : "Request"}
-                      </button>
+                      {user.isVerified === true && (
+                        <button
+                          onClick={() => handleRequest(donation._id)}
+                          disabled={donation.requests.includes(user._id)}
+                          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                            !donation.requests.includes(user._id)
+                              ? "border border[#008080] text-[#008080] hover:text-white hover:bg-[#008080]"
+                              : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                          }`}
+                        >
+                          {donation.requests.includes(user._id)
+                            ? "Requested"
+                            : "Request"}
+                        </button>
+                      )}
                       <button
                         onClick={() => openDetailsModal(donation)}
                         className="p-2 text-gray-500 hover:text-blue-600 rounded-full hover:bg-blue-50 transition-colors"

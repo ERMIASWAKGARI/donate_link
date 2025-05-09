@@ -151,7 +151,10 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
               "Please provide quantities for at least one material"
             );
           }
-          if (!formData.location.address) {
+          if (
+            !formData.location.address &&
+            user.role === "organization_donor"
+          ) {
             throw new Error("Please provide a location for material donation");
           }
           break;
@@ -288,9 +291,9 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
       dispatch(fetchDonationsByNeed(need._id));
       if (onSubmit) onSubmit(response?.data?.donation || formData);
 
-      setTimeout(() => {
-        onClose();
-      }, 3000);
+      // setTimeout(() => {
+      //   onClose();
+      // }, 3000);
     } catch (err) {
       console.error("Error submitting donation:", err);
       setError(

@@ -1167,35 +1167,92 @@ const getAmountDonated = async (req, res) => {
 
 // Helper function to calculate money donations
 async function calculateMoneyDonations(needId, targetMoney) {
+  // Define exchange rates (you might want to fetch these from an API or database)
+  const exchangeRates = {
+    USD: 130,
+    ETB: 1,
+  };
+
   const result = await mongoose.model("Payment").aggregate([
     {
       $match: {
         needId: new mongoose.Types.ObjectId(needId),
-        // status: "Completed",
+        status: "Completed",
       },
     },
     {
       $group: {
         _id: null,
-        totalDonated: { $sum: "$amount" },
+        totalDonated: {
+          $sum: {
+            $multiply: [
+              "$amount",
+              {
+                $ifNull: [
+                  {
+                    $arrayElemAt: [
+                      Object.values(exchangeRates),
+                      {
+                        $indexOfArray: [
+                          Object.keys(exchangeRates),
+                          "$currency",
+                        ],
+                      },
+                    ],
+                  },
+                  1,
+                ],
+              },
+            ],
+          },
+        },
+        // You might also want to group by currency to see the breakdown
+        donationsByCurrency: {
+          $push: {
+            currency: "$currency",
+            amount: "$amount",
+            convertedAmount: {
+              $multiply: [
+                "$amount",
+                {
+                  $ifNull: [
+                    {
+                      $arrayElemAt: [
+                        Object.values(exchangeRates),
+                        {
+                          $indexOfArray: [
+                            Object.keys(exchangeRates),
+                            "$currency",
+                          ],
+                        },
+                      ],
+                    },
+                    1,
+                  ],
+                },
+              ],
+            },
+          },
+        },
       },
     },
   ]);
 
-  const totalDonated = result.length > 0 ? result[0].totalDonated : 0;
+  const totalDonatedETB = result.length > 0 ? result[0].totalDonated : 0;
   const target = targetMoney || 0;
   let percentage = 0;
 
   if (target > 0) {
-    percentage = (totalDonated / target) * 100;
+    percentage = (totalDonatedETB / target) * 100;
     percentage = Math.round(percentage * 100) / 100;
   }
 
   return {
-    donated: totalDonated,
+    donated: totalDonatedETB,
     target: target,
     percentage: percentage,
-    currency: "ETB", // Default currency, you can modify this based on your payment records
+    currency: "ETB",
+    breakdown: result.length > 0 ? result[0].donationsByCurrency : [],
   };
 }
 
