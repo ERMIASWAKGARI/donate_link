@@ -464,7 +464,7 @@ const DonationForm = ({ need, onClose, onSubmit }) => {
                 <p className="text-sm text-gray-600 mt-2">
                   Target:{" "}
                   <span className="font-semibold">
-                    ${need.targetMoney.toLocaleString()}
+                    {need.targetMoney.toLocaleString()}ETB
                   </span>
                 </p>
               )}

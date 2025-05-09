@@ -90,7 +90,7 @@ const NeedModal = ({
                     </h3>
                     <div className="flex items-end justify-between">
                       <p className="text-3xl font-bold text-[#008080]">
-                        ${selectedNeed.targetMoney.toLocaleString()}
+                        {selectedNeed.targetMoney.toLocaleString()} ETB
                       </p>
                       <div className="w-24 h-2 bg-blue-200 rounded-full overflow-hidden">
                         <div
