@@ -19,6 +19,9 @@ const NeedInformation = ({ need }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow">
       <div className="mb-6">
+        <p className="text-[#008080]">
+          <strong>{need?.NGO?.name}</strong>
+        </p>
         <h3 className="text-lg font-semibold text-gray-700 mb-2">
           Description
         </h3>
@@ -69,10 +72,11 @@ const NeedInformation = ({ need }) => {
               <>
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-2xl font-bold text-green-600">
-                    ${donations?.money?.donated?.toLocaleString() || 0} donated
+                    ETB {donations?.money?.donated?.toLocaleString() || 0}{" "}
+                    donated
                   </p>
                   <p className="text-lg font-semibold">
-                    ${need.targetMoney?.toLocaleString() || 0} target
+                    ETB{need.targetMoney?.toLocaleString() || 0} target
                   </p>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2.5">

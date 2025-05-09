@@ -414,7 +414,6 @@ const NgoNeedForm = ({ onSubmit, onCancel }) => {
                 id=""
               >
                 <option value="ETB">ETB</option>
-                <option value="ETB">USD</option>
               </select>
             </div>
           )}
