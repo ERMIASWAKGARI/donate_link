@@ -96,7 +96,7 @@ const DonationCard = ({ donation, onSeeMore, onDonate }) => {
             onClick={onDonate}
             className="border border-[#008080] hover:bg-[#008080] text-[#008080] hover:text-white font-medium py-2 px-6 rounded-full transition"
           >
-            {donation.needTypes.includes("service") ? "apply" : "Donate Now"}
+            {donation.needTypes.includes("service") ? "apply" : "Donate"}
           </button>
         </div>
       </div>
