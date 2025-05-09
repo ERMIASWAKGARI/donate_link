@@ -4,7 +4,6 @@ import axios from "../../config/axiosConfig";
 import dayjs from "dayjs";
 import { BlobProvider } from "@react-pdf/renderer";
 import Header from "../header/Header";
-import PDFReportDocument from "./PDFDocument";
 
 const NGOReportViewer = () => {
   const { id } = useParams();
