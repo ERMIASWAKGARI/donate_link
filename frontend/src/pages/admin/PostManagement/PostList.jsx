@@ -1,14 +1,14 @@
 /* eslint-disable no-unused-vars */
 // src/pages/admin/PostManagement/PostList.js
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Pagination from '../common/Pagination';
-import usePosts from '../hooks/usePosts';
-import BulkActions from './BulkActions';
-import ActiveFilters from './ActiveFilters';
-import PostFilters from './PostFilters';
-import PostStats from './PostStats';
-import PostTable from './PostTable';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Pagination from "../common/Pagination";
+import usePosts from "../hooks/UsePosts";
+import BulkActions from "./BulkActions";
+import ActiveFilters from "./ActiveFilters";
+import PostFilters from "./PostFilters";
+import PostStats from "./PostStats";
+import PostTable from "./PostTable";
 
 const PostList = () => {
   const navigate = useNavigate();

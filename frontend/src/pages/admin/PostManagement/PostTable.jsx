@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
 // src/pages/admin/PostManagement/PostTable.js
-import { Spin } from 'antd';
-import { formatDate } from '../../../utils/formatDate';
-import ErrorDisplay from '../common/ErrorDisplay';
+import { Spin } from "antd";
+import { formatDate } from "../../../utils/FormatDate";
+import ErrorDisplay from "../common/ErrorDisplay";
 
 const PostTable = ({ posts, loading, error, onView }) => {
   if (loading) {
@@ -16,7 +16,7 @@ const PostTable = ({ posts, loading, error, onView }) => {
   if (error) {
     return (
       <div className="p-6">
-        <ErrorDisplay message={error.message || 'Failed to load users'} />
+        <ErrorDisplay message={error.message || "Failed to load users"} />
       </div>
     );
   }
@@ -71,9 +71,9 @@ const PostTable = ({ posts, loading, error, onView }) => {
                 <td className="px-4 py-4 whitespace-nowrap">
                   <span
                     className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      post.postType === 'donation'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-blue-100 text-blue-800'
+                      post.postType === "donation"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-blue-100 text-blue-800"
                     }`}
                   >
                     {post.postType}
@@ -82,11 +82,11 @@ const PostTable = ({ posts, loading, error, onView }) => {
                 <td className="px-4 py-4 whitespace-nowrap">
                   <span
                     className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      post.status === 'active'
-                        ? 'bg-green-100 text-green-800'
-                        : post.status === 'pending'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-red-100 text-red-800'
+                      post.status === "active"
+                        ? "bg-green-100 text-green-800"
+                        : post.status === "pending"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-red-100 text-red-800"
                     }`}
                   >
                     {post.status}
